@@ -1,0 +1,22 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+
+# Build output
+dist/
+build/
+
+# Uploads
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/

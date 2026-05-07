@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Saved Listings — NestIQ</title>
+<script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.page-hero { background: var(--ink); padding: 140px 60px 60px; position: relative; overflow: hidden; }
+html.dark .page-hero { background: #0a0907; }
+.page-hero::before { content: ''; position: absolute; top: -150px; right: -150px; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle,rgba(184,155,106,0.08) 0%,transparent 70%); }
+.page-hero-tag { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.page-hero-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--gold); }
+.page-hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(40px,5vw,64px); font-weight: 300; color: #f0ece4; line-height: 1.1; }
+.page-hero h1 em { font-style: italic; color: var(--gold); }
+.page-hero p { color: rgba(240,236,228,0.5); font-size: 14px; margin-top: 12px; }
+
+.saved-body { padding: 60px; background: var(--bg); min-height: 50vh; }
+.saved-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 22px; }
+
+.empty-state { text-align: center; padding: 100px 20px; }
+.empty-icon { font-size: 56px; margin-bottom: 16px; }
+.empty-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; margin-bottom: 10px; color: var(--text); }
+.empty-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+
+.saved-count { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+.saved-count strong { color: var(--text); font-weight: 500; }
+
+.saved-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.clear-all-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+.clear-all-btn:hover { border-color: #c0392b; color: #c0392b; }
+
+@media(max-width:1200px){ .saved-grid{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:900px){ .saved-grid{grid-template-columns:repeat(2,1fr);} .saved-body{padding:40px 24px;} .page-hero{padding:120px 24px 50px;} }
+@media(max-width:600px){ .saved-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
+  <div class="nav-links">
+    <a href="listings.html">Browse</a>
+    <a href="index.html#how">How It Works</a>
+    <a href="about.html">About</a>
+    
+    <a href="index.html#testimonials" id="navGuestReviews">Reviews</a>
+    <a href="list.html">List Property</a>
+    <a href="index.html#recently-viewed" id="navUserRecent" style="display:none;">Recently Viewed</a>
+    
+    <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
+    
+    <div class="nav-user nav-user-drop" id="navUser" style="display:none">
+      <div class="nav-user-avatar">👤</div>
+      <span class="nav-user-name"></span>
+      <div class="nav-user-menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="saved.html">Saved Listings</a>
+        <hr/>
+        <a href="#" onclick="clearUser();updateNavAuth();showNotif('Signed out');return false;">Sign Out</a>
+      </div>
+    </div>
+    <button class="nav-dark-toggle" onclick="toggleDark()" title="Toggle dark mode"><span class="dark-toggle-icon">🌙</span></button>
+  </div>
+  <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-tag">Your Wishlist</div>
+  <h1>Saved <em>Listings</em></h1>
+  <p id="heroSub">Properties you've saved for later.</p>
+</div>
+
+<div class="saved-body">
+  <div id="savedContent"></div>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f0ece4;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh.</p></div>
+    <div class="footer-col"><h4>Browse</h4><a href="listings.html">All Listings</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
+    <div class="footer-col"><h4>Account</h4><a href="dashboard.html">Dashboard</a><a href="saved.html">Saved</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About</a><a href="about.html#contact">Contact</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
+</footer>
+
+<div id="notif"></div>
+
+<script src="data.js"></script>
+<script src="shared.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  if(!isLoggedIn()){
+    // Fix #4: pass a redirect callback so dismissing the prompt sends user to login
+    showLoginPrompt(() => { window.location = 'login_signup.html'; });
+  }
+  renderSaved();
+  updateNavAuth();
+});
+
+function renderSaved(){
+  const ids = getSaved();
+  const container = document.getElementById('savedContent');
+  const heroSub = document.getElementById('heroSub');
+
+  if(!ids.length){
+    heroSub.textContent = 'No saved listings yet.';
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🏚️</div>
+        <div class="empty-title">Nothing Saved Yet</div>
+        <div class="empty-sub">Browse listings and tap ♡ to save properties you like.</div>
+        <button class="btn-primary" onclick="window.location='listings.html'">Browse Listings →</button>
+      </div>`;
+    return;
+  }
+
+  const props = ids.map(id => PROPERTIES.find(p => p.id === id)).filter(Boolean);
+  heroSub.textContent = props.length + ' saved ' + (props.length === 1 ? 'property' : 'properties');
+
+  container.innerHTML = `
+    <div class="saved-actions">
+      <div class="saved-count">Showing <strong>${props.length}</strong> saved ${props.length===1?'property':'properties'}</div>
+      <button class="clear-all-btn" onclick="clearAll()">Clear All Saved</button>
+    </div>
+    <div class="saved-grid" id="savedGrid">
+      ${props.map(p => buildCard(p, false)).join('')}
+    </div>`;
+  attachCardEvents();
+}
+
+window.clearAll = function(){
+  if(!confirm('Remove all saved listings?')) return;
+  localStorage.setItem('nestiq_saved', '[]');
+  renderSaved();
+  showNotif('Cleared all saved listings');
+};
+
+// BUG 3 FIX: only re-render if user was actually logged in (save/unsave happened)
+const _origToggleSave = window.toggleSave;
+window.toggleSave = function(e, btn, id){
+  if(!isLoggedIn()){ _origToggleSave(e, btn, id); return; } // prompt shown, no re-render
+  _origToggleSave(e, btn, id);
+  setTimeout(renderSaved, 300);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Browse Listings — NestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
+
+<style>
+/* PAGE HERO */
+.page-hero { background:var(--ink); padding:140px 60px 60px; position:relative; overflow:hidden; }
+.page-hero::before { content:''; position:absolute; top:-150px; right:-150px; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle,rgba(184,155,106,0.08) 0%,transparent 70%); }
+.page-hero-tag { font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.page-hero-tag::before { content:''; display:block; width:28px; height:1px; background:var(--gold); }
+.page-hero h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(40px,5vw,64px); font-weight:300; color:var(--ivory); line-height:1.1; }
+.page-hero h1 em { font-style:italic; color:var(--gold); }
+.results-count { margin-top:16px; font-size:13px; color:rgba(247,244,239,0.5); }
+.results-count strong { color:var(--gold); }
+
+/* ── EXACT HOME PAGE SEARCH BAR ── */
+#search-section { padding:30px 60px; background:var(--ivory); position:relative; z-index:10; border-bottom:1px solid var(--mist); }
+.search-bar { background:var(--surface); border-radius:4px; box-shadow:0 8px 60px rgba(0,0,0,0.12); padding:10px; display:grid; grid-template-columns:1.2fr 1.5fr 1.2fr 1fr 1fr auto; gap:0; border:1px solid var(--mist); max-width: 1400px; margin: 0 auto; }
+.search-field { padding:14px 18px; border-right:1px solid var(--mist); position:relative; }
+.search-field:last-of-type { border-right:none; }
+.search-field label { display:block; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+.search-field select, .search-field input { width:100%; background:none; border:none; outline:none; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--ink); cursor:pointer; }
+.search-btn { background:var(--gold); border:none; border-radius:2px; padding:14px 24px; color:var(--ivory); font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:background 0.3s; white-space:nowrap; margin:4px; }
+.search-btn:hover { background:var(--ink); }
+
+html.dark #search-section { background: var(--bg); border-bottom-color: var(--border); }
+html.dark #search-section .search-bar { background: var(--surface); border-color: var(--border); }
+html.dark .search-field { background: transparent; }
+html.dark .search-field select, html.dark .search-field input { color: var(--text); background: transparent; }
+html.dark .search-field label { color: var(--gold); }
+html.dark .search-field { border-right-color: var(--border); }
+
+@media(max-width:1100px){ .search-bar{grid-template-columns:1fr 1fr 1fr;} .search-btn{grid-column:span 3;margin:4px;} }
+@media(max-width:600px){ #search-section{padding:20px 16px;} .search-bar{grid-template-columns:1fr;} .search-field{border-right:none;border-bottom:1px solid var(--mist);} .search-btn{margin:4px;} }
+
+/* SORT BAR */
+.sort-bar { display:flex; justify-content:space-between; align-items:center; padding:20px 60px; }
+.sort-left { font-size:13px; color:var(--warm-gray); }
+.sort-left strong { color:var(--ink); font-weight:500; }
+.sort-right { display:flex; align-items:center; gap:10px; }
+.sort-right label { font-size:12px; color:var(--warm-gray); }
+.sort-right select { padding:7px 12px; border:1px solid var(--mist); border-radius:2px; font-family:'DM Sans',sans-serif; font-size:12px; background:var(--ivory); outline:none; cursor:pointer; }
+.view-toggle { display:flex; gap:4px; }
+.view-btn { width:34px; height:34px; border:1px solid var(--mist); background:transparent; border-radius:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.2s; }
+.view-btn.active { background:var(--ink); color:white; border-color:var(--ink); }
+
+/* GRID */
+.listings-wrapper { padding:0 60px 60px; }
+.listings-grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+.listings-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+.listings-list { display:flex; flex-direction:column; gap:16px; }
+.list-card { background:var(--surface); border-radius:4px; overflow:hidden; border:1px solid var(--mist); display:grid; grid-template-columns:280px 1fr; cursor:pointer; transition:box-shadow 0.3s; }
+.list-card:hover { box-shadow:0 8px 32px rgba(0,0,0,0.08); }
+.list-card .card-img { height:100%; min-height:180px; }
+.list-card .card-body { padding:24px; display:flex; flex-direction:column; justify-content:space-between; }
+.list-card .card-desc { font-size:13px; color:var(--warm-gray); line-height:1.7; margin-top:8px; flex:1; }
+
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:100px 20px; }
+.empty-icon { font-size:48px; margin-bottom:16px; }
+.empty-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; margin-bottom:10px; }
+.empty-sub { font-size:14px; color:var(--warm-gray); }
+
+/* PAGINATION */
+.pagination { display:flex; justify-content:center; align-items:center; gap:6px; padding:40px 60px 20px; }
+.page-btn { width:40px; height:40px; border:1px solid var(--mist); background:transparent; border-radius:2px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--ink); transition:all 0.2s; }
+.page-btn:hover { border-color:var(--gold); color:var(--gold); }
+.page-btn.active { background:var(--ink); color:var(--ivory); border-color:var(--ink); }
+.page-btn.dots { cursor:default; border:none; }
+.page-prev, .page-next { padding:0 16px; width:auto; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
+
+/* ACTIVE FILTERS */
+.active-filters { display:flex; gap:8px; flex-wrap:wrap; padding:12px 60px 0; }
+.active-filter { display:inline-flex; align-items:center; gap:6px; background:var(--mist); padding:5px 12px; border-radius:12px; font-size:11px; color:var(--charcoal); }
+.active-filter button { background:none; border:none; cursor:pointer; font-size:12px; color:var(--warm-gray); padding:0; line-height:1; }
+.active-filter button:hover { color:var(--ink); }
+
+/* DARK MODE OVERRIDES */
+html.dark .page-hero { background: #0a0907; }
+html.dark .filter-bar { background: var(--surface); border-bottom-color: var(--border); }
+html.dark .filter-group select, html.dark .filter-group input { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+html.dark .sort-bar { background: var(--bg); }
+html.dark .sort-right select { background: var(--surface); color: var(--text); border-color: var(--border); }
+html.dark .listings-wrapper { background: var(--bg); }
+html.dark .list-card { background: var(--surface); }
+html.dark .pagination { background: var(--bg); }
+html.dark .page-btn { background: var(--surface); color: var(--text); border-color: var(--border); }
+html.dark .page-btn.active { background: var(--ink); color: var(--ivory); }
+html.dark .page-hero h1 { color: #f7f4ef; }
+html.dark .view-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+@media(max-width:1200px){ .listings-grid-4{grid-template-columns:repeat(3,1fr);} }
+@media(max-width:900px){ .listings-grid-4,.listings-grid-3{grid-template-columns:1fr 1fr;} .filter-bar,.sort-bar,.listings-wrapper,.active-filters{padding-left:24px;padding-right:24px;} .list-card{grid-template-columns:200px 1fr;} }
+@media(max-width:600px){ .listings-grid-4,.listings-grid-3{grid-template-columns:1fr;} .filter-inner{flex-direction:column;} .filter-group select,.filter-group input{min-width:100%;} .list-card{grid-template-columns:1fr;} .list-card .card-img{height:200px;min-height:unset;} .pagination{flex-wrap:wrap;} }
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
+  <div class="nav-links">
+    <a href="listings.html" class="active">Browse</a>
+    <a href="index.html#how">How It Works</a>
+    <a href="about.html">About</a>
+    <a href="index.html#testimonials" id="navGuestReviews">Reviews</a>
+    <a href="list.html">List Property</a>
+    <a href="index.html#recently-viewed" id="navUserRecent" style="display:none;">Recently Viewed</a>
+    <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
+    
+    <div class="nav-user nav-user-drop" id="navUser" style="display:none">
+      <div class="nav-user-avatar">👤</div>
+      <span class="nav-user-name"></span>
+      <div class="nav-user-menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="saved.html">Saved Listings</a>
+        <hr/>
+        <a href="#" onclick="clearUser();updateNavAuth();showNotif('Signed out');return false;">Sign Out</a>
+      </div>
+    </div>
+    <button class="nav-dark-toggle" onclick="toggleDark()" title="Toggle dark mode"><span class="dark-toggle-icon">🌙</span></button>
+  </div>
+  <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="page-hero">
+  <div class="page-hero-tag">Smart Listings</div>
+  <h1>Browse <em>Verified</em> Properties</h1>
+  <div class="results-count" id="heroCount">Loading listings...</div>
+</div>
+
+<div id="search-section">
+  <div class="search-bar" id="searchBar">
+    <div class="search-field">
+      <label>I Want To</label>
+      <select id="fIntent" onchange="onIntentChange(); applyFilters();">
+        <option value="">All Properties</option>
+        <option value="rent">Rent a Home</option>
+        <option value="buy">Buy a Home</option>
+      </select>
+    </div>
+    
+    <div class="search-field">
+      <label>Location</label>
+      <input type="text" id="fLoc" placeholder="e.g. Gulshan, Dhaka" oninput="debouncedFilter()"/>
+    </div>
+    
+    <div class="search-field">
+      <label>Bedrooms</label>
+      <select id="fBeds" onchange="applyFilters()">
+        <option value="">Any</option>
+        <option value="1">1+ Bed</option>
+        <option value="2">2+ Beds</option>
+        <option value="3">3+ Beds</option>
+        <option value="4">4+ Beds</option>
+      </select>
+    </div>
+    
+    <div class="search-field" id="fTenantGroup" style="display:none">
+      <label>Tenant Type</label>
+      <select id="fTenant" onchange="onTenantChange(); applyFilters();">
+        <option value="">Any</option>
+        <option value="family">Family</option>
+        <option value="bachelor">Bachelor</option>
+      </select>
+    </div>
+    
+    <div class="search-field" id="fGenderGroup" style="display:none">
+      <label>Gender</label>
+      <select id="fGender" onchange="applyFilters()">
+        <option value="">Any</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+    
+    <div class="search-field">
+      <label>Property Type</label>
+      <select id="fPtype" onchange="applyFilters()">
+        <option value="">Any Type</option>
+        <option value="apartment">Apartment</option>
+        <option value="house">House</option>
+        <option value="commercial">Commercial</option>
+      </select>
+    </div>
+    
+    <button class="search-btn" onclick="applyFilters()">Search &rarr;</button>
+  </div>
+  
+  <div style="max-width: 1400px; margin: 15px auto 0; text-align: right; padding-right: 10px;">
+    <a href="#" style="color:var(--gold); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none;" onclick="resetFilters(); return false;">↺ Reset Filters</a>
+  </div>
+</div>
+
+<div class="active-filters" id="activeTags"></div>
+
+<div class="sort-bar">
+  <div class="sort-left">Showing <strong id="showingCount">0</strong> properties</div>
+  <div class="sort-right">
+    <label>Sort by</label>
+    <select id="sortSel" onchange="applyFilters()">
+      <option value="match">Best Match</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+    </select>
+    <div class="view-toggle">
+      <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid">⊞</button>
+      <button class="view-btn" id="listBtn" onclick="setView('list')" title="List">☰</button>
+      <button class="view-btn" id="mapBtn" onclick="setView('map')" title="Map">🗺</button>
+    </div>
+  </div>
+</div>
+
+<div class="listings-wrapper">
+  <div id="listingsContainer" class="listings-grid-4"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="empty-icon">🏚️</div>
+    <div class="empty-title">No Properties Found</div>
+    <div class="empty-sub">Try adjusting your filters or <a href="#" onclick="resetFilters();return false;" style="color:var(--gold)">reset all filters</a>.</div>
+  </div>
+</div>
+
+<div id="mapView" style="display:none;padding:0 60px 60px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;position:relative;height:580px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c8d8c0 0%,#a8bcab 40%,#8aa890 100%);opacity:0.3;"></div>
+    <div style="font-size:48px;position:relative;z-index:1;">🗺️</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text);position:relative;z-index:1;">Map View</div>
+    <p style="font-size:13px;color:var(--text-muted);max-width:380px;text-align:center;line-height:1.7;position:relative;z-index:1;">
+      Interactive map integration coming soon. Properties will be pinned by location so you can explore by neighbourhood.
+    </p>
+    <button onclick="setView('grid')" style="position:relative;z-index:1;background:var(--ink);color:var(--ivory);border:none;padding:11px 28px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-top:4px;">
+      Back to Grid →
+    </button>
+  </div>
+</div>
+
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f7f4ef;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh.</p></div>
+    <div class="footer-col"><h4>Browse</h4><a href="listings.html">All Listings</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
+    <div class="footer-col"><h4>Services</h4><a href="#">Concierge</a><a href="#">Legal Review</a><a href="#">Escrow</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="about.html#contact">Contact</a><a href="#">Privacy Policy</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
+</footer>
+
+<div id="notif"></div>
+
+<script src="data.js"></script>
+<script src="shared.js"></script>
+<script>
+// -----------------------------------------------------------------
+// BROWSE LISTINGS LOGIC
+// -----------------------------------------------------------------
+let allProperties = [];
+let filteredProperties = [];
+let currentView = 'grid'; 
+
+window.addEventListener('DOMContentLoaded', async () => {
+
+  // 1. Wait for global system to initialize
+  if (window.NestApp && window.NestApp.fetchData) {
+    await window.NestApp.fetchData();
+  }
+  updateNavAuth();
+  
+  // (We removed the old loadLiveProperties() function that was crashing the page!)
+
+  try {
+    // 2. Fetch live data from MongoDB
+    const response = await fetch((window.API_BASE || 'http://localhost:5000') + '/listings');
+    if (response.ok) {
+      const data = await response.json();
+      
+      // 3. Map MongoDB fields into the UI format
+      allProperties = data.map(p => ({
+        id: p._id, 
+        title: p.title,
+        desc: p.description,
+        price: p.price, // Kept as number for sorting!
+        priceFormatted: p.price.toLocaleString('en-IN'), 
+        priceUnit: p.propertyType === 'rent' ? '/mo' : '',
+        area: p.location ? p.location.split(',')[0].trim() : '',
+        city: p.location && p.location.includes(',') ? p.location.split(',')[1].trim() : 'Bangladesh',
+        beds: p.bedrooms,
+        baths: p.bathrooms,
+        sqft: p.sqft,
+        intent: p.propertyType === 'buy' ? 'buy' : 'rent',
+        img: p.image || (p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'),
+        verified: true,
+        match: Math.floor(Math.random() * 15) + 85, // Fake AI Match
+        isNew: true, 
+        badge: p.propertyType === 'rent' ? 'For Rent' : 'For Sale',
+        badgeClass: p.propertyType === 'rent' ? 'badge-rent' : 'badge-buy'
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch listings:", error);
+  }
+
+  // 4. Pre-fill filters from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('type')) document.getElementById('fIntent').value = urlParams.get('type');
+  if(urlParams.get('loc')) document.getElementById('fLoc').value = urlParams.get('loc');
+  
+  onIntentChange(); 
+  applyFilters(); 
+});
+
+function onIntentChange() {
+  const intent = document.getElementById('fIntent').value;
+  const tenantGroup = document.getElementById('fTenantGroup');
+  const genderGroup = document.getElementById('fGenderGroup');
+  
+  if (intent === 'rent') {
+    tenantGroup.style.display = 'flex';
+  } else {
+    tenantGroup.style.display = 'none';
+    genderGroup.style.display = 'none';
+    document.getElementById('fTenant').value = '';
+    document.getElementById('fGender').value = '';
+  }
+}
+
+function onTenantChange() {
+  const t = document.getElementById('fTenant').value;
+  document.getElementById('fGenderGroup').style.display = (t === 'bachelor') ? 'flex' : 'none';
+  if (t !== 'bachelor') document.getElementById('fGender').value = '';
+}
+
+function applyFilters() {
+  const intent = document.getElementById('fIntent').value;
+  const loc = document.getElementById('fLoc').value.toLowerCase();
+  const beds = document.getElementById('fBeds').value;
+  const sort = document.getElementById('sortSel').value;
+
+  // Filter Engine
+  filteredProperties = allProperties.filter(p => {
+    let match = true;
+    if (intent && p.intent !== intent) match = false;
+    if (loc && !p.area.toLowerCase().includes(loc) && !p.city.toLowerCase().includes(loc)) match = false;
+    if (beds && p.beds < parseInt(beds)) match = false;
+    return match;
+  });
+
+  // Sorting Engine
+  if (sort === 'price-asc') filteredProperties.sort((a,b) => a.price - b.price);
+  if (sort === 'price-desc') filteredProperties.sort((a,b) => b.price - a.price);
+  if (sort === 'match') filteredProperties.sort((a,b) => b.match - a.match);
+
+  renderListings();
+  updateActiveTags();
+}
+
+let debouncedFilter = debounce(applyFilters, 500);
+
+function resetFilters() {
+  document.getElementById('fIntent').value = '';
+  document.getElementById('fLoc').value = '';
+  document.getElementById('fBeds').value = '';
+  document.getElementById('sortSel').value = 'match';
+  onIntentChange();
+  applyFilters();
+}
+
+function updateActiveTags() {
+  const tags = [];
+  const intent = document.getElementById('fIntent').value;
+  const loc = document.getElementById('fLoc').value;
+  const beds = document.getElementById('fBeds').value;
+  
+  if (intent) tags.push(`<span class="active-filter">${intent.toUpperCase()} <button onclick="document.getElementById('fIntent').value=''; applyFilters();">✕</button></span>`);
+  if (loc) tags.push(`<span class="active-filter">${loc} <button onclick="document.getElementById('fLoc').value=''; applyFilters();">✕</button></span>`);
+  if (beds) tags.push(`<span class="active-filter">${beds}+ Beds <button onclick="document.getElementById('fBeds').value=''; applyFilters();">✕</button></span>`);
+
+  document.getElementById('activeTags').innerHTML = tags.join('');
+}
+
+function renderListings() {
+  const container = document.getElementById('listingsContainer');
+  const empty = document.getElementById('emptyState');
+  const count1 = document.getElementById('heroCount');
+  const count2 = document.getElementById('showingCount');
+
+  count1.innerHTML = `Found <strong>${filteredProperties.length}</strong> matching properties`;
+  count2.textContent = filteredProperties.length;
+
+  if (filteredProperties.length === 0) {
+    container.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    container.style.display = currentView === 'list' ? 'flex' : 'grid';
+    empty.style.display = 'none';
+    
+    container.innerHTML = filteredProperties.map(p => {
+      // Temporarily override the number price with string format for the shared builder
+      const pFormat = { ...p, price: p.priceFormatted }; 
+      return window.buildCard(pFormat, false); 
+    }).join('');
+    
+    attachCardEvents(); // Attach cursor hover effects
+  }
+}
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  
+  if (view === 'grid') {
+    document.getElementById('gridBtn').classList.add('active');
+    document.getElementById('listingsContainer').className = 'listings-grid-4';
+    document.getElementById('mapView').style.display = 'none';
+    document.querySelector('.listings-wrapper').style.display = 'block';
+  } else if (view === 'list') {
+    document.getElementById('listBtn').classList.add('active');
+    document.getElementById('listingsContainer').className = 'listings-list';
+    document.getElementById('mapView').style.display = 'none';
+    document.querySelector('.listings-wrapper').style.display = 'block';
+  } else if (view === 'map') {
+    document.getElementById('mapBtn').classList.add('active');
+    document.querySelector('.listings-wrapper').style.display = 'none';
+    document.getElementById('mapView').style.display = 'block';
+  }
+  renderListings();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign In / Sign Up — NestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink: #0f0e0c;
+  --ivory: #f7f4ef;
+  --gold: #b89b6a;
+  --gold-light: #d4bc8e;
+  --mist: #e8e3da;
+  --charcoal: #2c2b28;
+  --warm-gray: #8a8680;
+  --accent: #4a6741;
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --text: #0f0e0c;
+  --text-muted: #8a8680;
+  --border: #e8e3da;
+}
+/* Fix #5: dark mode variables for login page */
+html.dark {
+  --ink: #f0ece4;
+  --ivory: #141210;
+  --mist: #2a2722;
+  --charcoal: #d0ccc4;
+  --warm-gray: #7a7670;
+  --bg: #141210;
+  --surface: #1e1b18;
+  --text: #f0ece4;
+  --text-muted: #7a7670;
+  --border: #2a2722;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ivory);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── LAYOUT ── */
+.auth-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* ── LEFT PANEL ── */
+.auth-left {
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+}
+.auth-left::before {
+  content: '';
+  position: absolute; bottom: -180px; left: -180px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,155,106,0.1) 0%, transparent 70%);
+}
+.auth-left::after {
+  content: '⌂';
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 380px; font-weight: 300;
+  color: rgba(184,155,106,0.04);
+  position: absolute; right: -60px; top: -60px;
+  line-height: 1; pointer-events: none;
+}
+.left-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--ivory);
+  text-decoration: none;
+  position: relative; z-index: 1;
+}
+.left-logo span { color: var(--gold); font-style: italic; }
+
+.left-content { position: relative; z-index: 1; }
+.left-tag {
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.left-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--gold); }
+.left-h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 3.5vw, 52px);
+  font-weight: 300; color: var(--ivory);
+  line-height: 1.1; margin-bottom: 20px;
+}
+.left-h2 em { font-style: italic; color: var(--gold); }
+.left-p { font-size: 14px; color: rgba(247,244,239,0.5); line-height: 1.8; max-width: 340px; }
+
+.left-stats {
+  display: flex; gap: 36px;
+  position: relative; z-index: 1;
+  padding-top: 32px; border-top: 1px solid rgba(184,155,106,0.15);
+}
+.left-stat-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 300; color: var(--ivory);
+}
+.left-stat-val span { color: var(--gold); font-style: italic; }
+.left-stat-label { font-size: 11px; color: rgba(247,244,239,0.4); letter-spacing: 0.08em; margin-top: 4px; }
+
+/* ── RIGHT PANEL ── */
+.auth-right {
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 60px 56px;
+  background: var(--ivory);
+  position: relative;
+}
+.auth-right-top {
+  position: absolute; top: 28px; right: 36px;
+  font-size: 13px; color: var(--warm-gray);
+}
+.auth-right-top a { color: var(--gold); text-decoration: none; font-weight: 500; }
+.auth-right-top a:hover { text-decoration: underline; }
+
+.auth-card {
+  width: 100%; max-width: 420px;
+}
+
+/* TAB SWITCHER */
+.auth-tabs {
+  display: flex; gap: 0;
+  border: 1px solid var(--mist);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 36px;
+}
+.auth-tab {
+  flex: 1; padding: 12px;
+  background: transparent; border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--warm-gray); cursor: pointer;
+  transition: all 0.25s ease;
+}
+.auth-tab.active {
+  background: var(--ink); color: var(--ivory);
+}
+
+/* FORM PANELS */
+.auth-panel { display: none; }
+.auth-panel.active { display: block; animation: fadeUp 0.4s ease; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+.auth-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px; font-weight: 300;
+  margin-bottom: 6px;
+}
+.auth-sub { font-size: 13px; color: var(--warm-gray); margin-bottom: 28px; line-height: 1.6; }
+
+/* SOCIAL BUTTONS */
+.social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+.social-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--mist); border-radius: 2px;
+  background: white; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; color: var(--charcoal);
+  cursor: pointer; transition: all 0.2s;
+}
+.social-btn:hover { border-color: var(--gold); color: var(--gold); }
+.social-icon { font-size: 16px; }
+
+/* DIVIDER */
+.or-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 22px; font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--warm-gray);
+}
+.or-divider::before, .or-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--mist);
+}
+
+/* FORM */
+.form-row { margin-bottom: 14px; }
+.form-row label {
+  display: block; font-size: 10px;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 6px;
+}
+.form-row input, .form-row select {
+  width: 100%; padding: 12px 14px;
+  border: 1px solid var(--mist); border-radius: 2px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: white; outline: none; color: var(--ink);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-row input:focus, .form-row select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(184,155,106,0.08);
+}
+.form-row input.error { border-color: #c0392b; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* PASSWORD WRAPPER */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 44px; }
+.pw-toggle {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 15px; color: var(--warm-gray);
+  transition: color 0.2s;
+}
+.pw-toggle:hover { color: var(--gold); }
+
+/* STRENGTH METER */
+.strength-meter { height: 3px; background: var(--mist); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.strength-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease, background 0.4s ease; width: 0; }
+.strength-label { font-size: 10px; color: var(--warm-gray); margin-top: 5px; }
+
+/* ROLE SELECTOR */
+.role-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.role-btn {
+  padding: 12px 10px; border: 1px solid var(--mist); border-radius: 2px;
+  background: white; cursor: pointer; text-align: center;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.role-btn:hover { border-color: var(--gold); }
+.role-btn.selected { border-color: var(--ink); background: var(--ink); color: var(--ivory); }
+.role-btn.selected .role-icon { filter: grayscale(1) brightness(5); }
+.role-icon { font-size: 20px; display: block; margin-bottom: 5px; }
+.role-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.role-sub { font-size: 10px; color: var(--warm-gray); margin-top: 2px; }
+.role-btn.selected .role-sub { color: rgba(247,244,239,0.5); }
+
+/* CHECKBOX */
+.checkbox-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 20px; font-size: 12px; color: var(--warm-gray); line-height: 1.5;
+}
+.checkbox-row input[type=checkbox] { accent-color: var(--gold); margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.checkbox-row a { color: var(--gold); text-decoration: none; }
+.checkbox-row a:hover { text-decoration: underline; }
+
+/* FORGOT */
+.forgot-row {
+  display: flex; justify-content: flex-end;
+  margin-top: -8px; margin-bottom: 20px;
+}
+.forgot-row a { font-size: 12px; color: var(--warm-gray); text-decoration: none; transition: color 0.2s; }
+.forgot-row a:hover { color: var(--gold); }
+
+/* SUBMIT */
+.auth-submit {
+  width: 100%; padding: 14px;
+  background: var(--ink); color: var(--ivory);
+  border: none; border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.auth-submit:hover { background: var(--gold); }
+.auth-submit:active { transform: scale(0.98); }
+.auth-submit.loading { pointer-events: none; opacity: 0.7; }
+
+/* PHONE INPUT */
+.phone-wrap { display: grid; grid-template-columns: 80px 1fr; gap: 8px; }
+.phone-wrap select { padding: 12px 8px; }
+
+/* TOAST */
+#notif {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink); color: var(--ivory);
+  padding: 12px 24px; border-radius: 3px; font-size: 13px;
+  z-index: 3000; transition: transform 0.4s ease;
+  white-space: nowrap; border-left: 3px solid var(--gold);
+}
+
+/* ERROR MESSAGE */
+.form-error { font-size: 11px; color: #c0392b; margin-top: 5px; display: none; }
+.form-error.show { display: block; }
+
+/* BACK LINK */
+.back-home {
+  position: absolute; top: 28px; left: 36px;
+  font-size: 12px; color: var(--warm-gray);
+  text-decoration: none; letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 6px;
+  transition: color 0.2s;
+}
+.back-home:hover { color: var(--ink); }
+
+/* OTP PANEL */
+.otp-boxes { display: flex; gap: 10px; justify-content: center; margin: 24px 0; }
+.otp-box {
+  width: 52px; height: 58px;
+  border: 1px solid var(--mist); border-radius: 2px;
+  font-size: 22px; font-family: 'Cormorant Garamond', serif;
+  text-align: center; outline: none; background: white;
+  transition: border-color 0.2s;
+}
+.otp-box:focus { border-color: var(--gold); }
+.otp-resend { text-align: center; font-size: 12px; color: var(--warm-gray); margin-bottom: 20px; }
+.otp-resend a { color: var(--gold); text-decoration: none; cursor: pointer; }
+
+/* FORGOT PANEL */
+.back-to-login { font-size: 12px; color: var(--warm-gray); cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 24px; transition: color 0.2s; }
+.back-to-login:hover { color: var(--gold); }
+
+
+/* Dark mode — consolidated */
+html.dark { --ink:#f0ece4; --ivory:#141210; --mist:#2a2722; --charcoal:#d0ccc4; --warm-gray:#7a7670; --bg:#141210; --surface:#1e1b18; --surface-2:#1a1714; --border:#2a2722; --text:#f0ece4; --text-muted:#7a7670; }
+html.dark body { background: var(--bg); color: var(--ink); }
+html.dark .auth-right { background: var(--surface-2); }
+html.dark .auth-left { background: #0a0907; }
+html.dark .auth-title { color: var(--ink); }
+html.dark .auth-sub { color: var(--text-muted); }
+html.dark .auth-tabs { border-color: var(--border); }
+html.dark .auth-tab { color: var(--text-muted); background: transparent; }
+html.dark .auth-tab.active { background: var(--gold); color: #f0ece4; }
+html.dark .form-row input, html.dark .form-row select,
+html.dark .otp-box { background: var(--surface); color: var(--ink); border-color: var(--border); }
+html.dark .form-row input::placeholder, html.dark .form-row textarea::placeholder { color: rgba(240,236,228,0.3); }
+html.dark .social-btn { background: var(--surface); color: var(--text-muted); border-color: var(--border); }
+html.dark .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+html.dark .role-btn { background: var(--surface); border-color: var(--border); color: var(--ink); }
+html.dark .role-sub { color: var(--text-muted); }
+html.dark .role-btn.selected { background: var(--gold); border-color: var(--gold); color: #f0ece4; }
+html.dark .or-divider::before, html.dark .or-divider::after { background: var(--border); }
+html.dark .back-home { color: var(--text-muted); }
+html.dark .back-home:hover { color: var(--gold); }
+html.dark .auth-submit { background: var(--gold); }
+html.dark .auth-submit:hover { background: #f0ece4; color: var(--bg); }
+html.dark .strength-meter { background: var(--border); }
+html.dark #notif { background: var(--surface); color: var(--ink); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .auth-wrapper { grid-template-columns: 1fr; }
+  .auth-left { display: none; }
+  .auth-right { padding: 80px 28px 40px; min-height: 100vh; }
+  .auth-right-top { top: 20px; right: 20px; }
+  .back-home { top: 20px; left: 20px; }
+}
+@media (max-width: 400px) {
+  .auth-right { padding: 80px 18px 40px; }
+  .social-row { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .role-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* Force the left panel text to stay light in dark mode */
+html.dark .left-logo,
+html.dark .left-h2,
+html.dark .left-stat-val {
+  color: #f7f4ef; 
+}
+
+</style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="auth-left">
+    <a href="index.html" class="left-logo">Nest<span>IQ</span></a>
+
+    <div class="left-content">
+      <div class="left-tag">Smart Real Estate</div>
+      <h2 class="left-h2">Your Perfect<br>Home is <em>Waiting</em><br>for You</h2>
+      <p class="left-p">Join thousands of families who found their dream home through NestIQ — verified listings, AI matching, and a concierge in your corner.</p>
+    </div>
+
+    <div class="left-stats">
+      <div>
+        <div class="left-stat-val">14k<span>+</span></div>
+        <div class="left-stat-label">Verified Listings</div>
+      </div>
+      <div>
+        <div class="left-stat-val">96<span>%</span></div>
+        <div class="left-stat-label">Match Accuracy</div>
+      </div>
+      <div>
+        <div class="left-stat-val">0<span>%</span></div>
+        <div class="left-stat-label">Fraud Cases</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="auth-right">
+    <a href="index.html" class="back-home">← Back to Home</a>
+<button onclick="toggleDarkLogin()" title="Toggle dark mode" style="position:absolute;top:28px;right:100px;background:none;border:1px solid var(--mist);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;z-index:10" id="darkBtnLogin">🌙</button>
+
+    <div class="auth-card">
+
+      <!-- TAB SWITCHER -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- ── LOGIN PANEL ── -->
+      <div class="auth-panel active" id="panel-login">
+        <div class="auth-title">Welcome Back</div>
+        <div class="auth-sub">Sign in to access your matches, saved listings, and concierge.</div>
+
+        <div class="social-row">
+          <button class="social-btn" onclick="socialLogin('Google')">
+            <span class="social-icon">G</span> Google
+          </button>
+          <button class="social-btn" onclick="socialLogin('Facebook')">
+            <span class="social-icon">f</span> Facebook
+          </button>
+        </div>
+        <div class="or-divider">or continue with email</div>
+
+        <div class="form-row">
+          <label>Email or Phone</label>
+          <input type="text" id="loginId" placeholder="you@email.com or 01700..."/>
+          <div class="form-error" id="loginIdErr">Please enter a valid email or phone number.</div>
+        </div>
+
+        <div class="form-row">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPw" placeholder="Your password"/>
+            <button class="pw-toggle" onclick="togglePw('loginPw', this)" type="button">👁</button>
+          </div>
+          <div class="form-error" id="loginPwErr">Password must be at least 6 characters.</div>
+        </div>
+
+        <div class="forgot-row">
+          <a href="#" onclick="switchPanel('forgot'); return false;">Forgot password?</a>
+        </div>
+
+        <button class="auth-submit" id="loginBtn" onclick="handleLogin()">Sign In →</button>
+
+        <p style="text-align:center;font-size:12px;color:var(--warm-gray);margin-top:20px">
+          Don't have an account?
+          <a href="#" onclick="switchTab('signup');return false;" style="color:var(--gold);font-weight:500">Create one</a>
+        </p>
+      </div>
+
+      <!-- ── SIGNUP PANEL ── -->
+      <div class="auth-panel" id="panel-signup">
+        <div class="auth-title">Create Account</div>
+        <div class="auth-sub">Join NestIQ and get AI-matched to your perfect home in minutes.</div>
+
+        <div class="social-row">
+          <button class="social-btn" onclick="socialLogin('Google')">
+            <span class="social-icon">G</span> Google
+          </button>
+          <button class="social-btn" onclick="socialLogin('Facebook')">
+            <span class="social-icon">f</span> Facebook
+          </button>
+        </div>
+        <div class="or-divider">or sign up with email</div>
+
+        <!-- ROLE SELECTOR -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;letter-spacing:0.13em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">I am a</div>
+          <div class="role-row">
+            <div class="role-btn selected" id="role-tenant" onclick="selectRole('tenant')">
+              <span class="role-icon">🏠</span>
+              <div class="role-label">Renter / Buyer</div>
+              <div class="role-sub">Looking for a home</div>
+            </div>
+            <div class="role-btn" id="role-owner" onclick="selectRole('owner')">
+              <span class="role-icon">🏢</span>
+              <div class="role-label">Owner / Agent</div>
+              <div class="role-sub">Listing a property</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-row">
+            <label>First Name</label>
+            <input type="text" id="signupFirst" placeholder="First name"/>
+            <div class="form-error" id="firstErr">Required.</div>
+          </div>
+          <div class="form-row">
+            <label>Last Name</label>
+            <input type="text" id="signupLast" placeholder="Last name"/>
+            <div class="form-error" id="lastErr">Required.</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Email Address</label>
+          <input type="email" id="signupEmail" placeholder="you@email.com"/>
+          <div class="form-error" id="emailErr">Enter a valid email address.</div>
+        </div>
+
+        <div class="form-row">
+          <label>Phone Number</label>
+          <div class="phone-wrap">
+            <select id="countryCode">
+              <option value="+880">🇧🇩 +880</option>
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+            </select>
+            <input type="tel" id="signupPhone" placeholder="01700 000000"/>
+          </div>
+          <div class="form-error" id="phoneErr">Enter a valid phone number.</div>
+        </div>
+
+        <div class="form-row">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="signupPw" placeholder="Create a strong password" oninput="checkStrength(this.value)"/>
+            <button class="pw-toggle" onclick="togglePw('signupPw', this)" type="button">👁</button>
+          </div>
+          <div class="strength-meter"><div class="strength-fill" id="strengthFill"></div></div>
+          <div class="strength-label" id="strengthLabel"></div>
+          <div class="form-error" id="pwErr">Password must be at least 8 characters.</div>
+        </div>
+
+        <div class="form-row">
+          <label>Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="signupPw2" placeholder="Repeat password"/>
+            <button class="pw-toggle" onclick="togglePw('signupPw2', this)" type="button">👁</button>
+          </div>
+          <div class="form-error" id="pw2Err">Passwords do not match.</div>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="terms"/>
+          <label for="terms">I agree to NestIQ's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand my data is used to improve my property matches.</label>
+        </div>
+        <div class="form-error" id="termsErr" style="margin-top:-12px;margin-bottom:12px">Please accept the terms to continue.</div>
+
+        <button class="auth-submit" id="signupBtn" onclick="handleSignup()">Create My Account →</button>
+
+        <p style="text-align:center;font-size:12px;color:var(--warm-gray);margin-top:20px">
+          Already have an account?
+          <a href="#" onclick="switchTab('login');return false;" style="color:var(--gold);font-weight:500">Sign in</a>
+        </p>
+      </div>
+
+      <!-- ── OTP PANEL ── -->
+      <div class="auth-panel" id="panel-otp">
+        <div class="auth-title">Verify Your Phone</div>
+        <div class="auth-sub">We sent a 6-digit OTP to <strong id="otpPhone"></strong>. Enter it below to activate your account.</div>
+
+        <div class="otp-boxes">
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,0)" onkeydown="otpBack(event,this,0)"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,1)" onkeydown="otpBack(event,this,1)"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,2)" onkeydown="otpBack(event,this,2)"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,3)" onkeydown="otpBack(event,this,3)"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,4)" onkeydown="otpBack(event,this,4)"/>
+          <input class="otp-box" maxlength="1" oninput="otpNext(this,5)" onkeydown="otpBack(event,this,5)"/>
+        </div>
+
+        <div class="otp-resend">
+          Didn't receive it? <a onclick="resendOtp()">Resend OTP</a>
+          <span id="otpTimer"> (60s)</span>
+        </div>
+
+        <button class="auth-submit" onclick="handleOtp()">Verify & Continue →</button>
+
+        <p style="text-align:center;font-size:12px;color:var(--warm-gray);margin-top:16px">
+          <a href="#" onclick="switchPanel('signup');return false;" style="color:var(--warm-gray)">← Change phone number</a>
+        </p>
+      </div>
+
+      <!-- ── FORGOT PASSWORD PANEL ── -->
+      <div class="auth-panel" id="panel-forgot">
+        <div class="back-to-login" onclick="switchPanel('login')">← Back to Sign In</div>
+        <div class="auth-title">Forgot Password?</div>
+        <div class="auth-sub">Enter the email linked to your account. We'll send a reset link within 2 minutes.</div>
+
+        <div class="form-row">
+          <label>Email Address</label>
+          <input type="email" id="forgotEmail" placeholder="you@email.com"/>
+          <div class="form-error" id="forgotEmailErr">Enter a valid email address.</div>
+        </div>
+
+        <button class="auth-submit" onclick="handleForgot()">Send Reset Link →</button>
+
+        <p style="text-align:center;font-size:12px;color:var(--warm-gray);margin-top:20px">
+          Remembered it? <a href="#" onclick="switchPanel('login');return false;" style="color:var(--gold)">Sign in</a>
+        </p>
+      </div>
+
+      <!-- ── SUCCESS PANEL ── -->
+      <div class="auth-panel" id="panel-success">
+        <div style="text-align:center;padding:24px 0">
+          <div style="font-size:56px;margin-bottom:20px">🎉</div>
+          <div class="auth-title" style="text-align:center">You're In!</div>
+          <p style="font-size:14px;color:var(--warm-gray);line-height:1.7;margin:12px 0 32px">Your NestIQ account is ready. Your AI matching profile is being built — we'll have your first matches within minutes.</p>
+          <button class="auth-submit" onclick="doRedirect()" style="margin-bottom:12px">Continue →</button>
+          <button onclick="window.location='index.html'" style="width:100%;background:transparent;color:var(--ink);padding:13px;border:1px solid var(--mist);border-radius:2px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.3s">Back to Home</button>
+        </div>
+      </div>
+
+    </div><!-- /auth-card -->
+  </div><!-- /auth-right -->
+</div><!-- /auth-wrapper -->
+
+<div id="notif"></div>
+<script src="data.js"></script>
+<script src="shared.js"></script>
+<script>
+
+
+// ── TOAST ──
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(n._t);
+  n._t = setTimeout(() => n.style.transform = 'translateX(-50%) translateY(100px)', 3500);
+}
+
+// ── TAB SWITCHER ──
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
+  });
+  switchPanel(tab);
+}
+
+function switchPanel(panel) {
+  document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + panel)?.classList.add('active');
+}
+
+// ── ROLE SELECTOR ──
+let selectedRole = 'tenant';
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('role-tenant').classList.toggle('selected', role === 'tenant');
+  document.getElementById('role-owner').classList.toggle('selected', role === 'owner');
+}
+
+// ── PASSWORD TOGGLE ──
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+// ── PASSWORD STRENGTH ──
+function checkStrength(pw) {
+  const fill  = document.getElementById('strengthFill');
+  const label = document.getElementById('strengthLabel');
+  let score = 0;
+  if(pw.length >= 8)  score++;
+  if(/[A-Z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw)) score++;
+  if(/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    { w:'0%',   bg:'transparent', t:'' },
+    { w:'25%',  bg:'#e74c3c',     t:'Weak' },
+    { w:'50%',  bg:'#e67e22',     t:'Fair' },
+    { w:'75%',  bg:'#f1c40f',     t:'Good' },
+    { w:'100%', bg:'#4a6741',     t:'Strong ✓' },
+  ];
+  const lvl = levels[score];
+  fill.style.width      = lvl.w;
+  fill.style.background = lvl.bg;
+  label.textContent     = lvl.t;
+  label.style.color     = lvl.bg;
+}
+
+// ── VALIDATORS ──
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if(el){ el.textContent = msg || el.textContent; el.classList.add('show'); }
+}
+function clearErrs() {
+  document.querySelectorAll('.form-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('input').forEach(e => e.classList.remove('error'));
+}
+function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function isPhone(v) { return /^[\d\s\-+]{7,}$/.test(v); }
+
+// ── LOGIN ──
+// ── REAL LOGIN (Talks to Backend) ──
+async function handleLogin() {
+  clearErrs();
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  let valid = true;
+  if(!id) { showErr('loginIdErr'); document.getElementById('loginId').classList.add('error'); valid = false; }
+  if(!pw) { showErr('loginPwErr'); document.getElementById('loginPw').classList.add('error'); valid = false; }
+  if(!valid) return;
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Signing in…'; btn.classList.add('loading');
+
+  try {
+    // 1. Send the email and password to our Express server
+    const response = await fetch(window.API_BASE + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: id, password: pw })
+    });
+
+    const data = await response.json();
+
+    // 2. If the server says "OK" (passwords matched!)
+    if (response.ok) {
+      // 1. Force the browser to safely save the user data AND the VIP token
+      localStorage.setItem('user', JSON.stringify(data));
+      
+      btn.textContent = 'Sign In →'; btn.classList.remove('loading');
+      showNotif('✓ Signed in successfully! Redirecting…');
+      
+      // 2. Force the browser to go directly to the Dashboard page!
+      setTimeout(() => {
+        window.location.href = 'dashboard.html'; 
+      }, 1200);
+    } else {
+      // 3. If the server rejects it (wrong password, etc.)
+      btn.textContent = 'Sign In →'; btn.classList.remove('loading');
+      showNotif('❌ ' + data.message);
+    }
+  } catch (error) {
+    btn.textContent = 'Sign In →'; btn.classList.remove('loading');
+    showNotif('❌ Cannot connect to server.');
+  }
+}
+
+// ── SIGNUP ──
+function handleSignup() {
+  clearErrs();
+  const first = document.getElementById('signupFirst').value.trim();
+  const last  = document.getElementById('signupLast').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const phone = document.getElementById('signupPhone').value.trim();
+  const pw    = document.getElementById('signupPw').value;
+  const pw2   = document.getElementById('signupPw2').value;
+  const terms = document.getElementById('terms').checked;
+  let valid = true;
+
+  if(!first)           { showErr('firstErr'); valid = false; }
+  if(!last)            { showErr('lastErr');  valid = false; }
+  if(!isEmail(email))  { showErr('emailErr'); document.getElementById('signupEmail').classList.add('error'); valid = false; }
+  if(!phone || phone.length < 7) { showErr('phoneErr'); document.getElementById('signupPhone').classList.add('error'); valid = false; }
+  if(!pw || pw.length < 8)       { showErr('pwErr'); document.getElementById('signupPw').classList.add('error'); valid = false; }
+  if(pw !== pw2)       { showErr('pw2Err','Passwords do not match.'); valid = false; }
+  if(!terms)           { showErr('termsErr'); valid = false; }
+  if(!valid) return;
+
+  // Simulate OTP send
+  const code = document.getElementById('countryCode').value;
+  document.getElementById('otpPhone').textContent = code + ' ' + phone;
+  const btn = document.getElementById('signupBtn');
+  btn.textContent = 'Sending OTP…'; btn.classList.add('loading');
+  setTimeout(() => {
+    btn.textContent = 'Create My Account →'; btn.classList.remove('loading');
+    showNotif('OTP sent to your phone!');
+    switchPanel('otp');
+    startOtpTimer();
+  }, 1200);
+}
+
+// ── OTP ──
+const otpBoxes = () => document.querySelectorAll('.otp-box');
+function otpNext(el, i) {
+  el.value = el.value.replace(/\D/g,'');
+  if(el.value && i < 5) otpBoxes()[i+1].focus();
+}
+function otpBack(e, el, i) {
+  if(e.key === 'Backspace' && !el.value && i > 0) otpBoxes()[i-1].focus();
+}
+// ── REAL SIGNUP (Talks to Backend) ──
+async function handleOtp() {
+  const val = [...otpBoxes()].map(b => b.value).join('');
+  if(val.length < 6){ showNotif('Enter all 6 digits'); return; }
+  showNotif('Creating Account…');
+
+  // Grab the data the user typed in the previous step
+  const first = document.getElementById('signupFirst').value.trim();
+  const last  = document.getElementById('signupLast').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const phone = document.getElementById('signupPhone').value.trim();
+  const pw    = document.getElementById('signupPw').value;
+
+  try {
+    // 1. Send the new user data to our Express server
+    const response = await fetch(window.API_BASE + '/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: first,
+        lastName: last,
+        email: email,
+        phone: phone,
+        password: pw,
+        role: selectedRole
+      })
+    });
+
+    const data = await response.json();
+
+    // 2. If the server successfully created the user in MongoDB
+    if (response.ok) {
+      setUser({
+        _id: data._id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: data.role,
+        token: data.token
+      });
+      switchPanel('success');
+    } else {
+      // 3. If the server says "User already exists", etc.
+      showNotif('❌ ' + data.message);
+    }
+  } catch (error) {
+    showNotif('❌ Cannot connect to server.');
+  }
+}
+let timerInterval;
+function startOtpTimer() {
+  let s = 60;
+  document.getElementById('otpTimer').textContent = ` (${s}s)`;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    s--;
+    document.getElementById('otpTimer').textContent = s > 0 ? ` (${s}s)` : '';
+    if(s <= 0) clearInterval(timerInterval);
+  }, 1000);
+}
+function resendOtp() {
+  showNotif('OTP resent to your phone!');
+  startOtpTimer();
+}
+
+// ── FORGOT PASSWORD ──
+function handleForgot() {
+  clearErrs();
+  const email = document.getElementById('forgotEmail').value.trim();
+  if(!isEmail(email)) { showErr('forgotEmailErr'); return; }
+  showNotif('Sending reset link…');
+  setTimeout(() => {
+    showNotif('✓ Reset link sent! Check your inbox.');
+    setTimeout(() => switchPanel('login'), 2000);
+  }, 1200);
+}
+
+// ── SOCIAL LOGIN ──
+function socialLogin(provider) {
+  showNotif(`Connecting with ${provider}…`);
+  setTimeout(() => {
+    setUser({ firstName: provider + ' User', email: provider.toLowerCase() + '@social.com' });
+    showNotif(`✓ Signed in with ${provider}! Redirecting…`);
+    setTimeout(() => doRedirect(), 1200);
+  }, 1500);
+}
+
+
+function toggleDarkLogin(){
+  const next = localStorage.getItem('nestiq_dark') === '1' ? '0' : '1';
+  localStorage.setItem('nestiq_dark', next);
+  document.documentElement.classList.toggle('dark', next === '1');
+  const btn = document.getElementById('darkBtnLogin');
+  if(btn) btn.textContent = next === '1' ? '☀️' : '🌙';
+}
+// init icon on page load
+(function(){
+  const btn = document.getElementById('darkBtnLogin');
+  if(btn) btn.textContent = localStorage.getItem('nestiq_dark') === '1' ? '☀️' : '🌙';
+})();
+
+// ── URL PARAM: pre-open tab + redirect destination ──
+const urlTab      = new URLSearchParams(location.search).get('tab');
+const redirectTo  = new URLSearchParams(location.search).get('redirect') || 'listings.html';
+
+if(urlTab === 'signup') switchTab('signup');
+
+// shared redirect helper used by all auth paths
+function doRedirect(){ window.location = redirectTo; }
+
+
+
+</script>
+</body>
+</html>

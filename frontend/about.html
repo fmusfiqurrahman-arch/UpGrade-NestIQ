@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Us — NestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<script>
+(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();
+</script>
+
+<style>
+/* PAGE HERO */
+.about-hero { 
+  min-height:70vh; 
+  background:var(--bg); 
+  display:grid; 
+  grid-template-columns: 1.1fr 0.9fr; 
+  align-items:center; 
+  gap:40px; 
+  padding:140px 60px 80px; 
+  position:relative; 
+  overflow:hidden; 
+}
+
+.about-hero h1 { 
+  font-family: 'Cormorant Garamond', serif; 
+  font-size: clamp(44px, 5.5vw, 80px); 
+  font-weight: 300; 
+  color: var(--text); 
+  line-height: 1.05; 
+  max-width: 700px; 
+}
+
+.about-hero p { 
+  font-size: 16px; 
+  color: var(--text-muted); 
+  max-width: 520px; 
+  line-height: 1.8; 
+  margin-top: 20px; 
+}
+
+.about-hero-left { position:relative; z-index:2; }
+.about-hero-right { position:relative; z-index:2; display:flex; justify-content:center; }
+
+.about-tag { font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.about-tag::before { content:''; display:block; width:28px; height:1px; background:var(--gold); }
+.about-hero h1 em { font-style:italic; color:var(--gold); }
+
+/* ANIMATED FLOATING COMPOSITION */
+.hero-image-wrapper { position:relative; width:100%; max-width:460px; height:460px; }
+.hero-img-main { width:80%; height:85%; object-fit:cover; border-radius:8px; box-shadow:0 24px 48px rgba(0,0,0,0.12); animation: float1 6s ease-in-out infinite; transition: opacity 0.4s ease; }
+.hero-img-sub { position:absolute; bottom:0; right:0; width:55%; height:260px; object-fit:cover; border-radius:8px; border:8px solid var(--bg); box-shadow:0 20px 40px rgba(0,0,0,0.15); animation: float2 7s ease-in-out infinite; transition: border-color 0.3s, opacity 0.4s ease; }
+.hero-float-card { position:absolute; top:40px; right:-20px; background:var(--surface); padding:16px 20px; border-radius:6px; box-shadow:0 16px 32px rgba(0,0,0,0.1); display:flex; align-items:center; gap:12px; border:1px solid var(--border); animation: float3 5s ease-in-out infinite; transition: background 0.3s, border-color 0.3s; }
+.float-icon { font-size:24px; }
+.float-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; color:var(--text); transition: color 0.3s; }
+.float-sub { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; transition: color 0.3s; }
+
+/* KEYFRAME ANIMATIONS */
+@keyframes float1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+@keyframes float2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(20px); } }
+@keyframes float3 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* Staggered Grid Animations */
+.values-grid .reveal:nth-child(1) { transition-delay: 0.0s; }
+.values-grid .reveal:nth-child(2) { transition-delay: 0.1s; }
+.values-grid .reveal:nth-child(3) { transition-delay: 0.2s; }
+.values-grid .reveal:nth-child(4) { transition-delay: 0.3s; }
+.values-grid .reveal:nth-child(5) { transition-delay: 0.4s; }
+.values-grid .reveal:nth-child(6) { transition-delay: 0.5s; }
+
+.team-grid .reveal:nth-child(1) { transition-delay: 0.0s; }
+.team-grid .reveal:nth-child(2) { transition-delay: 0.1s; }
+.team-grid .reveal:nth-child(3) { transition-delay: 0.2s; }
+.team-grid .reveal:nth-child(4) { transition-delay: 0.3s; }
+.team-grid .reveal:nth-child(5) { transition-delay: 0.4s; }
+.team-grid .reveal:nth-child(6) { transition-delay: 0.5s; }
+.team-grid .reveal:nth-child(7) { transition-delay: 0.6s; }
+.team-grid .reveal:nth-child(8) { transition-delay: 0.7s; }
+
+/* MISSION */
+.mission { padding:100px 60px; background:var(--ivory); }
+.mission-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+.mission-numbers { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px; }
+.num-val { font-family:'Cormorant Garamond',serif; font-size:48px; font-weight:300; color:var(--ink); line-height:1; }
+.num-val span { color:var(--gold); font-style:italic; }
+.num-label { font-size:12px; color:var(--warm-gray); letter-spacing:0.1em; margin-top:6px; }
+.mission-text p { font-size:16px; line-height:1.9; color:var(--charcoal); margin-bottom:20px; }
+.mission-text p:last-child { margin:0; }
+
+/* VALUES */
+.values { background:var(--surface); padding:100px 60px; }
+.values-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:52px; }
+.value-card { 
+  padding:36px 28px; 
+  border:1px solid var(--mist); 
+  border-radius:8px; 
+  transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+  background: var(--surface);
+}
+.value-card:hover { 
+  box-shadow: 0 20px 40px rgba(184,155,106,0.12); 
+  border-color: var(--gold);
+  transform: translateY(-8px); 
+}
+.value-icon { font-size:32px; margin-bottom:16px; }
+.value-title { font-size:17px; font-weight:500; margin-bottom:10px; }
+.value-desc { font-size:14px; color:var(--warm-gray); line-height:1.7; }
+
+/* TEAM */
+.team { background:var(--ivory); padding:100px 60px; }
+.team-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:28px; margin-top:52px; }
+.team-card { text-align:center; }
+
+.team-avatar { 
+  width:96px; height:96px; border-radius:50%; 
+  background:var(--mist); display:flex; align-items:center; justify-content:center; 
+  font-size:40px; margin:0 auto 16px; 
+  border:3px solid var(--surface); 
+  box-shadow:0 8px 24px rgba(0,0,0,0.08); 
+  transition: transform 0.4s ease, border-color 0.4s ease;
+}
+
+.team-card:hover .team-avatar {
+  transform: scale(1.08) rotate(5deg);
+  border-color: var(--gold);
+}
+
+.team-name { font-size:16px; font-weight:500; margin-bottom:4px; }
+.team-role { font-size:12px; color:var(--warm-gray); letter-spacing:0.08em; }
+.team-socials { display:flex; justify-content:center; gap:10px; margin-top:12px; }
+.team-social { width:30px; height:30px; border-radius:50%; border:1px solid var(--mist); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--warm-gray); text-decoration:none; transition:all 0.2s; }
+.team-social:hover { border-color:var(--gold); color:var(--gold); }
+
+/* HOW WE'RE DIFFERENT */
+.different { background:var(--ink); padding:100px 60px; color:#f0ece4; }
+.different .section-tag { color:var(--gold-light); }
+.different .section-tag::after { background:var(--gold-light); }
+.different .section-h2 { color:#f0ece4; }
+.diff-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:52px; }
+.diff-item { display:flex; gap:20px; padding:28px; border:1px solid rgba(184,155,106,0.15); border-radius:4px; transition:border-color 0.3s; }
+.diff-item:hover { border-color:var(--gold); }
+.diff-icon { font-size:28px; flex-shrink:0; }
+.diff-title { font-size:16px; font-weight:500; color:#f0ece4; margin-bottom:8px; }
+.diff-desc { font-size:13px; color:rgba(247,244,239,0.5); line-height:1.7; }
+
+/* CONTACT */
+#contact { background:var(--surface); padding:100px 60px; }
+.contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+.contact-info h3 { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; margin-bottom:16px; }
+.contact-info p { font-size:15px; color:var(--warm-gray); line-height:1.8; margin-bottom:32px; }
+.contact-details { display:flex; flex-direction:column; gap:16px; }
+.contact-detail { display:flex; align-items:flex-start; gap:14px; }
+.contact-detail-icon { width:40px; height:40px; background:var(--ivory); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; border:1px solid var(--mist); }
+.contact-detail-label { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+.contact-detail-val { font-size:14px; color:var(--charcoal); }
+.contact-form-card { background:var(--ivory); border-radius:4px; padding:36px; border:1px solid var(--mist); }
+.contact-form-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; margin-bottom:24px; }
+.cf-row { margin-bottom:14px; }
+.cf-row label { display:block; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
+.cf-row input, .cf-row select, .cf-row textarea { width:100%; padding:11px 14px; border:1px solid var(--border); border-radius:2px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); color:var(--text); outline:none; resize:none; transition:border-color 0.2s; }
+.cf-row input:focus, .cf-row select:focus, .cf-row textarea:focus { border-color:var(--gold); }
+.cf-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.cf-submit { width:100%; background:var(--ink); color:var(--ivory); padding:14px; border:none; border-radius:2px; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background 0.3s; }
+.cf-submit:hover { background:var(--gold); }
+
+/* OFFICES */
+.offices { background:var(--ivory); padding:80px 60px; }
+.offices-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:40px; }
+.office-card { background:var(--surface); border:1px solid var(--mist); border-radius:4px; padding:28px; }
+.office-city { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:8px; }
+.office-addr { font-size:13px; color:var(--warm-gray); line-height:1.7; }
+.office-phone { font-size:13px; color:var(--gold); margin-top:12px; }
+
+/* Dark mode overrides for about page */
+html.dark .about-hero { background: #0a0907; }
+html.dark .mission { background: var(--bg); }
+html.dark .values { background: var(--surface); }
+html.dark .team { background: var(--bg); }
+html.dark .different { background: #0a0907; }
+html.dark #contact { background: var(--surface); }
+html.dark .contact-form-card { background: var(--bg); }
+html.dark .offices { background: var(--bg); }
+html.dark .office-card { background: var(--surface); }
+html.dark .value-card { background: var(--bg); }
+html.dark .mission-text p { color: var(--charcoal); }
+
+/* RESPONSIVE */
+@media(max-width:900px){ 
+  .about-hero { grid-template-columns:1fr; padding:120px 24px 60px; } 
+  .about-hero-right { display:none !important; } 
+  .mission,.values,.team,.different,#contact,.offices { padding:70px 24px; } 
+  .mission-grid,.contact-grid,.diff-grid,.different .diff-grid { grid-template-columns:1fr; } 
+  .team-grid { grid-template-columns:1fr 1fr; } 
+  .values-grid { grid-template-columns:1fr; } 
+  .offices-grid { grid-template-columns:1fr; } 
+}
+@media(max-width:600px){ 
+  .team-grid { grid-template-columns:1fr; } 
+}
+
+</style>
+</head>
+<body>
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
+  <div class="nav-links">
+    <a href="listings.html">Browse</a>
+    <a href="index.html#how">How It Works</a>
+    <a href="about.html">About</a>
+    
+    <a href="index.html#testimonials" id="navGuestReviews">Reviews</a>
+    <a href="list.html">List Property</a>
+    <a href="index.html#recently-viewed" id="navUserRecent" style="display:none;">Recently Viewed</a>
+    
+    <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
+    
+    <div class="nav-user nav-user-drop" id="navUser" style="display:none">
+      <div class="nav-user-avatar">👤</div>
+      <span class="nav-user-name"></span>
+      <div class="nav-user-menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="saved.html">Saved Listings</a>
+        <hr/>
+        <a href="#" onclick="clearUser();updateNavAuth();showNotif('Signed out');return false;">Sign Out</a>
+      </div>
+    </div>
+    <button class="nav-dark-toggle" onclick="toggleDark()" title="Toggle dark mode"><span class="dark-toggle-icon">🌙</span></button>
+  </div>
+  <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="about-hero">
+  <div class="about-hero-left">
+    <div class="about-tag">Our Story</div>
+    <h1>Reimagining Real Estate<br>for <em>Bangladesh</em></h1>
+    <p>NestIQ was built to fix a broken market — fake listings, unverified owners, and endless frustration. We combined AI, legal expertise, and human care to make finding a home simple, safe, and dignified.</p>
+  </div>
+  
+  <div class="about-hero-right">
+    <div class="hero-image-wrapper">
+      <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80" alt="Beautiful home" class="hero-img-main" id="aboutImgMain" />
+      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80" alt="Modern architecture" class="hero-img-sub" id="aboutImgSub" />
+      <div class="hero-float-card">
+        <div class="float-icon">🌟</div>
+        <div>
+          <div class="float-title">Est. 2022</div>
+          <div class="float-sub">Built With Purpose</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="mission">
+  <div class="mission-grid">
+    <div class="reveal">
+      <div class="section-tag">Our Mission</div>
+      <h2 class="section-h2">Making Every<br>Home Search <em>Safe</em></h2>
+      <div class="mission-numbers">
+        <div class="mission-num reveal"><div class="num-val">14k<span>+</span></div><div class="num-label">Verified Listings</div></div>
+        <div class="mission-num reveal"><div class="num-val">96<span>%</span></div><div class="num-label">Match Accuracy</div></div>
+        <div class="mission-num reveal"><div class="num-val">3.2<span>k</span></div><div class="num-label">Happy Families</div></div>
+        <div class="mission-num reveal"><div class="num-val">0<span>%</span></div><div class="num-label">Fraud Cases</div></div>
+      </div>
+    </div>
+    <div class="mission-text reveal">
+      <p>Bangladesh's rental and property market has long been plagued by fake listings, absentee landlords, and exploitative middlemen. First-time renters, families moving cities, and Bangladeshis returning from abroad all suffered the same experience — wasted time, lost money, and broken promises.</p>
+      <p>NestIQ started in 2022 with a single conviction: every person deserves to find a home with dignity. We built technology that does the searching, an operations team that does the verification, and a concierge layer that does the hand-holding — so you can focus on what matters.</p>
+      <p>Today we operate across Dhaka with plans to expand to Chittagong, Sylhet, and Rajshahi in 2026.</p>
+    </div>
+  </div>
+</section>
+
+<section class="values">
+  <div class="reveal" style="text-align:center">
+    <div class="section-tag" style="justify-content:center">What We Stand For</div>
+    <h2 class="section-h2">Our <em>Values</em></h2>
+  </div>
+  <div class="values-grid">
+    <div class="value-card reveal"><div class="value-icon">🛡️</div><div class="value-title">Trust First</div><div class="value-desc">Every listing is verified, every agent is screened, and every payment is protected by escrow. We stake our reputation on every deal.</div></div>
+    <div class="value-card reveal"><div class="value-icon">🤝</div><div class="value-title">Human at Heart</div><div class="value-desc">AI does the matching, but humans close the deal. Our concierges are trained to treat every client like family — patient, honest, and invested.</div></div>
+    <div class="value-card reveal"><div class="value-icon">⚖️</div><div class="value-title">Fairness</div><div class="value-desc">Fair pricing intelligence, transparent fees, and protection for both buyers and sellers. Nobody should get a bad deal just because they didn't know better.</div></div>
+    <div class="value-card reveal"><div class="value-icon">🌿</div><div class="value-title">Sustainability</div><div class="value-desc">We prioritize eco-friendly buildings, energy-efficient homes, and developers who build responsibly for the future of Bangladesh.</div></div>
+    <div class="value-card reveal"><div class="value-icon">🔍</div><div class="value-title">Transparency</div><div class="value-desc">No hidden fees, no surprise clauses. Everything — from our pricing to our verification process — is open and documented.</div></div>
+    <div class="value-card reveal"><div class="value-icon">🚀</div><div class="value-title">Innovation</div><div class="value-desc">We continuously improve our AI matching engine, verification methods, and concierge tools to stay ahead of the market's needs.</div></div>
+  </div>
+</section>
+
+<section class="team">
+  <div class="reveal" style="text-align:center">
+    <div class="section-tag" style="justify-content:center">The People</div>
+    <h2 class="section-h2">Meet the <em>Team</em></h2>
+  </div>
+  <div class="team-grid">
+    <div class="team-card reveal"><div class="team-avatar">👨‍💻</div><div class="team-name">Arif Hossain</div><div class="team-role">CEO & Co-Founder</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👩‍💼</div><div class="team-name">Nadia Sultana</div><div class="team-role">COO & Co-Founder</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👨‍🔬</div><div class="team-name">Rafiq Islam</div><div class="team-role">Head of AI & Tech</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👩‍⚖️</div><div class="team-name">Sabrina Chowdhury</div><div class="team-role">Legal & Compliance</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👨‍💰</div><div class="team-name">Imran Karim</div><div class="team-role">Head of Finance</div><div class="team-socials"><a href="#" class="team-social">in</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👩‍🎨</div><div class="team-name">Tania Begum</div><div class="team-role">Head of Product</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👨‍🏗️</div><div class="team-name">Zahir Ahmed</div><div class="team-role">Head of Operations</div><div class="team-socials"><a href="#" class="team-social">in</a></div></div>
+    <div class="team-card reveal"><div class="team-avatar">👩‍💻</div><div class="team-name">Rima Akter</div><div class="team-role">Lead Engineer</div><div class="team-socials"><a href="#" class="team-social">in</a><a href="#" class="team-social">𝕏</a></div></div>
+  </div>
+</section>
+
+<section class="different">
+  <div class="reveal"><div class="section-tag">Why NestIQ</div><h2 class="section-h2">Not Just Another<br><em>Property Portal</em></h2></div>
+  <div class="diff-grid">
+    <div class="diff-item reveal"><div class="diff-icon">🤖</div><div><div class="diff-title">AI-Powered, Not Ad-Powered</div><div class="diff-desc">Other portals rank listings based on who pays for placement. We rank by match quality. Your results are curated for you, not for advertisers.</div></div></div>
+    <div class="diff-item reveal"><div class="diff-icon">🔬</div><div><div class="diff-title">Verification is Our Standard</div><div class="diff-desc">We physically inspect properties and legally verify titles before they go live. No other platform in Bangladesh does this as a default.</div></div></div>
+    <div class="diff-item reveal"><div class="diff-icon">🧑‍💼</div><div><div class="diff-title">A Real Human in Your Corner</div><div class="diff-desc">Every client gets a dedicated concierge — a real person who knows the market, handles paperwork, and fights for your interests.</div></div></div>
+    <div class="diff-item reveal"><div class="diff-icon">💰</div><div><div class="diff-title">No Hidden Fees</div><div class="diff-desc">Our fee structure is flat and transparent. Renters pay nothing. Sellers and landlords pay a success fee only after a deal closes.</div></div></div>
+    <div class="diff-item reveal"><div class="diff-icon">🏦</div><div><div class="diff-title">Escrow-Protected Transactions</div><div class="diff-desc">All advance and booking payments are held in regulated escrow accounts — protecting both parties until conditions are met.</div></div></div>
+    <div class="diff-item reveal"><div class="diff-icon">📊</div><div><div class="diff-title">Market Intelligence</div><div class="diff-desc">We analyse thousands of transactions to give you real price benchmarks — so you never overpay or undersell in any locality.</div></div></div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="contact-grid">
+    <div>
+      <div class="section-tag reveal">Get In Touch</div>
+      <h2 class="section-h2 reveal">We'd Love to<br><em>Hear</em> From You</h2>
+      <div class="contact-info reveal">
+        <p>Whether you're looking for a home, want to list a property, or have a question about our platform — our team is here to help.</p>
+        <div class="contact-details">
+          <div class="contact-detail"><div class="contact-detail-icon">📞</div><div><div class="contact-detail-label">Phone</div><div class="contact-detail-val">+880 1700-000000</div></div></div>
+          <div class="contact-detail"><div class="contact-detail-icon">✉️</div><div><div class="contact-detail-label">Email</div><div class="contact-detail-val">hello@nestiq.com</div></div></div>
+          <div class="contact-detail"><div class="contact-detail-icon">💬</div><div><div class="contact-detail-label">WhatsApp</div><div class="contact-detail-val">+880 1700-000001</div></div></div>
+          <div class="contact-detail"><div class="contact-detail-icon">📍</div><div><div class="contact-detail-label">Head Office</div><div class="contact-detail-val">House 14, Road 7, Gulshan 1, Dhaka 1212</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-form-card reveal">
+      <div class="contact-form-title">Send a Message</div>
+      <div class="cf-grid">
+        <div class="cf-row"><label>First Name</label><input type="text" placeholder="First name"/></div>
+        <div class="cf-row"><label>Last Name</label><input type="text" placeholder="Last name"/></div>
+      </div>
+      <div class="cf-row"><label>Email</label><input type="email" placeholder="your@email.com"/></div>
+      <div class="cf-row"><label>Phone</label><input type="tel" placeholder="+880 ..."/></div>
+      <div class="cf-row"><label>Subject</label>
+        <select>
+          <option>I'm looking for a property</option>
+          <option>I want to list a property</option>
+          <option>Concierge enquiry</option>
+          <option>Legal question</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="cf-row"><label>Message</label><textarea rows="4" placeholder="Tell us how we can help..."></textarea></div>
+      <button class="cf-submit" onclick="submitContact()">Send Message →</button>
+    </div>
+  </div>
+</section>
+
+<section class="offices">
+  <div class="reveal" style="text-align:center">
+    <div class="section-tag" style="justify-content:center">Our Locations</div>
+    <h2 class="section-h2">Find Us <em>Near You</em></h2>
+  </div>
+  <div class="offices-grid">
+    <div class="office-card reveal"><div class="office-city">Dhaka HQ</div><div class="office-addr">House 14, Road 7<br>Gulshan 1, Dhaka 1212</div><div class="office-phone">+880 1700-000000</div></div>
+    <div class="office-card reveal"><div class="office-city">Chittagong</div><div class="office-addr">Nasirabad Housing Society<br>Chittagong 4000 <em style="font-size:11px;color:var(--warm-gray)">(Opening 2026)</em></div><div class="office-phone">Coming soon</div></div>
+    <div class="office-card reveal"><div class="office-city">Sylhet</div><div class="office-addr">Zindabazar, Sylhet<br>Sylhet 3100 <em style="font-size:11px;color:var(--warm-gray)">(Opening 2026)</em></div><div class="office-phone">Coming soon</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f7f4ef;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh. Powered by AI, backed by human expertise.</p></div>
+    <div class="footer-col"><h4>Platform</h4><a href="listings.html">Browse All</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
+    <div class="footer-col"><h4>Services</h4><a href="#">Concierge</a><a href="#">Legal Review</a><a href="#">Escrow</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
+</footer>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Start Matching</div>
+    <div class="modal-sub">Tell us what you need.</div>
+    <div class="form-row"><label>Full Name</label><input type="text" placeholder="Your name"/></div>
+    <div class="form-grid"><div class="form-row"><label>Phone</label><input type="tel" placeholder="+880 ..."/></div><div class="form-row"><label>Email</label><input type="email" placeholder="you@email.com"/></div></div>
+    <button class="modal-submit" onclick="submitForm()">Get Started →</button>
+  </div>
+</div>
+
+<div id="notif"></div>
+<script src="data.js"></script>
+<script src="shared.js"></script>
+
+<script>
+
+// ── IMAGE SHUFFLE LOGIC ──
+const mainImages = [
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 
+  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80', 
+  'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80', 
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'  
+];
+const subImages = [
+  'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80', 
+  'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80', 
+  'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&q=80', 
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80'  
+];
+
+let imgIndex = 0;
+setInterval(() => {
+  const mainEl = document.getElementById('aboutImgMain');
+  const subEl = document.getElementById('aboutImgSub');
+  if(!mainEl || !subEl) return;
+
+  imgIndex = (imgIndex + 1) % mainImages.length;
+
+  mainEl.style.opacity = 0;
+  subEl.style.opacity = 0;
+
+  setTimeout(() => {
+    mainEl.src = mainImages[imgIndex];
+    subEl.src = subImages[imgIndex];
+    mainEl.style.opacity = 1;
+    subEl.style.opacity = 1;
+  }, 400); 
+  
+}, 4500); 
+
+function submitContact(){
+  const form = document.querySelector('.contact-form-card');
+  if(!form) return;
+  const inputs = form.querySelectorAll('input, textarea');
+  
+  if (typeof validateForm === 'function') {
+    const valid = validateForm([
+      { el: inputs[0], required: true,  type: 'text'  }, 
+      { el: inputs[1], required: false, type: 'text'  }, 
+      { el: inputs[2], required: true,  type: 'email' }, 
+      { el: inputs[3], required: true,  type: 'tel'   }, 
+    ]);
+    if(!valid){ 
+      if (typeof showNotif === 'function') showNotif('⚠️ Please fill in required fields correctly'); 
+      return; 
+    }
+  }
+  
+  if (typeof showNotif === 'function') showNotif('✓ Message received! We\'ll respond within 2 hours.');
+  form.querySelectorAll('input, textarea').forEach(el => el.value = '');
+}
+</script>
+</body>
+</html>
