@@ -459,6 +459,7 @@ NestCardPlugins.register(function(html, p) {
   const safeTitle = (p.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const safeArea = (p.area || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
   const safeIntent = (p.intent || '').replace(/'/g, "\\'");
-  const cbHtml = `<div class="card-compare-wrap" onclick="event.stopPropagation()"><input type="checkbox" id="comp_${p.id || p._id}" onchange="toggleCompare(this, '${p.id || p._id}', '${safeTitle}', '${p.img || ''}', ${p.priceRaw || p.price || 0}, '${safeArea}', ${p.beds || 0}, ${p.baths || 0}, '${safeIntent}')"><label for="comp_${p.id || p._id}">Compare</label></div>`;
+  const safePrice = (p.priceRaw || p.price || 0).toString().replace(/'/g, "\\'");
+  const cbHtml = `<div class="card-compare-wrap" onclick="event.stopPropagation()"><input type="checkbox" id="comp_${p.id || p._id}" onchange="toggleCompare(this, '${p.id || p._id}', '${safeTitle}', '${p.img || ''}', '${safePrice}', '${safeArea}', ${p.beds || 0}, ${p.baths || 0}, '${safeIntent}')"><label for="comp_${p.id || p._id}">Compare</label></div>`;
   return html.replace('<div class="card-meta">', cbHtml + '<div class="card-meta">');
 });

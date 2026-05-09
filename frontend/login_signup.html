@@ -769,7 +769,7 @@ async function handleLogin() {
 }
 
 // ── SIGNUP ──
-function handleSignup() {
+async function handleSignup() {
   clearErrs();
   const first = document.getElementById('signupFirst').value.trim();
   const last  = document.getElementById('signupLast').value.trim();
@@ -930,6 +930,7 @@ async function handleForgot() {
     }
   } catch (e) {
     showNotif('❌ Cannot connect to server');
+  }
 }
 
 // ── RESET PASSWORD ──
