@@ -94,59 +94,115 @@ html.dark .page-hero { background: #0a0907; }
 <script src="data.js"></script>
 <script src="shared.js"></script>
 <script>
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   if(!isLoggedIn()){
-    // Fix #4: pass a redirect callback so dismissing the prompt sends user to login
     showLoginPrompt(() => { window.location = 'login_signup.html'; });
-  }
-  renderSaved();
-  updateNavAuth();
-});
-
-function renderSaved(){
-  const ids = getSaved();
-  const container = document.getElementById('savedContent');
-  const heroSub = document.getElementById('heroSub');
-
-  if(!ids.length){
-    heroSub.textContent = 'No saved listings yet.';
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🏚️</div>
-        <div class="empty-title">Nothing Saved Yet</div>
-        <div class="empty-sub">Browse listings and tap ♡ to save properties you like.</div>
-        <button class="btn-primary" onclick="window.location='listings.html'">Browse Listings →</button>
-      </div>`;
     return;
   }
+  updateNavAuth();
+  await renderSaved();
+});
 
-  const props = ids.map(id => PROPERTIES.find(p => p.id === id)).filter(Boolean);
-  heroSub.textContent = props.length + ' saved ' + (props.length === 1 ? 'property' : 'properties');
+async function renderSaved(){
+  const container = document.getElementById('savedContent');
+  const heroSub = document.getElementById('heroSub');
+  container.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-muted);">Loading saved listings…</div>';
 
-  container.innerHTML = `
-    <div class="saved-actions">
-      <div class="saved-count">Showing <strong>${props.length}</strong> saved ${props.length===1?'property':'properties'}</div>
-      <button class="clear-all-btn" onclick="clearAll()">Clear All Saved</button>
-    </div>
-    <div class="saved-grid" id="savedGrid">
-      ${props.map(p => buildCard(p, false)).join('')}
-    </div>`;
-  attachCardEvents();
+  try {
+    const userStr = localStorage.getItem('user');
+    const token = userStr ? JSON.parse(userStr).token : null;
+    const apiBase = window.API_BASE || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : '/api');
+
+    // Fetch full listing objects from backend
+    const res = await fetch(`${apiBase}/user/saved-listings`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+
+    if (!res.ok) throw new Error('API error');
+    const rawListings = await res.json();
+
+    // Sync localStorage
+    const savedIds = rawListings.map(l => String(l._id || l.id));
+    localStorage.setItem('nestiq_saved', JSON.stringify(savedIds));
+
+    if (!rawListings.length) {
+      heroSub.textContent = 'No saved listings yet.';
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🏚️</div>
+          <div class="empty-title">Nothing Saved Yet</div>
+          <div class="empty-sub">Browse listings and tap ♡ to save properties you like.</div>
+          <button class="btn-primary" onclick="window.location='listings.html'">Browse Listings →</button>
+        </div>`;
+      return;
+    }
+
+    // Normalise into card format
+    const props = rawListings.map(p => ({
+      id: p._id || p.id,
+      title: p.title,
+      price: p.price ? Number(p.price).toLocaleString('en-IN') : '0',
+      priceUnit: p.propertyType === 'rent' ? '/mo' : '',
+      area: p.area || (p.location ? p.location.split(',')[0].trim() : ''),
+      city: p.city || (p.location && p.location.includes(',') ? p.location.split(',')[1].trim() : ''),
+      location: [p.area || '', p.city || ''].filter(Boolean).join(', '),
+      beds: p.bedrooms || 0,
+      baths: p.bathrooms || 0,
+      intent: p.propertyType === 'sale' ? 'buy' : (p.propertyType || 'rent'),
+      img: p.image || (p.images && p.images.length > 0 ? p.images[0] : ''),
+      images: p.images || [],
+      verified: true,
+      badge: p.propertyType === 'rent' ? 'For Rent' : 'For Sale',
+      badgeClass: p.propertyType === 'rent' ? 'badge-rent' : 'badge-buy'
+    }));
+
+    heroSub.textContent = props.length + ' saved ' + (props.length === 1 ? 'property' : 'properties');
+    container.innerHTML = `
+      <div class="saved-actions">
+        <div class="saved-count">Showing <strong>${props.length}</strong> saved ${props.length===1?'property':'properties'}</div>
+        <button class="clear-all-btn" onclick="clearAll()">Clear All Saved</button>
+      </div>
+      <div class="saved-grid" id="savedGrid">
+        ${props.map(p => buildCard(p, false)).join('')}
+      </div>`;
+    if (typeof attachCardEvents === 'function') attachCardEvents();
+
+  } catch(e) {
+    // Fallback to localStorage IDs → in-memory PROPERTIES array
+    const ids = getSaved();
+    if (!ids.length) {
+      heroSub.textContent = 'No saved listings yet.';
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🏚️</div><div class="empty-title">Nothing Saved Yet</div><div class="empty-sub">Browse listings and tap ♡ to save properties you like.</div><button class="btn-primary" onclick="window.location='listings.html'">Browse Listings →</button></div>`;
+      return;
+    }
+    if (window.NestApp && window.NestApp.fetchData) await window.NestApp.fetchData();
+    const props = ids.map(id => (window.PROPERTIES||[]).find(p => p.id === id)).filter(Boolean);
+    heroSub.textContent = props.length + ' saved ' + (props.length === 1 ? 'property' : 'properties');
+    container.innerHTML = `<div class="saved-actions"><div class="saved-count">Showing <strong>${props.length}</strong> saved ${props.length===1?'property':'properties'}</div><button class="clear-all-btn" onclick="clearAll()">Clear All Saved</button></div><div class="saved-grid" id="savedGrid">${props.map(p => buildCard(p, false)).join('')}</div>`;
+    if (typeof attachCardEvents === 'function') attachCardEvents();
+  }
 }
 
 window.clearAll = function(){
   if(!confirm('Remove all saved listings?')) return;
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr).token : null;
+  const apiBase = window.API_BASE || '/api';
   localStorage.setItem('nestiq_saved', '[]');
+  // Also clear on backend (fire-and-forget)
+  if (token) {
+    fetch(`${apiBase}/user/saved-listings`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(()=>{});
+  }
   renderSaved();
   showNotif('Cleared all saved listings');
 };
 
-// BUG 3 FIX: only re-render if user was actually logged in (save/unsave happened)
+// Re-render after save/unsave
 const _origToggleSave = window.toggleSave;
 window.toggleSave = function(e, btn, id){
-  if(!isLoggedIn()){ _origToggleSave(e, btn, id); return; } // prompt shown, no re-render
-  _origToggleSave(e, btn, id);
-  setTimeout(renderSaved, 300);
+  if(!isLoggedIn()){ _origToggleSave && _origToggleSave(e, btn, id); return; }
+  _origToggleSave && _origToggleSave(e, btn, id);
+  setTimeout(renderSaved, 400);
 };
 </script>
 </body>

@@ -184,27 +184,63 @@ const RULES = {
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
-  // Wait for the backend data to be populated first!
-  if (window.NestApp && window.NestApp.fetchData) {
-    await window.NestApp.fetchData();
-  }
-
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
-  
-  // Find the exact property from our live database
-  const prop = PROPERTIES.find(p => String(p.id) === String(id));
-  
-  if (!prop) {
-    document.getElementById('detailHero').innerHTML = '<div style="padding:140px; text-align:center; font-family: DM Sans;">Property not found.</div>';
+  if (!id) {
+    document.getElementById('detailHero').innerHTML = '<div style="padding:140px; text-align:center;">No property ID provided.</div>';
     return;
   }
 
-  renderDetail(prop);
-  renderSimilar(prop);
-  
-  if(window.NestState && window.NestState.trackView) {
-    window.NestState.trackView(prop.id);
+  // Fetch directly from the API — no reliance on in-memory cache
+  try {
+    const apiBase = window.API_BASE || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : '/api');
+    const res = await fetch(`${apiBase}/listings/${id}`);
+    
+    if (!res.ok) throw new Error('Not found');
+    const dbItem = await res.json();
+
+    // Normalise the DB shape into what renderDetail() expects
+    const prop = {
+      id: dbItem._id,
+      _id: dbItem._id,
+      title: dbItem.title,
+      desc: dbItem.description,
+      price: dbItem.price ? Number(dbItem.price).toLocaleString('en-IN') : '0',
+      priceUnit: dbItem.propertyType === 'rent' ? '/mo' : '',
+      area: dbItem.area || (dbItem.location ? dbItem.location.split(',')[0].trim() : 'Dhaka'),
+      city: dbItem.city || (dbItem.location && dbItem.location.includes(',') ? dbItem.location.split(',')[1].trim() : 'Bangladesh'),
+      beds: dbItem.bedrooms || 0,
+      baths: dbItem.bathrooms || 0,
+      sqft: dbItem.sqft || 0,
+      intent: dbItem.propertyType === 'sale' ? 'buy' : (dbItem.propertyType || 'rent'),
+      img: dbItem.image || (dbItem.images && dbItem.images.length > 0 ? dbItem.images[0] : null),
+      images: dbItem.images || [],
+      amenities: dbItem.amenities || [],
+      verified: true,
+      isNew: true,
+      match: 85,
+      badge: dbItem.propertyType === 'rent' ? 'For Rent' : 'For Sale',
+      badgeClass: dbItem.propertyType === 'rent' ? 'badge-rent' : 'badge-buy',
+      tenant: dbItem.tenant || 'family',
+      gender: dbItem.gender || 'any'
+    };
+
+    renderDetail(prop);
+    renderSimilarFromAPI(prop, apiBase);
+    if (window.NestState && window.NestState.trackView) window.NestState.trackView(prop.id);
+    if (typeof updateNavAuth === 'function') updateNavAuth();
+
+  } catch (e) {
+    // Fallback: try in-memory PROPERTIES array (populated by data.js / shared NestApp)
+    if (window.NestApp && window.NestApp.fetchData) await window.NestApp.fetchData();
+    const prop = (window.PROPERTIES || []).find(p => String(p.id) === String(id));
+    if (!prop) {
+      document.getElementById('detailHero').innerHTML = '<div style="padding:140px; text-align:center; font-family: DM Sans;">Property not found.</div>';
+      return;
+    }
+    renderDetail(prop);
+    renderSimilar(prop);
+    if (window.NestState && window.NestState.trackView) window.NestState.trackView(prop.id);
   }
 });
 
@@ -313,7 +349,7 @@ function renderDetail(p){
 }
 
 function renderSimilar(p){
-  const similar = PROPERTIES.filter(x => String(x.id) !== String(p.id) && x.intent === p.intent).slice(0,4);
+  const similar = (window.PROPERTIES || []).filter(x => String(x.id) !== String(p.id) && x.intent === p.intent).slice(0,4);
   if(!similar.length) return;
   document.getElementById('similarSection').style.display = '';
   document.getElementById('similarGrid').innerHTML = similar.map(s => {
@@ -321,6 +357,41 @@ function renderSimilar(p){
       return ''; 
   }).join('');
   if (typeof attachCardEvents === 'function') attachCardEvents();
+}
+
+async function renderSimilarFromAPI(prop, apiBase) {
+  try {
+    const intent = prop.intent === 'buy' ? 'sale' : 'rent';
+    const res = await fetch(`${apiBase}/listings?type=${intent}&limit=5`);
+    if (!res.ok) return;
+    let data = await res.json();
+    // handle both array and paginated object
+    const listings = Array.isArray(data) ? data : (data.listings || []);
+    const similar = listings
+      .filter(x => String(x._id) !== String(prop.id))
+      .slice(0, 4)
+      .map(p => ({
+        id: p._id, title: p.title,
+        price: p.price ? Number(p.price).toLocaleString('en-IN') : '0',
+        area: p.area || '', city: p.city || '',
+        location: [p.area, p.city].filter(Boolean).join(', '),
+        beds: p.bedrooms || 0, baths: p.bathrooms || 0,
+        intent: p.propertyType === 'sale' ? 'buy' : 'rent',
+        img: p.image || (p.images && p.images[0]) || '',
+        images: p.images || [],
+        badge: p.propertyType === 'rent' ? 'For Rent' : 'For Sale',
+        badgeClass: p.propertyType === 'rent' ? 'badge-rent' : 'badge-buy',
+        verified: true
+      }));
+    if (!similar.length) return;
+    document.getElementById('similarSection').style.display = '';
+    document.getElementById('similarGrid').innerHTML = similar.map(s =>
+      typeof buildCard === 'function' ? buildCard(s, false) : ''
+    ).join('');
+    if (typeof attachCardEvents === 'function') attachCardEvents();
+  } catch(e) {
+    renderSimilar(prop); // fallback to in-memory
+  }
 }
 </script>
 

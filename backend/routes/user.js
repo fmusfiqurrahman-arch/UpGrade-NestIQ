@@ -223,4 +223,14 @@ router.delete('/saved-listings/:id', protect, async (req, res) => {
   }
 });
 
+// Bulk clear all saved listings
+router.delete('/saved-listings', protect, async (req, res) => {
+  try {
+    await SavedListing.deleteMany({ user: req.user._id });
+    res.json({ message: 'All saved listings cleared' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error clearing saved listings' });
+  }
+});
+
 module.exports = router;

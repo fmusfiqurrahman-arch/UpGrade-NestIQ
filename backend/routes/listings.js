@@ -113,9 +113,12 @@ router.get('/matches', protect, async (req, res) => {
         score += 10;
       }
       
-      // Location Match
-      if (prefs.location && p.location) {
-        if (p.location.toLowerCase().includes(prefs.location.toLowerCase())) {
+      // Location Match — check area AND city since there's no single 'location' field
+      if (prefs.location) {
+        const searchLoc = prefs.location.toLowerCase();
+        const propArea = (p.area || '').toLowerCase();
+        const propCity = (p.city || '').toLowerCase();
+        if (propArea.includes(searchLoc) || propCity.includes(searchLoc)) {
           score += 15;
         }
       }
