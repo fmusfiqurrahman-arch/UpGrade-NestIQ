@@ -1502,7 +1502,7 @@
         <div class="stat-card accent-muted"><div class="stat-label">Verified Users</div><div class="stat-value">${stats.verifiedUsers}</div><div class="stat-sub">trusted accounts</div></div>
       </div>`;
           actionsHtml = `<div class="section-heading"><span>Quick Admin Actions</span></div>
-        <div class="quick-actions" style="grid-template-columns:repeat(3,1fr)">
+        <div class="quick-actions" style="grid-template-columns:repeat(4,1fr)">
           <div class="quick-action" onclick="switchPanel('adminUsers',document.querySelector('[data-panel=adminUsers]'))">
             <div class="qa-icon">◉</div><div class="qa-title">Review Verifications</div><div class="qa-sub">Manage users</div>
           </div>
@@ -1512,44 +1512,61 @@
           <div class="quick-action" onclick="switchPanel('adminStats',document.querySelector('[data-panel=adminStats]'))">
             <div class="qa-icon">◈</div><div class="qa-title">Platform Stats</div><div class="qa-sub">View full overview</div>
           </div>
+          <div class="quick-action" onclick="switchPanel('profile',document.querySelector('[data-panel=profile]'))">
+            <div class="qa-icon">◎</div><div class="qa-title">Edit Profile</div><div class="qa-sub">Admin settings</div>
+          </div>
         </div>`;
         } catch (e) { console.error(e); }
 
       } else if (isOwner) {
         document.getElementById('welcomeSub').textContent = 'Manage your properties and track tenant interest.';
         try {
-          const res = await fetch(window.API_BASE + '/listings/me', { headers: { Authorization: `Bearer ${user.token}` } });
-          const props = res.ok ? await res.json() : [];
-          const savedCount = getSaved().length;
+          const [resProps, resInq] = await Promise.all([
+            fetch(window.API_BASE + '/listings/me', { headers: { Authorization: `Bearer ${user.token}` } }),
+            fetch(window.API_BASE + '/inquiries', { headers: { Authorization: `Bearer ${user.token}` } })
+          ]);
+          const props = resProps.ok ? await resProps.json() : [];
+          const inqs = resInq.ok ? await resInq.json() : [];
 
           statsHtml = `<div class="stats-row cols-3">
         <div class="stat-card"><div class="stat-label">My Listings</div><div class="stat-value gold">${props.length}</div><div class="stat-sub">active properties</div></div>
         <div class="stat-card accent-green"><div class="stat-label">Verification</div><div class="stat-value green" style="font-size:20px;margin-top:6px;">${user.isVerified ? 'Verified ✓' : 'Pending'}</div><div class="stat-sub">${user.isVerified ? 'trusted seller status' : 'upload NID to verify'}</div></div>
-        <div class="stat-card accent-muted"><div class="stat-label">Saved by Others</div><div class="stat-value">—</div><div class="stat-sub">coming soon</div></div>
+        <div class="stat-card accent-muted"><div class="stat-label">Inquiries Received</div><div class="stat-value">${inqs.length}</div><div class="stat-sub">messages & requests</div></div>
       </div>`;
           actionsHtml = `<div class="section-heading"><span>Quick Actions</span></div>
-        <div class="quick-actions">
-          <a href="list.html" class="quick-action"><div class="qa-icon">＋</div><div class="qa-title">Add New Listing</div><div class="qa-sub">List a property for rent or sale</div></a>
+        <div class="quick-actions" style="grid-template-columns:repeat(4,1fr)">
+          <a href="list.html" class="quick-action"><div class="qa-icon">＋</div><div class="qa-title">Add New Listing</div><div class="qa-sub">List a property</div></a>
           <div class="quick-action" onclick="switchPanel('mylistings',document.querySelector('[data-panel=mylistings]'))"><div class="qa-icon">⌂</div><div class="qa-title">My Properties</div><div class="qa-sub">${props.length} listings</div></div>
-          <div class="quick-action" onclick="switchPanel('profile',document.querySelector('[data-panel=profile]'))"><div class="qa-icon">◎</div><div class="qa-title">Complete Profile</div><div class="qa-sub">${user.isVerified ? 'Verified account' : 'Upload NID to verify'}</div></div>
+          <div class="quick-action" onclick="switchPanel('inquiries',document.querySelector('[data-panel=inquiries]'))"><div class="qa-icon">✉</div><div class="qa-title">My Inquiries</div><div class="qa-sub">${inqs.length} messages</div></div>
+          <div class="quick-action" onclick="switchPanel('profile',document.querySelector('[data-panel=profile]'))"><div class="qa-icon">◎</div><div class="qa-title">Edit Profile</div><div class="qa-sub">${user.isVerified ? 'Verified account' : 'Upload NID'}</div></div>
         </div>`;
         } catch (e) { console.error(e); }
 
       } else {
         // Tenant
         document.getElementById('welcomeSub').textContent = 'Find your perfect home and track your search.';
-        const savedCount = getSaved().length;
-        statsHtml = `<div class="stats-row cols-3">
-      <div class="stat-card"><div class="stat-label">Saved Properties</div><div class="stat-value gold">${savedCount}</div><div class="stat-sub">on your wishlist</div></div>
-      <div class="stat-card accent-green"><div class="stat-label">Account Status</div><div class="stat-value green" style="font-size:20px;margin-top:6px;">${user.isVerified ? 'Verified ✓' : 'Active'}</div><div class="stat-sub">${user.isVerified ? 'trusted account' : 'upload NID to verify'}</div></div>
-      <div class="stat-card accent-muted"><div class="stat-label">Inquiries Sent</div><div class="stat-value">—</div><div class="stat-sub">coming soon</div></div>
-    </div>`;
-        actionsHtml = `<div class="section-heading"><span>Quick Actions</span></div>
-      <div class="quick-actions">
-        <a href="listings.html?type=rent" class="quick-action"><div class="qa-icon">🔑</div><div class="qa-title">Find a Rental</div><div class="qa-sub">Browse available rentals</div></a>
-        <a href="listings.html?type=buy" class="quick-action"><div class="qa-icon">⌂</div><div class="qa-title">Buy a Property</div><div class="qa-sub">Browse properties for sale</div></a>
-        <div class="quick-action" onclick="switchPanel('saved',document.querySelector('[data-panel=saved]'))"><div class="qa-icon">♡</div><div class="qa-title">Saved Listings</div><div class="qa-sub">${savedCount} saved</div></div>
+        try {
+          const [resSaved, resInq] = await Promise.all([
+            fetch(window.API_BASE + '/user/saved-listings', { headers: { Authorization: `Bearer ${user.token}` } }),
+            fetch(window.API_BASE + '/inquiries', { headers: { Authorization: `Bearer ${user.token}` } })
+          ]);
+          const savedProps = resSaved.ok ? await resSaved.json() : [];
+          const inqs = resInq.ok ? await resInq.json() : [];
+          const savedCount = savedProps.length;
+
+          statsHtml = `<div class="stats-row cols-3">
+        <div class="stat-card"><div class="stat-label">Saved Properties</div><div class="stat-value gold">${savedCount}</div><div class="stat-sub">on your wishlist</div></div>
+        <div class="stat-card accent-green"><div class="stat-label">Account Status</div><div class="stat-value green" style="font-size:20px;margin-top:6px;">${user.isVerified ? 'Verified ✓' : 'Active'}</div><div class="stat-sub">${user.isVerified ? 'trusted account' : 'upload NID to verify'}</div></div>
+        <div class="stat-card accent-muted"><div class="stat-label">Inquiries Sent</div><div class="stat-value">${inqs.length}</div><div class="stat-sub">messages & requests</div></div>
       </div>`;
+          actionsHtml = `<div class="section-heading"><span>Quick Actions</span></div>
+        <div class="quick-actions" style="grid-template-columns:repeat(4,1fr)">
+          <a href="listings.html?type=rent" class="quick-action"><div class="qa-icon">🔑</div><div class="qa-title">Find a Rental</div><div class="qa-sub">Browse rentals</div></a>
+          <a href="listings.html?type=buy" class="quick-action"><div class="qa-icon">⌂</div><div class="qa-title">Buy Property</div><div class="qa-sub">Browse for sale</div></a>
+          <div class="quick-action" onclick="switchPanel('saved',document.querySelector('[data-panel=saved]'))"><div class="qa-icon">♡</div><div class="qa-title">Saved Listings</div><div class="qa-sub">${savedCount} saved</div></div>
+          <div class="quick-action" onclick="switchPanel('profile',document.querySelector('[data-panel=profile]'))"><div class="qa-icon">◎</div><div class="qa-title">Edit Profile</div><div class="qa-sub">Update details</div></div>
+        </div>`;
+        } catch (e) { console.error(e); }
       }
 
       activityHtml = `<div class="section-heading" style="margin-top:8px;"><span>Recent Activity</span></div>
@@ -1774,18 +1791,26 @@
             list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No inquiries found.</div>';
             return;
           }
-          list.innerHTML = inqs.map(i => `
+          list.innerHTML = inqs.map(i => {
+            const personName = (i.sender && i.sender.firstName) ? (i.sender.firstName + ' ' + (i.sender.lastName || '')) : (i.receiver && i.receiver.firstName ? (i.receiver.firstName + ' ' + (i.receiver.lastName || '')) : 'Guest');
+            const contactInfo = (i.sender && i.sender.email) ? i.sender.email : ((i.receiver && i.receiver.email) ? i.receiver.email : '');
+            const phoneInfo = (i.sender && i.sender.phone) ? i.sender.phone : ((i.receiver && i.receiver.phone) ? i.receiver.phone : '');
+            const listingTitle = (i.listing && i.listing.title) ? i.listing.title : 'Unknown Property';
+            const listingCity = (i.listing && i.listing.location) ? i.listing.location : '';
+            return `
             <div class="activity-feed" style="margin-bottom:12px;">
               <div class="activity-item">
                 <div class="activity-dot"></div>
                 <div style="flex:1">
                   <div class="activity-text" style="font-weight:500;">Type: ${i.type.toUpperCase()} <span style="font-size:10px;color:var(--text-muted);float:right">${new Date(i.createdAt).toLocaleDateString()}</span></div>
-                  <div class="activity-text" style="margin-top:4px;">${i.content}</div>
-                  <div class="activity-time" style="margin-top:8px;">Status: ${i.status}</div>
+                  <div class="activity-text" style="margin-top:6px;"><b>Property:</b> ${listingTitle} ${listingCity ? `(${listingCity})` : ''}</div>
+                  <div class="activity-text" style="margin-top:2px;"><b>Contact:</b> ${personName} ${contactInfo ? `&mdash; ${contactInfo}` : ''} ${phoneInfo ? `&mdash; ${phoneInfo}` : ''}</div>
+                  <div class="activity-text" style="margin-top:8px; font-style:italic; padding-left:12px; border-left:2px solid var(--brand); color:var(--text-muted);">"${i.content}"</div>
+                  <div class="activity-time" style="margin-top:10px;">Status: <span style="text-transform:uppercase;font-size:10px;padding:3px 8px;border-radius:2px;background:var(--surface-2);">${i.status}</span></div>
                 </div>
               </div>
             </div>
-          `).join('');
+          `}).join('');
         }
       } catch(e) {
         console.error(e);
