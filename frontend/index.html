@@ -59,19 +59,136 @@
 .property-card.featured { grid-column:span 2; }
 .property-card.featured .card-img { height:300px; }
 
-/* ── HOW IT WORKS ── */
-#how { background:var(--ink); color:var(--ivory); padding:100px 60px; position:relative; overflow:hidden; }
-#how::before { content:''; position:absolute; top:-200px; right:-200px; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle,rgba(184,155,106,0.08) 0%,transparent 70%); }
-#how .section-h2 { color:var(--ivory); }
-.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:36px; margin-top:56px; overflow:visible; }
-.step-card { position:relative; padding:32px 24px; border:1px solid rgba(184,155,106,0.2); border-radius:4px; transition:border-color 0.3s, box-shadow 0.3s, transform 0.75s cubic-bezier(0.22, 1.4, 0.36, 1), opacity 0.55s ease; will-change:transform; }
-.step-card:hover { border-color:var(--gold); }
-.step-num { font-family:'Cormorant Garamond',serif; font-size:56px; font-weight:300; color:var(--brand); opacity:0.8; line-height:1; margin-bottom:18px; }
-.step-icon { font-size:26px; margin-bottom:14px; }
-.step-title { font-size:15px; font-weight:500; color:var(--ivory); margin-bottom:8px; }
-.step-desc { font-size:13px; color:var(--ivory); opacity:0.6; line-height:1.7; }
-.step-line { position:absolute; top:50%; right:-18px; width:36px; height:1px; background:var(--brand); opacity:0.3; }
-.step-card:last-child .step-line { display:none; }
+/* ── HOW IT WORKS — SCROLL-PINNED ANIMATION ── */
+#how-wrapper {
+  position: relative;
+  /* height controls how long the section stays pinned: 100vh sticky + scroll room */
+  height: 500vh;
+  background: #0d0d0d;
+}
+#how-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+#how-sticky::before {
+  content: '';
+  position: absolute;
+  top: -180px; right: -180px;
+  width: 560px; height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,155,106,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.how-header {
+  text-align: center;
+  margin-bottom: 56px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.how-header.visible { opacity: 1; transform: none; }
+.how-header .section-tag { justify-content: center; color: #b8965a; margin-bottom: 10px; }
+.how-header .section-tag::after { background: #b8965a; opacity: 0.5; }
+.how-header h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px, 4vw, 58px); font-weight: 300; color: #f0ece4; line-height: 1.1; }
+.how-header h2 em { font-style: italic; color: #b8965a; }
+
+.how-cards-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+.how-card {
+  background: #111;
+  border: 1px solid rgba(184,155,106,0.15);
+  border-radius: 6px;
+  padding: 30px 24px;
+  transform: translateY(150px) scale(0.88) rotate(var(--card-rot, 0deg));
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.how-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, #b8965a, transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.how-card.landed::before { opacity: 1; }
+.how-card.floating {
+  animation: cardFloat 3s ease-in-out infinite;
+}
+.how-card.floating:nth-child(2) { animation-delay: 0.15s; }
+.how-card.floating:nth-child(3) { animation-delay: 0.30s; }
+.how-card.floating:nth-child(4) { animation-delay: 0.45s; }
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+  50%       { transform: translateY(-6px) scale(1) rotate(0deg); }
+}
+.how-card-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px;
+  font-weight: 300;
+  color: #b8965a;
+  opacity: 0.7;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.how-card-icon { font-size: 28px; margin-bottom: 12px; }
+.how-card-title { font-size: 15px; font-weight: 500; color: #f0ece4; margin-bottom: 8px; }
+.how-card-desc { font-size: 13px; color: rgba(240,236,228,0.55); line-height: 1.75; }
+.how-card-line {
+  position: absolute;
+  top: 50%; right: -12px;
+  width: 24px; height: 1px;
+  background: #b8965a;
+  opacity: 0.25;
+}
+.how-card:last-child .how-card-line { display: none; }
+
+/* Progress dots */
+.how-dots {
+  display: flex;
+  gap: 10px;
+  margin-top: 48px;
+  justify-content: center;
+}
+.how-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(184,155,106,0.2);
+  border: 1px solid rgba(184,155,106,0.35);
+  transition: background 0.4s ease, transform 0.4s ease;
+}
+.how-dot.active {
+  background: #b8965a;
+  transform: scale(1.25);
+  box-shadow: 0 0 8px rgba(184,155,106,0.6);
+}
+
+@media(max-width:900px){
+  .how-cards-row { grid-template-columns: 1fr 1fr; }
+  #how-wrapper { height: 700vh; }
+}
+@media(max-width:580px){
+  .how-cards-row { grid-template-columns: 1fr; padding: 0 20px; }
+  #how-wrapper { height: 900vh; }
+}
 
 /* ── FEATURES ── */
 #features { background:var(--surface); padding:100px 60px; }
@@ -292,15 +409,49 @@ html.dark #recently-viewed { background: var(--surface); }
   </div>
 </section>
 
-<section id="how">
-  <div class="reveal"><div class="section-tag">The Process</div><h2 class="section-h2">How <em>NestIQ</em> Works</h2></div>
-  <div class="steps-grid">
-    <div class="step-card reveal"><div class="step-num">01</div><div class="step-icon">📋</div><div class="step-title">Tell Us What You Need</div><div class="step-desc">Fill in preferences — budget, location, lifestyle. Our AI builds your unique property profile.</div><div class="step-line"></div></div>
-    <div class="step-card reveal"><div class="step-num">02</div><div class="step-icon">🤖</div><div class="step-title">AI Matches You</div><div class="step-desc">Our algorithm scans thousands of listings and ranks them by how well they fit your profile.</div><div class="step-line"></div></div>
-    <div class="step-card reveal"><div class="step-num">03</div><div class="step-icon">🛡️</div><div class="step-title">We Verify Everything</div><div class="step-desc">Every property goes through title verification, agent checks, and physical inspection.</div><div class="step-line"></div></div>
-    <div class="step-card reveal"><div class="step-num">04</div><div class="step-icon">🤝</div><div class="step-title">Concierge Closes It</div><div class="step-desc">Your personal concierge handles negotiations, paperwork, and move-in coordination.</div></div>
+<div id="how-wrapper">
+  <div id="how-sticky">
+    <div class="how-header" id="howHeader">
+      <div class="section-tag">The Process</div>
+      <h2>How <em>NestIQ</em> Works</h2>
+    </div>
+    <div class="how-cards-row" id="howCardsRow">
+      <div class="how-card" data-rot="-4" data-index="0">
+        <div class="how-card-num">01</div>
+        <div class="how-card-icon">📋</div>
+        <div class="how-card-title">Tell Us What You Need</div>
+        <div class="how-card-desc">Fill in preferences — budget, location, lifestyle. Our AI builds your unique property profile.</div>
+        <div class="how-card-line"></div>
+      </div>
+      <div class="how-card" data-rot="3" data-index="1">
+        <div class="how-card-num">02</div>
+        <div class="how-card-icon">🤖</div>
+        <div class="how-card-title">AI Matches You</div>
+        <div class="how-card-desc">Our algorithm scans thousands of listings and ranks them by how well they fit your profile.</div>
+        <div class="how-card-line"></div>
+      </div>
+      <div class="how-card" data-rot="-2" data-index="2">
+        <div class="how-card-num">03</div>
+        <div class="how-card-icon">🛡️</div>
+        <div class="how-card-title">We Verify Everything</div>
+        <div class="how-card-desc">Every property goes through title verification, agent checks, and physical inspection.</div>
+        <div class="how-card-line"></div>
+      </div>
+      <div class="how-card" data-rot="5" data-index="3">
+        <div class="how-card-num">04</div>
+        <div class="how-card-icon">🤝</div>
+        <div class="how-card-title">Concierge Closes It</div>
+        <div class="how-card-desc">Your personal concierge handles negotiations, paperwork, and move-in coordination.</div>
+      </div>
+    </div>
+    <div class="how-dots" id="howDots">
+      <div class="how-dot" id="dot0"></div>
+      <div class="how-dot" id="dot1"></div>
+      <div class="how-dot" id="dot2"></div>
+      <div class="how-dot" id="dot3"></div>
+    </div>
   </div>
-</section>
+</div>
 
 <section id="features">
   <div class="features-grid">
@@ -631,80 +782,97 @@ async function submitMatchForm(){
 </script>
 
 <script>
-// ── DECK-OF-CARDS ANIMATION FOR #HOW ──────────────────────────────
-(function() {
-  function init() {
-    var section = document.getElementById('how');
-    var grid = section && section.querySelector('.steps-grid');
-    var cards = grid ? Array.from(grid.querySelectorAll('.step-card')) : [];
-    if (cards.length < 2) return;
+// ── HOW-IT-WORKS SCROLL-PROGRESS ANIMATION ─────────────────────────
+(function () {
+  var wrapper = document.getElementById('how-wrapper');
+  var header  = document.getElementById('howHeader');
+  var cards   = Array.from(document.querySelectorAll('.how-card'));
+  var dots    = Array.from(document.querySelectorAll('.how-dot'));
+  if (!wrapper || !cards.length) return;
 
-    var dealt = false;
-    // Deck config: rotation and y-lift for each card (front to back)
-    var cfgs = [
-      { rot:  5.5, y: 14 },
-      { rot:  2.0, y:  8 },
-      { rot: -1.5, y:  4 },
-      { rot: -4.5, y:  0 }
-    ];
+  var CARD_COUNT = cards.length;
+  var STAGGER    = 0.18;          // progress offset between cards
+  var CARD_SPAN  = 0.18;          // each card takes this much progress to fully land
+  var HEADER_END = 0.08;          // header visible by 8% progress
+  // total progress needed: header + all 4 cards + a little hold
+  // cards start at HEADER_END, each offset by STAGGER
+  // last card done at: HEADER_END + (CARD_COUNT-1)*STAGGER + CARD_SPAN = ~0.9
+  var DONE_AT    = HEADER_END + (CARD_COUNT - 1) * STAGGER + CARD_SPAN + 0.08;
 
-    function stack() {
-      var gridRect = grid.getBoundingClientRect();
-      var cx = gridRect.width / 2;
-      cards.forEach(function(card, i) {
-        var r = card.getBoundingClientRect();
-        var cardCx = r.left - gridRect.left + r.width / 2;
-        var dx = cx - cardCx;
-        var cfg = cfgs[i] || cfgs[cfgs.length - 1];
-        card.style.transition = 'none';
-        card.style.transform = 'translateX(' + dx + 'px) translateY(-' + cfg.y + 'px) rotate(' + cfg.rot + 'deg)';
-        card.style.opacity = String(1 - i * 0.07);
-        card.style.zIndex = String(10 - i);
-        card.style.boxShadow = '0 ' + (10 + i*6) + 'px ' + (30 + i*10) + 'px rgba(0,0,0,0.5)';
-        card.classList.add('visible'); // prevent shared.js reveal from resetting
-      });
-    }
+  var landed = new Array(CARD_COUNT).fill(false);
+  var allLanded = false;
+  var rafId = null;
 
-    function deal() {
-      if (dealt) return;
-      dealt = true;
-      cards.forEach(function(card, i) {
-        setTimeout(function() {
-          card.style.transition = 'transform 0.75s cubic-bezier(0.22,1.4,0.36,1), opacity 0.55s ease, box-shadow 0.5s ease';
-          card.style.transform = '';
-          card.style.opacity = '1';
-          card.style.zIndex = '';
-          card.style.boxShadow = '';
-        }, i * 120);
-      });
-    }
+  // easeOut spring feel: cubic-bezier(0.16, 1, 0.3, 1) approximated in JS
+  function easeOutExpo(t) {
+    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+  }
 
-    // Only stack if section is below the fold
-    if (section.getBoundingClientRect().top > window.innerHeight * 0.6) {
-      stack();
-    } else {
-      dealt = true;
-    }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function lerp(a, b, t)    { return a + (b - a) * t; }
 
-    var io = new IntersectionObserver(function(entries) {
-      if (entries[0].isIntersecting && !dealt) {
-        setTimeout(deal, 150);
-        io.disconnect();
+  function applyCard(card, raw) {
+    // raw 0..1 within this card's window
+    var t = clamp(raw, 0, 1);
+    var e = easeOutExpo(t);
+
+    var ty    = lerp(150, 0, e);              // Y: 150px → 0
+    var sc    = lerp(0.88, 1, e);            // scale
+    var op    = lerp(0, 1, clamp(t * 3, 0, 1));  // fade in quickly
+    var rotDeg = parseFloat(card.dataset.rot) || 0;
+    var rot   = lerp(rotDeg, 0, e);          // rotation → 0
+
+    card.style.transform  = 'translateY(' + ty + 'px) scale(' + sc + ') rotate(' + rot + 'deg)';
+    card.style.opacity    = op;
+
+    return t >= 1;
+  }
+
+  function tick() {
+    rafId = null;
+    var wRect   = wrapper.getBoundingClientRect();
+    var wHeight = wrapper.offsetHeight;
+    var vh      = window.innerHeight;
+
+    // progress 0 when wrapper top hits viewport top; 1 when wrapper bottom hits viewport bottom
+    var scrolled  = -wRect.top;                           // px scrolled inside wrapper
+    var scrollMax = wHeight - vh;                          // total scrollable range
+    var progress  = clamp(scrolled / scrollMax, 0, 1);
+
+    // Header
+    var hProgress = clamp(progress / HEADER_END, 0, 1);
+    header.style.opacity   = easeOutExpo(hProgress);
+    header.style.transform = 'translateY(' + lerp(20, 0, easeOutExpo(hProgress)) + 'px)';
+
+    // Cards
+    var allDone = true;
+    for (var i = 0; i < CARD_COUNT; i++) {
+      var cardStart = HEADER_END + i * STAGGER;
+      var raw = (progress - cardStart) / CARD_SPAN;
+      var done = applyCard(cards[i], raw);
+
+      if (done && !landed[i]) {
+        landed[i] = true;
+        cards[i].classList.add('landed');
+        if (dots[i]) dots[i].classList.add('active');
       }
-    }, { threshold: 0.25 });
-    io.observe(section);
+      if (!done) allDone = false;
+    }
 
-    // Re-stack on resize if not yet dealt
-    window.addEventListener('resize', function() {
-      if (!dealt) { stack(); }
-    }, { passive: true });
+    // Once all landed, add floating bob
+    if (allDone && !allLanded) {
+      allLanded = true;
+      cards.forEach(function (c) { c.classList.add('floating'); });
+    }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  function onScroll() {
+    if (!rafId) rafId = requestAnimationFrame(tick);
   }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  // Run once on load to set initial state
+  tick();
 })();
 </script>
 </body>
