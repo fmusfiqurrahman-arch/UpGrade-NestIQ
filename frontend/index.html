@@ -193,11 +193,23 @@ html.dark #recently-viewed { background: var(--surface); }
       <button class="btn-primary" onclick="window.location='login_signup.html?tab=signup'">Start Matching</button>
       <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works</button>
     </div>
-    <div class="hero-stats">
-      <div><div class="stat-val">14k<span>+</span></div><div class="stat-label">Verified Listings</div></div>
+    <div class="hero-stats" id="heroStatsContainer">
+      <div><div class="stat-val" id="statListings">...</div><div class="stat-label">Verified Listings</div></div>
       <div><div class="stat-val">96<span>%</span></div><div class="stat-label">Match Accuracy</div></div>
-      <div><div class="stat-val">3.2<span>k</span></div><div class="stat-label">Happy Families</div></div>
+      <div><div class="stat-val" id="statUsers">...</div><div class="stat-label">Happy Families</div></div>
     </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          const res = await fetch((window.API_BASE || '/api') + '/listings/stats');
+          if (res.ok) {
+            const stats = await res.json();
+            document.getElementById('statListings').innerHTML = stats.totalListings + '<span>+</span>';
+            document.getElementById('statUsers').innerHTML = (stats.usersCount || 0) + '<span>+</span>';
+          }
+        } catch(e) {}
+      });
+    </script>
   </div>
   <div class="hero-right">
     <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Luxury home" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;"/>
@@ -504,7 +516,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             intent: dbItem.propertyType,
             img: dbItem.image || (dbItem.images && dbItem.images.length > 0 ? dbItem.images[0] : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'),
             verified: true,
-            match: Math.floor(Math.random() * 15) + 85,
+            match: dbItem._id ? (String(dbItem._id).split('').reduce((a,b)=>a+b.charCodeAt(0),0)%15)+85 : Math.floor(Math.random() * 15) + 85,
             isNew: true,
             badge: dbItem.propertyType === 'rent' ? 'For Rent' : 'For Sale',
             badgeClass: dbItem.propertyType === 'rent' ? 'badge-rent' : 'badge-buy',
@@ -534,23 +546,52 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (typeof syncGlobalAvatar === 'function') syncGlobalAvatar();
 });
 
-function submitMatchForm(){
+async function submitMatchForm(){
   const modal = document.getElementById('modal');
   if(!modal) return;
   const inputs = modal.querySelectorAll('input');
+  const selects = modal.querySelectorAll('select');
   
-  if (typeof validateForm === 'function') {
-    const valid = validateForm([
-      { el: inputs[0], required: true,  type: 'text'  },
-      { el: inputs[1], required: true,  type: 'tel'   },
-      { el: inputs[2], required: false, type: 'email' },
-    ]);
-    if(!valid){ 
+  const name = inputs[0].value.trim();
+  const phone = inputs[1].value.trim();
+  const email = inputs[2].value.trim();
+  const intent = selects[0].value;
+  const loc = inputs[3].value.trim();
+
+  if(!name || !phone) {
       if(typeof showNotif === 'function') showNotif('⚠️ Please fill in all required fields'); 
       return; 
-    }
   }
-  if (typeof submitForm === 'function') submitForm();
+
+  const btn = modal.querySelector('.modal-submit');
+  btn.textContent = 'Submitting...'; btn.style.opacity = '0.7';
+  
+  try {
+    const userStr = localStorage.getItem('user');
+    const token = userStr ? JSON.parse(userStr).token : null;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(window.API_BASE ? window.API_BASE + '/inquiries' : '/api/inquiries', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        type: 'match',
+        content: `Guest Lead: ${name} (${phone}, ${email}). Intent: ${intent}. Location: ${loc}`
+      })
+    });
+    
+    btn.textContent = 'Find My Matches →'; btn.style.opacity = '1';
+    if(res.ok) {
+        if(typeof closeModal === 'function') closeModal();
+        if(typeof showNotif === 'function') showNotif('✅ Request submitted! An agent will contact you shortly.');
+    } else {
+        if(typeof showNotif === 'function') showNotif('❌ Failed to submit request');
+    }
+  } catch(e) {
+    btn.textContent = 'Find My Matches →'; btn.style.opacity = '1';
+    if(typeof showNotif === 'function') showNotif('❌ Network error');
+  }
 }
 </script>
 </body>

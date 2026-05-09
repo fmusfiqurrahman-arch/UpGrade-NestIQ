@@ -1,59 +1,132 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Standardized capitalization
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const { body, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
+const User = require('../models/User');
+const Otp = require('../models/Otp');
 const { protect } = require('../middleware/auth');
 
-// Helper function to create the VIP Pass (Token)
+// Rate limiters
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  message: { message: 'Too many login attempts, please try again after 15 minutes' }
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Too many OTP requests, please try again later' }
+});
+
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 // --------------------------------------------------------
-// ROUTE 1: SIGN UP (POST /api/auth/signup)
+// ROUTE: SEND OTP (Pre-signup)
 // --------------------------------------------------------
-router.post('/signup', async (req, res) => {
+router.post('/send-otp', otpLimiter, [
+  body('identifier').notEmpty().withMessage('Email or phone is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
   try {
-    const { firstName, lastName, email, phone, password, role } = req.body;
-
+    const { identifier } = req.body;
+    
     // Check if user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ message: 'User already exists with this email or phone' });
     }
 
-    // Create the new user
-    const user = await User.create({
-      firstName,
-      lastName,
-      email,
-      phone,
-      password,
-      role
-    });
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
 
-    // Send back success and token
-    if (user) {
-      res.status(201).json({
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        profilePicUrl: user.profilePicUrl,
-        token: generateToken(user._id)
-      });
-    }
+    // Upsert OTP
+    await Otp.findOneAndUpdate(
+      { identifier },
+      { identifier, otpCode, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    console.log(`\n\n=== 📱 MOCK SMS/EMAIL ===\nTo: ${identifier}\nOTP: ${otpCode}\n=========================\n\n`);
+
+    res.json({ message: 'OTP sent successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 // --------------------------------------------------------
-// ROUTE 2: LOGIN (POST /api/auth/login)
+// ROUTE: VERIFY OTP & SIGNUP
 // --------------------------------------------------------
-router.post('/login', async (req, res) => {
+router.post('/verify-otp', otpLimiter, [
+  body('identifier').notEmpty(),
+  body('otpCode').isLength({ min: 6, max: 6 }),
+  body('firstName').notEmpty(),
+  body('lastName').notEmpty(),
+  body('email').isEmail(),
+  body('phone').notEmpty(),
+  body('password').isLength({ min: 8 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const { identifier, otpCode, firstName, lastName, email, phone, password, role } = req.body;
+
+    const otpRecord = await Otp.findOne({ identifier, otpCode });
+    if (!otpRecord) return res.status(400).json({ message: 'Invalid OTP' });
+    if (otpRecord.expiresAt < new Date()) return res.status(400).json({ message: 'OTP expired' });
+
+    // Ensure user doesn't already exist
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: 'User already exists' });
+
+    // Create user
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      role,
+      isVerified: true
+    });
+
+    // Delete OTP record
+    await Otp.deleteOne({ _id: otpRecord._id });
+
+    res.status(201).json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      profilePicUrl: user.profilePicUrl,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// --------------------------------------------------------
+// ROUTE: LOGIN
+// --------------------------------------------------------
+router.post('/login', loginLimiter, [
+  body('email').notEmpty(),
+  body('password').notEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
   try {
     const { email, password } = req.body;
 
@@ -84,7 +157,63 @@ router.post('/login', async (req, res) => {
 });
 
 // --------------------------------------------------------
-// ROUTE 3: GET USER PROFILE (GET /api/auth/me OR /api/auth/profile)
+// ROUTE: FORGOT PASSWORD
+// --------------------------------------------------------
+router.post('/forgot-password', [
+  body('email').isEmail()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save({ validateBeforeSave: false });
+
+    console.log(`\n\n=== 📧 MOCK EMAIL ===\nTo: ${user.email}\nSubject: Password Reset\nLink: http://localhost:5500/login_signup.html?reset=${resetToken}\n=====================\n\n`);
+
+    res.json({ message: 'Password reset link sent to email' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// --------------------------------------------------------
+// ROUTE: RESET PASSWORD
+// --------------------------------------------------------
+router.post('/reset-password', [
+  body('token').notEmpty(),
+  body('password').isLength({ min: 8 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  try {
+    const { token, password } = req.body;
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+
+    user.password = password; // Will be hashed by pre-save hook
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// --------------------------------------------------------
+// ROUTE: GET USER PROFILE (GET /api/auth/me OR /api/auth/profile)
 // --------------------------------------------------------
 const getProfile = async (req, res) => {
   try {
@@ -107,16 +236,21 @@ const getProfile = async (req, res) => {
   }
 };
 
-// Hook up both endpoints so the frontend never gets confused!
 router.get('/profile', protect, getProfile);
 router.get('/me', protect, getProfile); 
 
 // --------------------------------------------------------
-// ROUTE 4: UPDATE USER PROFILE (PUT /api/auth/profile)
+// ROUTE: UPDATE USER PROFILE (PUT /api/auth/profile)
 // --------------------------------------------------------
-router.put('/profile', protect, async (req, res) => {
+router.put('/profile', protect, [
+  body('firstName').optional().notEmpty(),
+  body('lastName').optional().notEmpty(),
+  body('phone').optional().notEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
   try {
-    // Use findByIdAndUpdate to cleanly bypass strict .save() validation rules
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -126,7 +260,7 @@ router.put('/profile', protect, async (req, res) => {
           phone: req.body.phone
         }
       },
-      { new: true } // This tells Mongoose to return the freshly updated data!
+      { new: true, runValidators: true }
     );
 
     if (updatedUser) {
@@ -138,7 +272,7 @@ router.put('/profile', protect, async (req, res) => {
         phone: updatedUser.phone,
         role: updatedUser.role,
         profilePicUrl: updatedUser.profilePicUrl,
-        token: generateToken(updatedUser._id) // Give them a fresh token!
+        token: generateToken(updatedUser._id)
       });
     } else {
       res.status(404).json({ message: 'User not found' });

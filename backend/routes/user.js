@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); 
+const SavedListing = require('../models/SavedListing');
 const { protect, admin } = require('../middleware/auth'); 
 const upload = require('../utils/upload'); 
 const path = require('path');
@@ -56,7 +57,8 @@ router.post('/profile-pic', protect, (req, res) => {
       }
 
       // 3. Create the clean, URL-safe image link
-      const newPicUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+      const newPicUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
       // 4. SURGICAL UPDATE: Update ONLY the profile picture to bypass strict validation!
       await User.findByIdAndUpdate(
@@ -88,7 +90,8 @@ router.post('/nid-upload', protect, (req, res) => {
       // Janitor cleans old NID
       deleteFile(user.nidDocUrl);
 
-      const newNidUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+      const newNidUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
       // SURGICAL UPDATE: Bypass strict validation!
       await User.findByIdAndUpdate(
@@ -131,6 +134,92 @@ router.put('/admin/users/:id/verify', protect, admin, async (req, res) => {
     res.json({ message: `User is now ${user.isVerified ? 'Verified' : 'Unverified'}`, isVerified: user.isVerified });
   } catch (error) {
     res.status(500).json({ message: 'Server error updating verification' });
+  }
+});
+
+// -----------------------------------------------------------------
+// 4.5 ADMIN ONLY: EDIT USER ROLE
+// -----------------------------------------------------------------
+router.put('/admin/users/:id/role', protect, admin, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['tenant', 'owner', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.role = role;
+    await user.save();
+
+    res.json({ message: `User role updated to ${role}`, role: user.role });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error updating role' });
+  }
+});
+
+// -----------------------------------------------------------------
+// 4.6 ADMIN ONLY: PLATFORM STATS
+// -----------------------------------------------------------------
+router.get('/admin/stats', protect, admin, async (req, res) => {
+  try {
+    const Listing = require('../models/Listing');
+    const Inquiry = require('../models/Inquiry');
+    
+    const [usersCount, verifiedUsers, totalListings, totalInquiries] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ isVerified: true }),
+      Listing.countDocuments(),
+      Inquiry.countDocuments()
+    ]);
+
+    res.json({
+      usersCount,
+      verifiedUsers,
+      totalListings,
+      totalInquiries
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching admin stats' });
+  }
+});
+
+// -----------------------------------------------------------------
+// 5. SAVED LISTINGS (WISHLIST)
+// -----------------------------------------------------------------
+router.get('/saved-listings', protect, async (req, res) => {
+  try {
+    const saved = await SavedListing.find({ user: req.user._id }).populate('listing');
+    res.json(saved.map(s => s.listing).filter(Boolean));
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching saved listings' });
+  }
+});
+
+router.post('/saved-listings', protect, async (req, res) => {
+  try {
+    const { listingId } = req.body;
+    if (!listingId) return res.status(400).json({ message: 'Listing ID is required' });
+
+    // Check if already saved
+    const exists = await SavedListing.findOne({ user: req.user._id, listing: listingId });
+    if (exists) return res.json({ message: 'Already saved', saved: true });
+
+    await SavedListing.create({ user: req.user._id, listing: listingId });
+    res.status(201).json({ message: 'Listing saved', saved: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error saving listing' });
+  }
+});
+
+router.delete('/saved-listings/:id', protect, async (req, res) => {
+  try {
+    await SavedListing.findOneAndDelete({ user: req.user._id, listing: req.params.id });
+    res.json({ message: 'Listing removed from saved', saved: false });
+  } catch (error) {
+    res.status(500).json({ message: 'Error removing saved listing' });
   }
 });
 

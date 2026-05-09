@@ -191,13 +191,29 @@ window.buildCard = function(p, featured=false) {
   return NestCardPlugins.apply(html, p);
 };
 
-window.toggleSave=function(e,btn,id){
+window.toggleSave=async function(e,btn,id){
   e.stopPropagation();
   if(!NestState.isLoggedIn()){ showLoginPrompt(); return; }
   id=String(id);
   const saved=NestState.isSaved(id);
-  if(saved){ NestState.removeSaved(id); btn.textContent='♡'; btn.classList.remove('saved'); showNotif('Removed from wishlist'); }
-  else { NestState.addSaved(id); btn.textContent='♥'; btn.classList.add('saved'); showNotif('Saved to wishlist ♥'); }
+  const userStr = localStorage.getItem('user');
+  const token = userStr ? JSON.parse(userStr).token : null;
+  
+  if(saved){ 
+    NestState.removeSaved(id); 
+    btn.textContent='♡'; btn.classList.remove('saved'); 
+    showNotif('Removed from wishlist');
+    if(token) {
+      try { await fetch((window.API_BASE || '/api') + '/user/saved-listings/' + id, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); } catch(err) {}
+    }
+  } else { 
+    NestState.addSaved(id); 
+    btn.textContent='♥'; btn.classList.add('saved'); 
+    showNotif('Saved to wishlist ♥'); 
+    if(token) {
+      try { await fetch((window.API_BASE || '/api') + '/user/saved-listings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ listingId: id }) }); } catch(err) {}
+    }
+  }
   updateNavAuth();
 };
 
@@ -247,6 +263,39 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── SCROLL REVEAL ANIMATIONS (BULLETPROOF) ──────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Inject Compare Drawer HTML
+  if(!document.getElementById('compareDrawer')){
+    const drawerHtml = `
+      <div id="compareDrawer">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-right:20px;">Compare<br><span style="font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Properties</span></div>
+        <div class="compare-slots" id="compareSlots">
+          <div class="compare-slot" data-idx="0">Add property...</div>
+          <div class="compare-slot" data-idx="1">Add property...</div>
+          <div class="compare-slot" data-idx="2">Add property...</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-left:auto;">
+          <button class="compare-cta" onclick="openCompareModal()">Compare Now</button>
+          <button class="compare-clear" onclick="clearCompare()">Clear All</button>
+        </div>
+      </div>
+      
+      <div id="compareModal">
+        <div class="compare-modal-inner">
+          <div class="compare-modal-header">
+            <h2 class="compare-modal-title">Property Comparison</h2>
+            <button class="compare-modal-close" onclick="closeCompareModal()">✕</button>
+          </div>
+          <div class="compare-table-wrap" style="padding:0">
+            <table class="compare-table" id="compareTable">
+              <!-- Rendered via JS -->
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', drawerHtml);
+  }
+
   const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting || entry.boundingClientRect.top < window.innerHeight) {
@@ -290,3 +339,126 @@ document.addEventListener('DOMContentLoaded', () => {
 window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
   ? 'http://localhost:5000/api' 
   : '/api'; // Use relative path in production
+
+// ── COMPARE LOGIC ─────────────────────────────────────────────
+window.compareList = [];
+
+window.toggleCompare = function(cb, id, title, img, price, area, beds, baths, intent) {
+  if (cb.checked) {
+    if (window.compareList.length >= 3) {
+      showNotif('You can compare up to 3 properties');
+      cb.checked = false;
+      return;
+    }
+    window.compareList.push({ id, title, img, price, area, beds, baths, intent });
+  } else {
+    window.compareList = window.compareList.filter(p => String(p.id) !== String(id));
+  }
+  updateCompareDrawer();
+};
+
+window.updateCompareDrawer = function() {
+  const drawer = document.getElementById('compareDrawer');
+  if (!drawer) return;
+  if (window.compareList.length > 0) {
+    drawer.classList.add('open');
+  } else {
+    drawer.classList.remove('open');
+  }
+  
+  const slots = document.getElementById('compareSlots');
+  if (!slots) return;
+  
+  let html = '';
+  for(let i=0; i<3; i++) {
+    const p = window.compareList[i];
+    if (p) {
+      html += `<div class="compare-slot filled">
+                 <img src="${p.img}" style="width:40px;height:40px;object-fit:cover;border-radius:2px;">
+                 <div style="flex:1;overflow:hidden;">
+                   <div style="font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+                   <div style="font-size:11px;">৳ ${Number(p.price).toLocaleString('en-IN')}</div>
+                 </div>
+                 <button class="compare-slot-remove" onclick="removeCompare('${p.id}')">✕</button>
+               </div>`;
+    } else {
+      html += `<div class="compare-slot">Add property...</div>`;
+    }
+  }
+  slots.innerHTML = html;
+};
+
+window.removeCompare = function(id) {
+  window.compareList = window.compareList.filter(p => String(p.id) !== String(id));
+  const cb = document.getElementById('comp_' + id);
+  if (cb) cb.checked = false;
+  updateCompareDrawer();
+};
+
+window.clearCompare = function() {
+  window.compareList.forEach(p => {
+    const cb = document.getElementById('comp_' + p.id);
+    if (cb) cb.checked = false;
+  });
+  window.compareList = [];
+  updateCompareDrawer();
+};
+
+window.openCompareModal = function() {
+  if (window.compareList.length < 2) {
+    showNotif('Add at least 2 properties to compare');
+    return;
+  }
+  
+  let html = `
+    <tr>
+      <th style="width:160px;background:var(--surface);"></th>
+      ${window.compareList.map(p => `
+        <th class="prop-col">
+          <img src="${p.img}" style="width:100%;height:140px;object-fit:cover;border-radius:4px;margin-bottom:12px;">
+          <div class="compare-prop-price">৳ ${Number(p.price).toLocaleString('en-IN')}</div>
+          <div class="compare-prop-title">${p.title}</div>
+          <div class="compare-prop-loc">${p.area}</div>
+        </th>
+      `).join('')}
+    </tr>
+    <tr>
+      <td class="row-label">Intent</td>
+      ${window.compareList.map(p => `<td class="prop-col" style="text-transform:capitalize">${p.intent}</td>`).join('')}
+    </tr>
+    <tr>
+      <td class="row-label">Price</td>
+      ${window.compareList.map(p => `<td class="prop-col compare-highlight">৳ ${Number(p.price).toLocaleString('en-IN')}</td>`).join('')}
+    </tr>
+    <tr>
+      <td class="row-label">Bedrooms</td>
+      ${window.compareList.map(p => `<td class="prop-col">${p.beds || 0}</td>`).join('')}
+    </tr>
+    <tr>
+      <td class="row-label">Bathrooms</td>
+      ${window.compareList.map(p => `<td class="prop-col">${p.baths || 0}</td>`).join('')}
+    </tr>
+    <tr>
+      <td class="row-label">Area</td>
+      ${window.compareList.map(p => `<td class="prop-col">${p.area}</td>`).join('')}
+    </tr>
+    <tr>
+      <td></td>
+      ${window.compareList.map(p => `<td class="prop-col"><button class="btn-outline" style="width:100%;font-size:11px;padding:8px" onclick="goDetail('${p.id}')">View Details</button></td>`).join('')}
+    </tr>
+  `;
+  document.getElementById('compareTable').innerHTML = html;
+  document.getElementById('compareModal').classList.add('open');
+};
+
+window.closeCompareModal = function() {
+  document.getElementById('compareModal').classList.remove('open');
+};
+
+NestCardPlugins.register(function(html, p) {
+  const safeTitle = (p.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const safeArea = (p.area || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const safeIntent = (p.intent || '').replace(/'/g, "\\'");
+  const cbHtml = `<div class="card-compare-wrap" onclick="event.stopPropagation()"><input type="checkbox" id="comp_${p.id || p._id}" onchange="toggleCompare(this, '${p.id || p._id}', '${safeTitle}', '${p.img || ''}', ${p.priceRaw || p.price || 0}, '${safeArea}', ${p.beds || 0}, ${p.baths || 0}, '${safeIntent}')"><label for="comp_${p.id || p._id}">Compare</label></div>`;
+  return html.replace('<div class="card-meta">', cbHtml + '<div class="card-meta">');
+});

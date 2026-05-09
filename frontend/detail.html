@@ -229,7 +229,7 @@ function renderDetail(p){
     <div class="gallery">
       <div class="gallery-main">
         <img src="${img0}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.background='linear-gradient(135deg,#c8b49a,#9a7d5f)'"/>
-        <div class="gallery-count" onclick="showNotif('📸 Full gallery coming soon!')">📷 View All Photos</div>
+        <div class="gallery-count" onclick="openGallery()">📷 View All Photos</div>
       </div>
       <div class="gallery-thumb"><img src="${img1}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.85)"/></div>
       <div class="gallery-thumb"><img src="${img2}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;display:block;filter:brightness(0.7)"/></div>
@@ -298,11 +298,11 @@ function renderDetail(p){
               <div class="agent-verified">✓ ID Verified · Licensed</div>
             </div>
           </div>
-          <div class="contact-form-row"><input type="text" placeholder="Your full name"/></div>
-          <div class="contact-form-row"><input type="tel" placeholder="Your phone number"/></div>
-          <div class="contact-form-row"><textarea rows="3" placeholder="Your message or questions..."></textarea></div>
-          <button class="contact-btn" onclick="requireLogin('message')">Send Message</button>
-          <button class="contact-btn-outline" onclick="requireLogin('booking')">📅 Book a Viewing</button>
+          <div class="contact-form-row"><input type="text" id="contactName" placeholder="Your full name"/></div>
+          <div class="contact-form-row"><input type="tel" id="contactPhone" placeholder="Your phone number"/></div>
+          <div class="contact-form-row"><textarea id="contactMsg" rows="3" placeholder="Your message or questions..."></textarea></div>
+          <button class="contact-btn" onclick="handleContact('message')">Send Message</button>
+          <button class="contact-btn-outline" onclick="openModal()">📅 Book a Viewing</button>
           <div class="contact-guarantee">🛡️ NestIQ Buyer Protection applies to this listing</div>
         </div>
       </div>
@@ -338,6 +338,76 @@ window.shareProperty = function(){
     document.body.removeChild(inp);
     showNotif('🔗 Link copied to clipboard!');
   }
+};
+
+window.handleContact = async function(action) {
+  const name = document.getElementById('contactName')?.value.trim();
+  const phone = document.getElementById('contactPhone')?.value.trim();
+  let msg = document.getElementById('contactMsg')?.value.trim();
+  
+  if (action === 'booking') {
+     const modalInputs = document.getElementById('modal').querySelectorAll('input');
+     const bName = modalInputs[0].value;
+     const bPhone = modalInputs[1].value;
+     const bEmail = modalInputs[2].value;
+     const bDate = modalInputs[3].value;
+     if(!bName || !bPhone || !bDate) { showNotif('⚠️ Fill required fields'); return; }
+     msg = `Booking Request from ${bName} (${bPhone}, ${bEmail}) for ${bDate}`;
+  } else {
+     if(!name || !phone || !msg) { showNotif('⚠️ Fill all fields'); return; }
+     msg = `Message from ${name} (${phone}): ${msg}`;
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const listingId = urlParams.get('id');
+
+  try {
+    const userStr = localStorage.getItem('user');
+    const token = userStr ? JSON.parse(userStr).token : null;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ type: action, listing: listingId, content: msg })
+    });
+    
+    if(res.ok) {
+        showNotif('✅ Request sent successfully!');
+        if(action === 'booking') closeModal();
+    } else {
+        showNotif('❌ Failed to send');
+    }
+  } catch(e) {
+    showNotif('❌ Network error');
+  }
+};
+
+// Override original submitForm to use handleContact
+window.submitForm = function() {
+  handleContact('booking');
+};
+
+// Simple gallery modal
+window.openGallery = function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const prop = PROPERTIES.find(p => String(p.id) === String(urlParams.get('id')));
+  if(!prop) return;
+  const images = (prop.images && prop.images.length > 0) ? prop.images : [prop.img];
+  
+  const gModal = document.createElement('div');
+  gModal.className = 'modal-overlay open';
+  gModal.style.zIndex = '9999';
+  gModal.innerHTML = `
+    <div style="width:90%;max-width:800px;background:#111;padding:20px;border-radius:4px;position:relative;">
+      <button onclick="this.parentElement.parentElement.remove()" style="position:absolute;top:10px;right:10px;background:none;border:none;color:white;font-size:24px;cursor:pointer">✕</button>
+      <div style="display:flex;overflow-x:auto;gap:10px;padding-bottom:10px;">
+        ${images.map(img => `<img src="${img}" style="max-height:600px;object-fit:contain" />`).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(gModal);
 };
 </script>
 

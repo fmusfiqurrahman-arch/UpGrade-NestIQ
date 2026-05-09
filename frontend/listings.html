@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Browse Listings — NestIQ</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <link rel="stylesheet" href="shared.css"/>
 <script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
 
@@ -225,20 +226,11 @@ html.dark .view-btn.active { background: var(--gold); color: var(--bg); border-c
     <div class="empty-title">No Properties Found</div>
     <div class="empty-sub">Try adjusting your filters or <a href="#" onclick="resetFilters();return false;" style="color:var(--gold)">reset all filters</a>.</div>
   </div>
+  <div class="pagination" id="paginationControls" style="display:none"></div>
 </div>
 
-<div id="mapView" style="display:none;padding:0 60px 60px;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;position:relative;height:580px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,#c8d8c0 0%,#a8bcab 40%,#8aa890 100%);opacity:0.3;"></div>
-    <div style="font-size:48px;position:relative;z-index:1;">🗺️</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text);position:relative;z-index:1;">Map View</div>
-    <p style="font-size:13px;color:var(--text-muted);max-width:380px;text-align:center;line-height:1.7;position:relative;z-index:1;">
-      Interactive map integration coming soon. Properties will be pinned by location so you can explore by neighbourhood.
-    </p>
-    <button onclick="setView('grid')" style="position:relative;z-index:1;background:var(--ink);color:var(--ivory);border:none;padding:11px 28px;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-top:4px;">
-      Back to Grid →
-    </button>
-  </div>
+<div id="mapView" style="display:none;">
+  <div id="propertyMap" style="height:600px; width:100%; z-index:1;"></div>
 </div>
 
 
@@ -254,6 +246,7 @@ html.dark .view-btn.active { background: var(--gold); color: var(--bg); border-c
 
 <div id="notif"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="data.js"></script>
 <script src="shared.js"></script>
 <script>
@@ -264,28 +257,47 @@ let allProperties = [];
 let filteredProperties = [];
 let currentView = 'grid'; 
 
-window.addEventListener('DOMContentLoaded', async () => {
+let currentPage = 1;
+let totalPages = 1;
+const ITEMS_PER_PAGE = 8;
 
-  // 1. Wait for global system to initialize
+window.addEventListener('DOMContentLoaded', async () => {
+  // Wait for global system to initialize (for user auth state, etc)
   if (window.NestApp && window.NestApp.fetchData) {
     await window.NestApp.fetchData();
   }
   updateNavAuth();
   
-  // (We removed the old loadLiveProperties() function that was crashing the page!)
+  // Pre-fill filters from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('type')) document.getElementById('fIntent').value = urlParams.get('type');
+  if(urlParams.get('loc')) document.getElementById('fLoc').value = urlParams.get('loc');
+  
+  onIntentChange(); 
+  
+  await fetchPaginatedListings(1);
+});
+
+async function fetchPaginatedListings(page) {
+  currentPage = page;
+  
+  const intent = document.getElementById('fIntent').value;
+  let url = `${(window.API_BASE || 'http://localhost:5000')}/listings?page=${page}&limit=${ITEMS_PER_PAGE}`;
+  if (intent) url += `&type=${intent === 'buy' ? 'sale' : intent}`;
 
   try {
-    // 2. Fetch live data from MongoDB
-    const response = await fetch((window.API_BASE || 'http://localhost:5000') + '/listings');
+    const response = await fetch(url);
     if (response.ok) {
       const data = await response.json();
       
-      // 3. Map MongoDB fields into the UI format
-      allProperties = data.map(p => ({
+      totalPages = data.totalPages;
+      document.getElementById('heroCount').innerHTML = `Found <strong>${data.totalListings}</strong> matching properties in total`;
+      
+      allProperties = data.listings.map(p => ({
         id: p._id, 
         title: p.title,
         desc: p.description,
-        price: p.price, // Kept as number for sorting!
+        price: p.price,
         priceFormatted: p.price.toLocaleString('en-IN'), 
         priceUnit: p.propertyType === 'rent' ? '/mo' : '',
         area: p.location ? p.location.split(',')[0].trim() : '',
@@ -293,27 +305,44 @@ window.addEventListener('DOMContentLoaded', async () => {
         beds: p.bedrooms,
         baths: p.bathrooms,
         sqft: p.sqft,
-        intent: p.propertyType === 'buy' ? 'buy' : 'rent',
+        intent: p.propertyType === 'sale' ? 'buy' : 'rent',
         img: p.image || (p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'),
         verified: true,
-        match: Math.floor(Math.random() * 15) + 85, // Fake AI Match
+        match: Math.floor(Math.random() * 15) + 85,
         isNew: true, 
         badge: p.propertyType === 'rent' ? 'For Rent' : 'For Sale',
         badgeClass: p.propertyType === 'rent' ? 'badge-rent' : 'badge-buy'
       }));
+      
+      applyFiltersLocally(); // apply non-backend filters (loc, beds)
     }
   } catch (error) {
     console.error("Failed to fetch listings:", error);
   }
+}
 
-  // 4. Pre-fill filters from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  if(urlParams.get('type')) document.getElementById('fIntent').value = urlParams.get('type');
-  if(urlParams.get('loc')) document.getElementById('fLoc').value = urlParams.get('loc');
+function renderPagination() {
+  const container = document.getElementById('paginationControls');
+  if (totalPages <= 1) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
   
-  onIntentChange(); 
-  applyFilters(); 
-});
+  let html = '';
+  if (currentPage > 1) {
+    html += `<button class="page-btn page-prev" onclick="fetchPaginatedListings(${currentPage - 1})">Prev</button>`;
+  }
+  
+  for(let i=1; i<=totalPages; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="fetchPaginatedListings(${i})">${i}</button>`;
+  }
+  
+  if (currentPage < totalPages) {
+    html += `<button class="page-btn page-next" onclick="fetchPaginatedListings(${currentPage + 1})">Next</button>`;
+  }
+  container.innerHTML = html;
+}
 
 function onIntentChange() {
   const intent = document.getElementById('fIntent').value;
@@ -337,6 +366,10 @@ function onTenantChange() {
 }
 
 function applyFilters() {
+  fetchPaginatedListings(1); // Any sort or intent change re-fetches from backend
+}
+
+function applyFiltersLocally() {
   const intent = document.getElementById('fIntent').value;
   const loc = document.getElementById('fLoc').value.toLowerCase();
   const beds = document.getElementById('fBeds').value;
@@ -358,6 +391,7 @@ function applyFilters() {
 
   renderListings();
   updateActiveTags();
+  renderPagination();
 }
 
 let debouncedFilter = debounce(applyFilters, 500);
@@ -410,6 +444,53 @@ function renderListings() {
   }
 }
 
+let mapInstance = null;
+let mapMarkers = [];
+
+function initMap() {
+  if (mapInstance) return;
+  mapInstance = L.map('propertyMap').setView([23.794, 90.412], 12); // Default to Dhaka
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+  }).addTo(mapInstance);
+}
+
+function updateMapMarkers() {
+  if (!mapInstance) return;
+  mapMarkers.forEach(m => mapInstance.removeLayer(m));
+  mapMarkers = [];
+  
+  const bounds = L.latLngBounds();
+  let hasValidCoords = false;
+
+  filteredProperties.forEach(p => {
+    // Generate deterministic coordinates based on property ID
+    // Center is Dhaka [23.794, 90.412] with some jitter
+    let seed = 0;
+    if (p.id) {
+      for(let i=0; i<p.id.length; i++) seed += p.id.charCodeAt(i);
+    }
+    const lat = 23.794 + ((seed % 100) - 50) * 0.001;
+    const lng = 90.412 + (((seed * 7) % 100) - 50) * 0.001;
+    
+    hasValidCoords = true;
+    bounds.extend([lat, lng]);
+
+    const m = L.marker([lat, lng]).addTo(mapInstance)
+      .bindPopup(`
+        <div style="width:160px;">
+          <img src="${p.img}" style="width:100%;height:100px;object-fit:cover;border-radius:2px;margin-bottom:6px;">
+          <strong style="display:block;font-size:12px;">৳ ${Number(p.price).toLocaleString('en-IN')}</strong>
+          <div style="font-size:11px;color:#666;">${p.title}</div>
+          <a href="detail.html?id=${p.id}" style="display:block;margin-top:6px;font-size:11px;color:var(--brand);text-decoration:none;">View Property →</a>
+        </div>
+      `);
+    mapMarkers.push(m);
+  });
+  
+  if (hasValidCoords) mapInstance.fitBounds(bounds, { padding: [50, 50] });
+}
+
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -428,6 +509,8 @@ function setView(view) {
     document.getElementById('mapBtn').classList.add('active');
     document.querySelector('.listings-wrapper').style.display = 'none';
     document.getElementById('mapView').style.display = 'block';
+    initMap();
+    setTimeout(() => { mapInstance.invalidateSize(); updateMapMarkers(); }, 100);
   }
   renderListings();
 }

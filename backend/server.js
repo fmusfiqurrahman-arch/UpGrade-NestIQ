@@ -16,7 +16,8 @@ const app = express();
 connectDB();
 
 // 4. Middleware 
-app.use(cors()); 
+const allowedOrigins = ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://127.0.0.1:5501', 'http://localhost:3000'];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json()); 
 
 // MAKE UPLOADS FOLDER PUBLIC
@@ -25,7 +26,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 5. API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
-app.use('/api/user', require('./routes/user')); // 🚨 The missing link for profile pictures!
+app.use('/api/user', require('./routes/user')); 
+app.use('/api/inquiries', require('./routes/inquiries'));
 
 // --------------------------------------------------------
 // ROUTE: UPLOAD MULTIPLE IMAGES (For Properties)

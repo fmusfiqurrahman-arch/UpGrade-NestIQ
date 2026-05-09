@@ -599,6 +599,23 @@ html.dark .left-stat-val {
         </p>
       </div>
 
+      <!-- ── RESET PASSWORD PANEL ── -->
+      <div class="auth-panel" id="panel-reset">
+        <div class="auth-title">Reset Password</div>
+        <div class="auth-sub">Enter your new password below.</div>
+
+        <div class="form-row">
+          <label>New Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="resetPw" placeholder="New password" oninput="checkStrength(this.value)"/>
+            <button class="pw-toggle" onclick="togglePw('resetPw', this)" type="button">👁</button>
+          </div>
+          <div class="form-error" id="resetPwErr">Password must be at least 8 characters.</div>
+        </div>
+
+        <button class="auth-submit" id="resetBtn" onclick="handleReset()">Save New Password →</button>
+      </div>
+
       <!-- ── SUCCESS PANEL ── -->
       <div class="auth-panel" id="panel-success">
         <div style="text-align:center;padding:24px 0">
@@ -721,6 +738,18 @@ async function handleLogin() {
       // 1. Force the browser to safely save the user data AND the VIP token
       localStorage.setItem('user', JSON.stringify(data));
       
+      // Sync saved listings
+      try {
+         const sRes = await fetch((window.API_BASE || '/api') + '/user/saved-listings', {
+           headers: { Authorization: `Bearer ${data.token}` }
+         });
+         if(sRes.ok) {
+           const savedData = await sRes.json();
+           const savedIds = savedData.map(s => String(s._id || s.id));
+           localStorage.setItem('nestiq_saved', JSON.stringify(savedIds));
+         }
+      } catch(e) {}
+
       btn.textContent = 'Sign In →'; btn.classList.remove('loading');
       showNotif('✓ Signed in successfully! Redirecting…');
       
@@ -760,17 +789,34 @@ function handleSignup() {
   if(!terms)           { showErr('termsErr'); valid = false; }
   if(!valid) return;
 
-  // Simulate OTP send
   const code = document.getElementById('countryCode').value;
+  const fullPhone = code + phone;
   document.getElementById('otpPhone').textContent = code + ' ' + phone;
   const btn = document.getElementById('signupBtn');
   btn.textContent = 'Sending OTP…'; btn.classList.add('loading');
-  setTimeout(() => {
+  
+  try {
+    const res = await fetch(window.API_BASE + '/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email }) // Or phone, using email for now
+    });
+    const data = await res.json();
     btn.textContent = 'Create My Account →'; btn.classList.remove('loading');
-    showNotif('OTP sent to your phone!');
-    switchPanel('otp');
-    startOtpTimer();
-  }, 1200);
+    
+    if (res.ok) {
+      showNotif('OTP sent to your email!');
+      switchPanel('otp');
+      startOtpTimer();
+    } else {
+      let errStr = data.message || '';
+      if (data.errors) errStr = data.errors.map(e => e.msg).join(', ');
+      showNotif('❌ ' + errStr);
+    }
+  } catch (err) {
+    btn.textContent = 'Create My Account →'; btn.classList.remove('loading');
+    showNotif('❌ Cannot connect to server.');
+  }
 }
 
 // ── OTP ──
@@ -797,7 +843,7 @@ async function handleOtp() {
 
   try {
     // 1. Send the new user data to our Express server
-    const response = await fetch(window.API_BASE + '/auth/signup', {
+    const response = await fetch(window.API_BASE + '/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -806,7 +852,9 @@ async function handleOtp() {
         email: email,
         phone: phone,
         password: pw,
-        role: selectedRole
+        role: selectedRole,
+        identifier: email,
+        otpCode: val
       })
     });
 
@@ -825,7 +873,9 @@ async function handleOtp() {
       switchPanel('success');
     } else {
       // 3. If the server says "User already exists", etc.
-      showNotif('❌ ' + data.message);
+      let errStr = data.message || '';
+      if (data.errors) errStr = data.errors.map(e => e.msg).join(', ');
+      showNotif('❌ ' + errStr);
     }
   } catch (error) {
     showNotif('❌ Cannot connect to server.');
@@ -842,21 +892,74 @@ function startOtpTimer() {
     if(s <= 0) clearInterval(timerInterval);
   }, 1000);
 }
-function resendOtp() {
-  showNotif('OTP resent to your phone!');
-  startOtpTimer();
+async function resendOtp() {
+  const email = document.getElementById('signupEmail').value.trim();
+  try {
+    const res = await fetch(window.API_BASE + '/auth/send-otp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email })
+    });
+    if (res.ok) {
+      showNotif('OTP resent!');
+      startOtpTimer();
+    } else {
+      showNotif('❌ Failed to resend OTP');
+    }
+  } catch (e) {
+    showNotif('❌ Network error');
+  }
 }
 
 // ── FORGOT PASSWORD ──
-function handleForgot() {
+async function handleForgot() {
   clearErrs();
   const email = document.getElementById('forgotEmail').value.trim();
   if(!isEmail(email)) { showErr('forgotEmailErr'); return; }
   showNotif('Sending reset link…');
-  setTimeout(() => {
-    showNotif('✓ Reset link sent! Check your inbox.');
-    setTimeout(() => switchPanel('login'), 2000);
-  }, 1200);
+  try {
+    const res = await fetch(window.API_BASE + '/auth/forgot-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (res.ok) {
+      showNotif('✓ Reset link sent! Check your inbox.');
+      setTimeout(() => switchPanel('login'), 2000);
+    } else {
+      const data = await res.json();
+      showNotif('❌ ' + (data.message || 'Error'));
+    }
+  } catch (e) {
+    showNotif('❌ Cannot connect to server');
+}
+
+// ── RESET PASSWORD ──
+async function handleReset() {
+  clearErrs();
+  const token = new URLSearchParams(location.search).get('reset');
+  const pw = document.getElementById('resetPw').value;
+  if (!pw || pw.length < 8) { showErr('resetPwErr'); return; }
+  
+  const btn = document.getElementById('resetBtn');
+  btn.textContent = 'Saving…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(window.API_BASE + '/auth/reset-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password: pw })
+    });
+    btn.textContent = 'Save New Password →'; btn.classList.remove('loading');
+    if (res.ok) {
+      showNotif('✓ Password reset successfully! Redirecting to login…');
+      setTimeout(() => {
+        window.location.href = 'login_signup.html';
+      }, 2000);
+    } else {
+      const data = await res.json();
+      showNotif('❌ ' + (data.message || 'Error'));
+    }
+  } catch (e) {
+    btn.textContent = 'Save New Password →'; btn.classList.remove('loading');
+    showNotif('❌ Cannot connect to server');
+  }
 }
 
 // ── SOCIAL LOGIN ──
@@ -883,11 +986,12 @@ function toggleDarkLogin(){
   if(btn) btn.textContent = localStorage.getItem('nestiq_dark') === '1' ? '☀️' : '🌙';
 })();
 
-// ── URL PARAM: pre-open tab + redirect destination ──
 const urlTab      = new URLSearchParams(location.search).get('tab');
+const resetToken  = new URLSearchParams(location.search).get('reset');
 const redirectTo  = new URLSearchParams(location.search).get('redirect') || 'listings.html';
 
-if(urlTab === 'signup') switchTab('signup');
+if(resetToken) switchPanel('reset');
+else if(urlTab === 'signup') switchTab('signup');
 
 // shared redirect helper used by all auth paths
 function doRedirect(){ window.location = redirectTo; }

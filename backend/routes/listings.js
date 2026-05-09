@@ -20,11 +20,60 @@ const deleteImageFile = (imageUrl) => {
   }
 };
 
+// 0. GET PLATFORM STATS
+router.get('/stats', async (req, res) => {
+  try {
+    const totalListings = await Listing.countDocuments();
+    const forRent = await Listing.countDocuments({ propertyType: 'rent' });
+    const forSale = await Listing.countDocuments({ propertyType: 'sale' });
+    
+    const avgPriceResult = await Listing.aggregate([
+      { $group: { _id: null, avgPrice: { $avg: "$price" } } }
+    ]);
+    const avgPrice = avgPriceResult.length > 0 ? Math.round(avgPriceResult[0].avgPrice) : 0;
+    
+    // Hardcode user counts or fetch from User model if required. We'll fetch.
+    const User = require('../models/User');
+    const usersCount = await User.countDocuments();
+    const verifiedUsers = await User.countDocuments({ isVerified: true });
+
+    res.json({
+      totalListings,
+      forRent,
+      forSale,
+      avgPrice,
+      usersCount,
+      verifiedUsers
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error: Could not fetch stats' });
+  }
+});
+
 // 1. GET ALL LISTINGS
 router.get('/', async (req, res) => {
   try {
-    const listings = await Listing.find({});
-    res.json(listings);
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit) || 12;
+    
+    const filter = {};
+    if (req.query.type) filter.propertyType = req.query.type;
+    
+    if (page) {
+      const skip = (page - 1) * limit;
+      const total = await Listing.countDocuments(filter);
+      const listings = await Listing.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+      res.json({
+        listings,
+        page,
+        totalPages: Math.ceil(total / limit),
+        totalListings: total
+      });
+    } else {
+      // Backwards compatible logic
+      const listings = await Listing.find(filter).sort({ createdAt: -1 });
+      res.json(listings);
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server Error: Could not fetch listings' });
   }

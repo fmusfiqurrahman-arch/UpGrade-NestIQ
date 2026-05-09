@@ -16,7 +16,11 @@ const userSchema = new mongoose.Schema({
   nidDocUrl: { type: String, default: '' },      
   
   // Profile
-  profilePicUrl: { type: String, default: '' }
+  profilePicUrl: { type: String, default: '' },
+  
+  // Password Reset
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 }, { timestamps: true });
 
 // ── LAZY MIGRATION: Auto-heal old accounts ──

@@ -1237,8 +1237,8 @@
                   Switch to an <strong style="color:var(--text);">Owner</strong> account to list your properties on
                   NestIQ. Your tenant history and saved listings are preserved.
                 </p>
-                <button class="btn-outline" style="width:100%; font-size:11px;"
-                  onclick="showNotif('Contact support to switch account type.')">Request Owner Account →</button>
+                <button class="btn-outline" id="requestOwnerBtn" style="width:100%; font-size:11px;"
+                  onclick="requestOwnerAccount()">Request Owner Account →</button>
               </div>
             </div>
           </div>
@@ -1290,11 +1290,8 @@
           <p>Questions and messages about your listings.</p>
         </div>
         <div class="panel-body">
-          <div class="empty-dash">
-            <div class="empty-dash-icon">✉</div>
-            <div class="empty-dash-title">Inquiries Coming Soon</div>
-            <div class="empty-dash-sub">The messaging system is being built. You'll be notified when a tenant contacts
-              you.</div>
+          <div id="inquiriesList">
+            <div style="text-align:center;padding:40px;color:var(--text-muted)">Loading inquiries...</div>
           </div>
         </div>
       </div>
@@ -1462,6 +1459,13 @@
       if (panel) panel.classList.add('active');
       if (el) el.classList.add('active');
       closeSidebar();
+
+      // Load data lazily based on panel
+      if (id === 'saved') loadSavedListings();
+      if (id === 'mylistings') fetchMyListings();
+      if (id === 'adminUsers') fetchAdminUsers();
+      if (id === 'adminListings' || id === 'adminStats') fetchAdminListings();
+      if (id === 'inquiries') loadInquiries();
     }
 
     // ── MOBILE SIDEBAR ────────────────────────────────────────
@@ -1487,28 +1491,23 @@
       if (isAdmin) {
         document.getElementById('welcomeSub').textContent = "Welcome back, Admin. Here's the platform at a glance.";
         try {
-          const [uRes, lRes] = await Promise.all([
-            fetch(window.API_BASE + '/user/admin/users', { headers: { Authorization: `Bearer ${user.token}` } }),
-            fetch(window.API_BASE + '/listings')
-          ]);
-          const users = uRes.ok ? await uRes.json() : [];
-          const listings = lRes.ok ? await lRes.json() : [];
-          const pending = users.filter(u => !u.isVerified && u.nidDocUrl).length;
-          const verified = users.filter(u => u.isVerified).length;
+          const res = await fetch(window.API_BASE + '/user/admin/stats', { headers: { Authorization: `Bearer ${user.token}` } });
+          const stats = res.ok ? await res.json() : { usersCount:0, verifiedUsers:0, totalListings:0, totalInquiries:0 };
+          const pending = stats.usersCount - stats.verifiedUsers; // Approximation for pending
 
           statsHtml = `<div class="stats-row cols-4">
-        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value gold">${users.length}</div><div class="stat-sub">on the platform</div></div>
-        <div class="stat-card accent-green"><div class="stat-label">Active Listings</div><div class="stat-value green">${listings.length}</div><div class="stat-sub">properties live</div></div>
-        <div class="stat-card"><div class="stat-label">Pending Verification</div><div class="stat-value">${pending}</div><div class="stat-sub">require review</div></div>
-        <div class="stat-card accent-muted"><div class="stat-label">Verified Users</div><div class="stat-value">${verified}</div><div class="stat-sub">trusted accounts</div></div>
+        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value gold">${stats.usersCount}</div><div class="stat-sub">on the platform</div></div>
+        <div class="stat-card accent-green"><div class="stat-label">Active Listings</div><div class="stat-value green">${stats.totalListings}</div><div class="stat-sub">properties live</div></div>
+        <div class="stat-card"><div class="stat-label">Total Inquiries</div><div class="stat-value">${stats.totalInquiries}</div><div class="stat-sub">messages & requests</div></div>
+        <div class="stat-card accent-muted"><div class="stat-label">Verified Users</div><div class="stat-value">${stats.verifiedUsers}</div><div class="stat-sub">trusted accounts</div></div>
       </div>`;
           actionsHtml = `<div class="section-heading"><span>Quick Admin Actions</span></div>
         <div class="quick-actions" style="grid-template-columns:repeat(3,1fr)">
           <div class="quick-action" onclick="switchPanel('adminUsers',document.querySelector('[data-panel=adminUsers]'))">
-            <div class="qa-icon">◉</div><div class="qa-title">Review Verifications</div><div class="qa-sub">${pending} pending</div>
+            <div class="qa-icon">◉</div><div class="qa-title">Review Verifications</div><div class="qa-sub">Manage users</div>
           </div>
           <div class="quick-action" onclick="switchPanel('adminListings',document.querySelector('[data-panel=adminListings]'))">
-            <div class="qa-icon">⊟</div><div class="qa-title">Manage Listings</div><div class="qa-sub">${listings.length} properties</div>
+            <div class="qa-icon">⊟</div><div class="qa-title">Manage Listings</div><div class="qa-sub">${stats.totalListings} properties</div>
           </div>
           <div class="quick-action" onclick="switchPanel('adminStats',document.querySelector('[data-panel=adminStats]'))">
             <div class="qa-icon">◈</div><div class="qa-title">Platform Stats</div><div class="qa-sub">View full overview</div>
@@ -1658,26 +1657,38 @@
 
     // ── SAVED LISTINGS ────────────────────────────────────────
     async function loadSavedListings() {
-      const ids = getSaved();
       const container = document.getElementById('savedListingsContent');
-      document.getElementById('savedSubText').textContent = ids.length
-        ? ids.length + ' saved ' + (ids.length === 1 ? 'property' : 'properties')
-        : 'No saved listings yet.';
+      
+      try {
+        const res = await fetch((window.API_BASE || '/api') + '/user/saved-listings', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        
+        const props = res.ok ? await res.json() : [];
+        
+        // Update localStorage to stay in sync
+        const savedIds = props.map(s => String(s._id || s.id));
+        localStorage.setItem('nestiq_saved', JSON.stringify(savedIds));
+        
+        document.getElementById('savedSubText').textContent = props.length
+          ? props.length + ' saved ' + (props.length === 1 ? 'property' : 'properties')
+          : 'No saved listings yet.';
 
-      if (!ids.length) {
-        container.innerHTML = `<div class="empty-dash">
-      <div class="empty-dash-icon">♡</div>
-      <div class="empty-dash-title">Nothing Saved Yet</div>
-      <div class="empty-dash-sub">Browse listings and tap ♡ to save properties you like.</div>
-      <button class="btn-primary" onclick="window.location.href='listings.html'">Browse Listings →</button>
-    </div>`;
-        return;
+        if (!props.length) {
+          container.innerHTML = `<div class="empty-dash">
+        <div class="empty-dash-icon">♡</div>
+        <div class="empty-dash-title">Nothing Saved Yet</div>
+        <div class="empty-dash-sub">Browse listings and tap ♡ to save properties you like.</div>
+        <button class="btn-primary" onclick="window.location.href='listings.html'">Browse Listings →</button>
+      </div>`;
+          return;
+        }
+        
+        container.innerHTML = `<div class="saved-grid">${props.map(p => buildCard(p, false)).join('')}</div>`;
+        attachCardEvents();
+      } catch(e) {
+        container.innerHTML = `<p style="color:var(--text-muted); font-size:14px;">Could not load saved listings. Try refreshing.</p>`;
       }
-      await NestApp.fetchData();
-      const props = ids.map(id => PROPERTIES.find(p => p.id === id)).filter(Boolean);
-      if (!props.length) { container.innerHTML = `<p style="color:var(--text-muted); font-size:14px;">Could not load saved listings. Try refreshing.</p>`; return; }
-      container.innerHTML = `<div class="saved-grid">${props.map(p => buildCard(p, false)).join('')}</div>`;
-      attachCardEvents();
     }
 
     // ── MY LISTINGS (OWNER) ───────────────────────────────────
@@ -1729,6 +1740,59 @@
       else showNotif('Failed to delete listing');
     }
 
+    async function requestOwnerAccount() {
+      const btn = document.getElementById('requestOwnerBtn');
+      btn.textContent = 'Requesting...';
+      try {
+        const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          body: JSON.stringify({ type: 'owner_request', content: `User ${user.firstName} ${user.lastName} (${user.email}) requested Owner account switch.` })
+        });
+        if(res.ok) {
+           btn.textContent = '✓ Request Sent';
+           showNotif('Request submitted. An admin will review shortly.');
+        } else {
+           btn.textContent = 'Request Owner Account →';
+           showNotif('❌ Failed to submit request');
+        }
+      } catch(e) {
+        btn.textContent = 'Request Owner Account →';
+        showNotif('❌ Network error');
+      }
+    }
+
+    async function loadInquiries() {
+      try {
+        const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        if (res.ok) {
+          const inqs = await res.json();
+          const list = document.getElementById('inquiriesList');
+          if (!inqs.length) {
+            list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No inquiries found.</div>';
+            return;
+          }
+          list.innerHTML = inqs.map(i => `
+            <div class="activity-feed" style="margin-bottom:12px;">
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div style="flex:1">
+                  <div class="activity-text" style="font-weight:500;">Type: ${i.type.toUpperCase()} <span style="font-size:10px;color:var(--text-muted);float:right">${new Date(i.createdAt).toLocaleDateString()}</span></div>
+                  <div class="activity-text" style="margin-top:4px;">${i.content}</div>
+                  <div class="activity-time" style="margin-top:8px;">Status: ${i.status}</div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch(e) {
+        console.error(e);
+        document.getElementById('inquiriesList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load inquiries.</div>';
+      }
+    }
+
     // ── ADMIN: USERS ──────────────────────────────────────────
     async function fetchAdminUsers() {
       try {
@@ -1753,7 +1817,11 @@
       <td><span class="pill ${u.isVerified ? 'pill-verified' : 'pill-pending'}">${u.isVerified ? 'Verified' : 'Pending'}</span></td>
       <td style="display:flex;gap:8px;">
         <button class="btn-dash btn-dash-primary" onclick="toggleVerify('${u._id}')">${u.isVerified ? 'Revoke' : 'Approve'}</button>
-        <button class="btn-dash btn-dash-outline" onclick="showNotif('Role management coming soon')">Edit Role</button>
+        <select class="btn-dash btn-dash-outline" onchange="editUserRole('${u._id}', this.value)" style="appearance:none;cursor:pointer;background:var(--surface);border:1px solid var(--border);">
+          <option value="tenant" ${u.role==='tenant'?'selected':''}>Tenant</option>
+          <option value="owner" ${u.role==='owner'?'selected':''}>Owner</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+        </select>
       </td>
     </tr>`;
       }).join('');
@@ -1780,8 +1848,32 @@
       const res = await fetch(`${window.API_BASE}/user/admin/users/${userId}/verify`, {
         method: 'PUT', headers: { Authorization: `Bearer ${user.token}` }
       });
-      if (res.ok) { showNotif('✓ Verification status updated'); fetchAdminUsers(); loadOverview(); }
-      else showNotif('Failed to update verification');
+      if (res.ok) { showNotif('✓ Verification status updated'); fetchAdminUsers(); }
+      else { const d = await res.json(); showNotif('Error: ' + d.message); }
+    }
+    
+    async function editUserRole(userId, newRole) {
+      if(!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+        fetchAdminUsers(); // reset select
+        return;
+      }
+      try {
+        const res = await fetch(`${window.API_BASE}/user/admin/users/${userId}/role`, {
+          method: 'PUT', 
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          body: JSON.stringify({ role: newRole })
+        });
+        if (res.ok) {
+          showNotif(`✓ Role updated to ${newRole}`);
+          fetchAdminUsers();
+        } else {
+          const d = await res.json();
+          showNotif('Error: ' + d.message);
+          fetchAdminUsers();
+        }
+      } catch(e) {
+        showNotif('Network error');
+      }
     }
 
     // ── ADMIN: LISTINGS ───────────────────────────────────────
