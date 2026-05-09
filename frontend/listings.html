@@ -282,8 +282,10 @@ async function fetchPaginatedListings(page) {
   currentPage = page;
   
   const intent = document.getElementById('fIntent').value;
+  const sort = document.getElementById('sortSel').value;
   let url = `${(window.API_BASE || 'http://localhost:5000')}/listings?page=${page}&limit=${ITEMS_PER_PAGE}`;
   if (intent) url += `&type=${intent === 'buy' ? 'sale' : intent}`;
+  if (sort && sort !== 'match') url += `&sort=${sort}`;
 
   try {
     const response = await fetch(url);

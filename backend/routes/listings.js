@@ -59,10 +59,14 @@ router.get('/', async (req, res) => {
     const filter = {};
     if (req.query.type) filter.propertyType = req.query.type;
     
+    let sortObj = { createdAt: -1 };
+    if (req.query.sort === 'price-asc') sortObj = { price: 1 };
+    if (req.query.sort === 'price-desc') sortObj = { price: -1 };
+    
     if (page) {
       const skip = (page - 1) * limit;
       const total = await Listing.countDocuments(filter);
-      const listings = await Listing.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+      const listings = await Listing.find(filter).sort(sortObj).skip(skip).limit(limit);
       res.json({
         listings,
         page,
@@ -71,7 +75,7 @@ router.get('/', async (req, res) => {
       });
     } else {
       // Backwards compatible logic
-      const listings = await Listing.find(filter).sort({ createdAt: -1 });
+      const listings = await Listing.find(filter).sort(sortObj);
       res.json(listings);
     }
   } catch (error) {
