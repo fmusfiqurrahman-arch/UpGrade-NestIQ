@@ -268,12 +268,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   updateNavAuth();
   
-  // Pre-fill filters from URL
+  // Pre-fill ALL filters from URL (passed by homepage doSearch)
   const urlParams = new URLSearchParams(window.location.search);
-  if(urlParams.get('type')) document.getElementById('fIntent').value = urlParams.get('type');
-  if(urlParams.get('loc')) document.getElementById('fLoc').value = urlParams.get('loc');
+  if (urlParams.get('type')) document.getElementById('fIntent').value = urlParams.get('type');
+  if (urlParams.get('loc'))  document.getElementById('fLoc').value  = urlParams.get('loc');
+  if (urlParams.get('beds')) document.getElementById('fBeds').value = urlParams.get('beds');
+  if (urlParams.get('sort')) document.getElementById('sortSel').value = urlParams.get('sort');
   
-  onIntentChange(); 
+  onIntentChange();
   
   await fetchPaginatedListings(1);
 });

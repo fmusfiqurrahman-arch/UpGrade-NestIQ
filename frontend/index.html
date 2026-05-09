@@ -190,7 +190,7 @@ html.dark #recently-viewed { background: var(--surface); }
     <h1 class="hero-h1">Find Your <em>Perfect</em><br>Home, Matched<br>By Intelligence</h1>
     <p class="hero-p">Buy, sell, or rent with AI-powered matching, verified listings, and a dedicated concierge — so you don't have to stress.</p>
     <div class="hero-btns">
-      <button class="btn-primary" onclick="window.location='login_signup.html?tab=signup'">Start Matching</button>
+      <button class="btn-primary" onclick="handleStartMatching()">Start Matching</button>
       <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works</button>
     </div>
     <div class="hero-stats" id="heroStatsContainer">
@@ -404,6 +404,19 @@ html.dark #recently-viewed { background: var(--surface); }
 <script src="data.js"></script>
 <script src="shared.js"></script>
 <script>
+// ── START MATCHING: smart routing ──
+function handleStartMatching() {
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  if (user && user.token) {
+    // Already logged in → go to personalized match listings
+    window.location = 'listings.html?sort=match';
+  } else {
+    // Guest → sign up to get started
+    window.location = 'login_signup.html?tab=signup';
+  }
+}
+
 // ── SEARCH FILTER LOGIC ──
 const rentBudgets = ['Any Budget','Under ৳ 5,000/mo','৳ 5,000–10,000/mo','৳ 10,000–20,000/mo','৳ 20,000–30,000/mo','৳ 30,000–50,000/mo','৳ 50,000–1L/mo','৳ 1L–3L/mo'];
 const buyBudgets  = ['Any Budget','Under ৳ 50L','৳ 50L–1Cr','৳ 1Cr–2Cr','৳ 2Cr–5Cr','৳ 5Cr+'];
@@ -428,15 +441,26 @@ function updateGenderField(){
 }
 
 function doSearch(){
-  const filters = {
-    type:   document.getElementById('intentSel').value,
-    loc:    document.getElementById('locInput').value.trim(),
-    budget: document.getElementById('budgetSel').value,
-    tenant: document.getElementById('tenantSel')?.value || '',
-    gender: document.getElementById('genderSel')?.value || '',
-    ptype:  document.getElementById('propTypeSel').value,
-  };
-  window.location = buildFilterUrl('listings.html', filters);
+  const type   = document.getElementById('intentSel').value;
+  const loc    = document.getElementById('locInput').value.trim();
+  const budget = document.getElementById('budgetSel').value;
+  const tenant = document.getElementById('tenantSel')?.value || '';
+  const gender = document.getElementById('genderSel')?.value || '';
+  const ptype  = document.getElementById('propTypeSel').value;
+
+  // Map homepage 'sell' intent to browse page with no type filter
+  const browseType = (type === 'sell') ? '' : type;
+
+  const params = new URLSearchParams();
+  if (browseType) params.set('type', browseType);
+  if (loc)        params.set('loc', loc);
+  if (budget && budget !== 'Any Budget') params.set('budget', budget);
+  if (tenant)     params.set('tenant', tenant);
+  if (gender)     params.set('gender', gender);
+  if (ptype)      params.set('ptype', ptype);
+
+  const query = params.toString();
+  window.location = 'listings.html' + (query ? '?' + query : '');
 }
 
 function filterCards(el, type){
