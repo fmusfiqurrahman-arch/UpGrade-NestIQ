@@ -1,12 +1,9 @@
-// 1. Import Dependencies
 require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
-const jwt = require('jsonwebtoken');
 const upload = require('./utils/upload');
 const path = require('path');
-const Listing = require('./models/Listing'); 
 const fs = require('fs');
 
 // 2. Initialize the App
@@ -26,8 +23,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // 5. API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/listings', require('./routes/listings'));
-app.use('/api/user', require('./routes/user')); 
+app.use('/api/user', require('./routes/user'));
 app.use('/api/inquiries', require('./routes/inquiries'));
+app.use('/api/admin', require('./routes/admin'));
 
 // --------------------------------------------------------
 // ROUTE: UPLOAD MULTIPLE IMAGES (For Properties)

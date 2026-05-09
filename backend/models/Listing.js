@@ -10,7 +10,9 @@ const listingSchema = new mongoose.Schema({
   area: { type: String, required: true },
   city: { type: String, required: true },
   
-  propertyType: { type: String, enum: ['rent', 'buy', 'sale'], required: true },
+  // NOTE: 'buy' and 'sale' are treated as the same intent. 'buy' is accepted from
+  // the frontend but normalized to 'sale' for consistency in the DB.
+  propertyType: { type: String, enum: ['rent', 'sale', 'buy'], required: true },
   bedrooms: { type: Number, required: true },
   bathrooms: { type: Number, required: true },
   sqft: { type: Number, required: true },

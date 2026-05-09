@@ -186,18 +186,98 @@ html.dark .office-card { background: var(--surface); }
 html.dark .value-card { background: var(--bg); }
 html.dark .mission-text p { color: var(--charcoal); }
 
-/* RESPONSIVE */
-@media(max-width:900px){ 
-  .about-hero { grid-template-columns:1fr; padding:120px 24px 60px; } 
-  .about-hero-right { display:none !important; } 
-  .mission,.values,.team,.different,#contact,.offices { padding:70px 24px; } 
-  .mission-grid,.contact-grid,.diff-grid,.different .diff-grid { grid-template-columns:1fr; } 
-  .team-grid { grid-template-columns:1fr 1fr; } 
-  .values-grid { grid-template-columns:1fr; } 
-  .offices-grid { grid-template-columns:1fr; } 
+/* ── SCROLL PROGRESS TIMELINE LINE ── */
+#story-timeline {
+  position: fixed;
+  left: 28px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  z-index: 9;
 }
-@media(max-width:600px){ 
-  .team-grid { grid-template-columns:1fr; } 
+
+#story-timeline-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(184, 155, 106, 0.12);
+  bottom: 0;
+  border-radius: 2px;
+}
+
+#story-timeline-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to bottom, var(--gold), rgba(184,155,106,0.3));
+  border-radius: 2px;
+  transition: height 0.1s linear;
+  box-shadow: 0 0 8px rgba(184,155,106,0.5);
+}
+
+#story-timeline-dot {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(184,155,106,0.8);
+  transition: top 0.1s linear, opacity 0.3s;
+  opacity: 0;
+}
+
+/* Only show line when scrolling */
+#story-timeline.is-moving #story-timeline-fill,
+#story-timeline.is-moving #story-timeline-dot {
+  opacity: 1;
+}
+#story-timeline-fill {
+  opacity: 0;
+  transition: height 0.1s linear, opacity 0.4s;
+}
+
+/* Values section: cards start hidden, animate in directionally */
+.value-card {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s, border-color 0.4s;
+}
+.value-card.vc-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.value-card:nth-child(3n+1) { transform: translateX(-40px); }
+.value-card:nth-child(3n+2) { transform: translateY(40px); }
+.value-card:nth-child(3n+3) { transform: translateX(40px); }
+.value-card.vc-in:nth-child(n) { transform: translateX(0) translateY(0); }
+
+/* diff-items: left column slides from left, right column from right */
+.diff-item {
+  opacity: 0;
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16,1,0.3,1), border-color 0.3s;
+}
+.diff-item.di-left  { transform: translateX(-50px); }
+.diff-item.di-right { transform: translateX(50px); }
+.diff-item.di-in    { opacity: 1; transform: translateX(0); }
+
+@media(max-width:900px){
+  .about-hero { grid-template-columns:1fr; padding:120px 24px 60px; }
+  .about-hero-right { display:none !important; }
+  .mission,.values,.team,.different,#contact,.offices { padding:70px 24px; }
+  .mission-grid,.contact-grid,.diff-grid,.different .diff-grid { grid-template-columns:1fr; }
+  .team-grid { grid-template-columns:1fr 1fr; }
+  .values-grid { grid-template-columns:1fr; }
+  .offices-grid { grid-template-columns:1fr; }
+  #story-timeline { left: 10px; }
+}
+@media(max-width:600px){
+  .team-grid { grid-template-columns:1fr; }
 }
 
 </style>
@@ -230,6 +310,13 @@ html.dark .mission-text p { color: var(--charcoal); }
   </div>
   <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
 </nav>
+
+<!-- Scroll Timeline Line -->
+<div id="story-timeline" aria-hidden="true">
+  <div id="story-timeline-track"></div>
+  <div id="story-timeline-fill"></div>
+  <div id="story-timeline-dot"></div>
+</div>
 
 <div class="about-hero">
   <div class="about-hero-left">
@@ -279,12 +366,12 @@ html.dark .mission-text p { color: var(--charcoal); }
     <h2 class="section-h2">Our <em>Values</em></h2>
   </div>
   <div class="values-grid">
-    <div class="value-card reveal"><div class="value-icon">🛡️</div><div class="value-title">Trust First</div><div class="value-desc">Every listing is verified, every agent is screened, and every payment is protected by escrow. We stake our reputation on every deal.</div></div>
-    <div class="value-card reveal"><div class="value-icon">🤝</div><div class="value-title">Human at Heart</div><div class="value-desc">AI does the matching, but humans close the deal. Our concierges are trained to treat every client like family — patient, honest, and invested.</div></div>
-    <div class="value-card reveal"><div class="value-icon">⚖️</div><div class="value-title">Fairness</div><div class="value-desc">Fair pricing intelligence, transparent fees, and protection for both buyers and sellers. Nobody should get a bad deal just because they didn't know better.</div></div>
-    <div class="value-card reveal"><div class="value-icon">🌿</div><div class="value-title">Sustainability</div><div class="value-desc">We prioritize eco-friendly buildings, energy-efficient homes, and developers who build responsibly for the future of Bangladesh.</div></div>
-    <div class="value-card reveal"><div class="value-icon">🔍</div><div class="value-title">Transparency</div><div class="value-desc">No hidden fees, no surprise clauses. Everything — from our pricing to our verification process — is open and documented.</div></div>
-    <div class="value-card reveal"><div class="value-icon">🚀</div><div class="value-title">Innovation</div><div class="value-desc">We continuously improve our AI matching engine, verification methods, and concierge tools to stay ahead of the market's needs.</div></div>
+    <div class="value-card di-left" id="vc0"><div class="value-icon">🛡️</div><div class="value-title">Trust First</div><div class="value-desc">Every listing is verified, every agent is screened, and every payment is protected by escrow. We stake our reputation on every deal.</div></div>
+    <div class="value-card" id="vc1"><div class="value-icon">🤝</div><div class="value-title">Human at Heart</div><div class="value-desc">AI does the matching, but humans close the deal. Our concierges are trained to treat every client like family — patient, honest, and invested.</div></div>
+    <div class="value-card di-right" id="vc2"><div class="value-icon">⚖️</div><div class="value-title">Fairness</div><div class="value-desc">Fair pricing intelligence, transparent fees, and protection for both buyers and sellers. Nobody should get a bad deal just because they didn't know better.</div></div>
+    <div class="value-card di-left" id="vc3"><div class="value-icon">🌿</div><div class="value-title">Sustainability</div><div class="value-desc">We prioritize eco-friendly buildings, energy-efficient homes, and developers who build responsibly for the future of Bangladesh.</div></div>
+    <div class="value-card" id="vc4"><div class="value-icon">🔍</div><div class="value-title">Transparency</div><div class="value-desc">No hidden fees, no surprise clauses. Everything — from our pricing to our verification process — is open and documented.</div></div>
+    <div class="value-card di-right" id="vc5"><div class="value-icon">🚀</div><div class="value-title">Innovation</div><div class="value-desc">We continuously improve our AI matching engine, verification methods, and concierge tools to stay ahead of the market's needs.</div></div>
   </div>
 </section>
 
@@ -308,12 +395,12 @@ html.dark .mission-text p { color: var(--charcoal); }
 <section class="different">
   <div class="reveal"><div class="section-tag">Why NestIQ</div><h2 class="section-h2">Not Just Another<br><em>Property Portal</em></h2></div>
   <div class="diff-grid">
-    <div class="diff-item reveal"><div class="diff-icon">🤖</div><div><div class="diff-title">AI-Powered, Not Ad-Powered</div><div class="diff-desc">Other portals rank listings based on who pays for placement. We rank by match quality. Your results are curated for you, not for advertisers.</div></div></div>
-    <div class="diff-item reveal"><div class="diff-icon">🔬</div><div><div class="diff-title">Verification is Our Standard</div><div class="diff-desc">We physically inspect properties and legally verify titles before they go live. No other platform in Bangladesh does this as a default.</div></div></div>
-    <div class="diff-item reveal"><div class="diff-icon">🧑‍💼</div><div><div class="diff-title">A Real Human in Your Corner</div><div class="diff-desc">Every client gets a dedicated concierge — a real person who knows the market, handles paperwork, and fights for your interests.</div></div></div>
-    <div class="diff-item reveal"><div class="diff-icon">💰</div><div><div class="diff-title">No Hidden Fees</div><div class="diff-desc">Our fee structure is flat and transparent. Renters pay nothing. Sellers and landlords pay a success fee only after a deal closes.</div></div></div>
-    <div class="diff-item reveal"><div class="diff-icon">🏦</div><div><div class="diff-title">Escrow-Protected Transactions</div><div class="diff-desc">All advance and booking payments are held in regulated escrow accounts — protecting both parties until conditions are met.</div></div></div>
-    <div class="diff-item reveal"><div class="diff-icon">📊</div><div><div class="diff-title">Market Intelligence</div><div class="diff-desc">We analyse thousands of transactions to give you real price benchmarks — so you never overpay or undersell in any locality.</div></div></div>
+    <div class="diff-item di-left" id="di0"><div class="diff-icon">🤖</div><div><div class="diff-title">AI-Powered, Not Ad-Powered</div><div class="diff-desc">Other portals rank listings based on who pays for placement. We rank by match quality. Your results are curated for you, not for advertisers.</div></div></div>
+    <div class="diff-item di-right" id="di1"><div class="diff-icon">🔬</div><div><div class="diff-title">Verification is Our Standard</div><div class="diff-desc">We physically inspect properties and legally verify titles before they go live. No other platform in Bangladesh does this as a default.</div></div></div>
+    <div class="diff-item di-left" id="di2"><div class="diff-icon">🧑‍💼</div><div><div class="diff-title">A Real Human in Your Corner</div><div class="diff-desc">Every client gets a dedicated concierge — a real person who knows the market, handles paperwork, and fights for your interests.</div></div></div>
+    <div class="diff-item di-right" id="di3"><div class="diff-icon">💰</div><div><div class="diff-title">No Hidden Fees</div><div class="diff-desc">Our fee structure is flat and transparent. Renters pay nothing. Sellers and landlords pay a success fee only after a deal closes.</div></div></div>
+    <div class="diff-item di-left" id="di4"><div class="diff-icon">🏦</div><div><div class="diff-title">Escrow-Protected Transactions</div><div class="diff-desc">All advance and booking payments are held in regulated escrow accounts — protecting both parties until conditions are met.</div></div></div>
+    <div class="diff-item di-right" id="di5"><div class="diff-icon">📊</div><div><div class="diff-title">Market Intelligence</div><div class="diff-desc">We analyse thousands of transactions to give you real price benchmarks — so you never overpay or undersell in any locality.</div></div></div>
   </div>
 </section>
 
@@ -393,7 +480,6 @@ html.dark .mission-text p { color: var(--charcoal); }
 <script src="shared.js"></script>
 
 <script>
-
 // ── IMAGE SHUFFLE LOGIC ──
 const mainImages = [
   'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 
@@ -407,48 +493,151 @@ const subImages = [
   'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&q=80', 
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80'  
 ];
-
 let imgIndex = 0;
 setInterval(() => {
   const mainEl = document.getElementById('aboutImgMain');
-  const subEl = document.getElementById('aboutImgSub');
-  if(!mainEl || !subEl) return;
-
+  const subEl  = document.getElementById('aboutImgSub');
+  if (!mainEl || !subEl) return;
   imgIndex = (imgIndex + 1) % mainImages.length;
-
-  mainEl.style.opacity = 0;
-  subEl.style.opacity = 0;
-
-  setTimeout(() => {
-    mainEl.src = mainImages[imgIndex];
-    subEl.src = subImages[imgIndex];
-    mainEl.style.opacity = 1;
-    subEl.style.opacity = 1;
-  }, 400); 
-  
-}, 4500); 
+  mainEl.style.opacity = 0; subEl.style.opacity = 0;
+  setTimeout(() => { mainEl.src = mainImages[imgIndex]; subEl.src = subImages[imgIndex]; mainEl.style.opacity = 1; subEl.style.opacity = 1; }, 400);
+}, 4500);
 
 function submitContact(){
   const form = document.querySelector('.contact-form-card');
-  if(!form) return;
+  if (!form) return;
   const inputs = form.querySelectorAll('input, textarea');
-  
   if (typeof validateForm === 'function') {
     const valid = validateForm([
-      { el: inputs[0], required: true,  type: 'text'  }, 
-      { el: inputs[1], required: false, type: 'text'  }, 
-      { el: inputs[2], required: true,  type: 'email' }, 
-      { el: inputs[3], required: true,  type: 'tel'   }, 
+      { el: inputs[0], required: true,  type: 'text'  },
+      { el: inputs[1], required: false, type: 'text'  },
+      { el: inputs[2], required: true,  type: 'email' },
+      { el: inputs[3], required: true,  type: 'tel'   },
     ]);
-    if(!valid){ 
-      if (typeof showNotif === 'function') showNotif('⚠️ Please fill in required fields correctly'); 
-      return; 
-    }
+    if (!valid) { if (typeof showNotif === 'function') showNotif('⚠️ Please fill in required fields correctly'); return; }
   }
-  
   if (typeof showNotif === 'function') showNotif('✓ Message received! We\'ll respond within 2 hours.');
   form.querySelectorAll('input, textarea').forEach(el => el.value = '');
 }
+
+// ═══════════════════════════════════════════════════════
+// SCROLL-DRIVEN GOLDEN TIMELINE LINE
+// ═══════════════════════════════════════════════════════
+(function(){
+  const timeline = document.getElementById('story-timeline');
+  const fill     = document.getElementById('story-timeline-fill');
+  const dot      = document.getElementById('story-timeline-dot');
+  if (!timeline || !fill || !dot) return;
+
+  let scrollTimer = null;
+  let lastY = window.scrollY;
+
+  const heroEl   = document.querySelector('.about-tag');   // starts at "Our Story"
+  const footerEl = document.querySelector('footer');
+
+  function getStart() {
+    if (!heroEl) return 0;
+    const r = heroEl.getBoundingClientRect();
+    return window.scrollY + r.top;
+  }
+  function getEnd() {
+    if (!footerEl) return document.body.scrollHeight;
+    const r = footerEl.getBoundingClientRect();
+    return window.scrollY + r.bottom;
+  }
+
+  function update() {
+    const scrollY = window.scrollY;
+    const start   = getStart();
+    const end     = getEnd();
+    const range   = Math.max(1, end - start);
+    const pct     = Math.min(100, Math.max(0, ((scrollY - start) / range) * 100));
+
+    fill.style.height = pct + '%';
+    dot.style.top     = pct + '%';
+
+    // Show only while moving
+    const moving = scrollY !== lastY;
+    lastY = scrollY;
+    if (moving) {
+      timeline.classList.add('is-moving');
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => timeline.classList.remove('is-moving'), 800);
+    }
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// ═══════════════════════════════════════════════════════
+// VALUES CARDS — re-trigger on every scroll, left/center/right entrance
+// ═══════════════════════════════════════════════════════
+(function(){
+  const vcEls   = document.querySelectorAll('.value-card');
+  const vcTimers = new Map();
+
+  const getInitialTransform = (el) => {
+    if (el.classList.contains('di-left'))  return 'translateX(-40px)';
+    if (el.classList.contains('di-right')) return 'translateX(40px)';
+    return 'translateY(40px)';
+  };
+
+  const resetEl = (el) => {
+    el.classList.remove('vc-in');
+    el.style.transition = 'none';
+    el.style.transform  = getInitialTransform(el);
+    el.style.opacity    = '0';
+    requestAnimationFrame(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; });
+  };
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const el  = e.target;
+      const idx = parseInt(el.id.replace('vc', ''));
+      if (e.isIntersecting) {
+        const t = setTimeout(() => { el.classList.add('vc-in'); }, idx * 120);
+        vcTimers.set(el, t);
+      } else {
+        clearTimeout(vcTimers.get(el)); vcTimers.delete(el);
+        resetEl(el);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  vcEls.forEach(el => obs.observe(el));
+})();
+
+// ═══════════════════════════════════════════════════════
+// DIFF ITEMS — re-trigger, left col from left, right col from right
+// ═══════════════════════════════════════════════════════
+(function(){
+  const diEls   = document.querySelectorAll('.diff-item');
+  const diTimers = new Map();
+
+  const resetEl = (el) => {
+    el.classList.remove('di-in');
+    el.style.transition = 'none';
+    el.style.opacity = '0';
+    requestAnimationFrame(() => { el.style.transition = ''; el.style.opacity = ''; });
+  };
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const el  = e.target;
+      const idx = parseInt(el.id.replace('di', ''));
+      if (e.isIntersecting) {
+        const t = setTimeout(() => { el.classList.add('di-in'); }, idx * 100);
+        diTimers.set(el, t);
+      } else {
+        clearTimeout(diTimers.get(el)); diTimers.delete(el);
+        resetEl(el);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  diEls.forEach(el => obs.observe(el));
+})();
 </script>
 </body>
 </html>

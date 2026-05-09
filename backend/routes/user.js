@@ -52,9 +52,6 @@ router.post('/profile-pic', protect, (req, res) => {
 
       // 2. Run the Janitor to delete the old picture
       deleteFile(user.profilePicUrl);
-      if (user.profilePicUrl) {
-        try { deleteFile(user.profilePicUrl); } catch(e) { console.log("Janitor skipped"); }
-      }
 
       // 3. Create the clean, URL-safe image link
       const baseUrl = process.env.BASE_URL || 'http://localhost:5000';

@@ -105,8 +105,8 @@ router.get('/matches', protect, async (req, res) => {
     const scoredListings = listings.map(p => {
       let score = 50; // Base score
       
-      // Intent Match
-      const pIntent = p.propertyType === 'sale' ? 'buy' : 'rent';
+      // Intent Match — 'sale' and 'buy' are the same intent
+      const pIntent = (p.propertyType === 'sale' || p.propertyType === 'buy') ? 'buy' : 'rent';
       if (prefs.intent && prefs.intent !== 'any') {
         if (pIntent === prefs.intent) score += 20;
       } else {

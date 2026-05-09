@@ -629,159 +629,185 @@
     .features-visual {
       position: relative;
       height: 520px;
-      perspective: 1000px;
-    }
-
-    .phone-scene {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.1s ease-out;
-    }
-
-    /* Glow ring behind phone */
-    .phone-glow-ring {
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(184,155,106,0.2) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      animation: ringPulse 3s ease-in-out infinite;
-      filter: blur(20px);
-    }
-    @keyframes ringPulse {
-      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; }
-      50% { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
-    }
-
-    /* Floating decorative cards around phone */
-    .phone-float-card {
-      position: absolute;
-      background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(184,155,106,0.2);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #f0ece4;
-      white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      animation: floatCard 4s ease-in-out infinite;
-    }
-    .phone-float-card.card-ai {
-      top: 12%;
-      right: 4%;
-      animation-delay: 0s;
-    }
-    .phone-float-card.card-match {
-      bottom: 22%;
-      left: 0%;
-      animation-delay: -1.5s;
-    }
-    .phone-float-card.card-verified {
-      top: 55%;
-      right: 2%;
-      animation-delay: -2.8s;
-    }
-    @keyframes floatCard {
-      0%,100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-    .float-card-icon { font-size: 14px; margin-right: 6px; }
-    .float-card-label { color: rgba(184,155,106,0.9); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
-
-    .feature-phone {
-      width: 230px;
-      height: 430px;
-      background: #0a0a12;
-      border-radius: 32px;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) rotateY(-12deg) rotateX(4deg);
-      box-shadow:
-        0 60px 120px rgba(0,0,0,0.6),
-        0 0 0 1px rgba(184,155,106,0.15),
-        inset 0 1px 0 rgba(255,255,255,0.05);
-      overflow: hidden;
-      transition: transform 0.3s ease;
-    }
-    .feature-phone::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 80px; height: 22px;
-      background: #0a0a12;
-      border-radius: 0 0 14px 14px;
-      z-index: 10;
-    }
-
-    .phone-screen {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(160deg, #0f1f12 0%, #080f08 100%);
-      display: flex;
-      flex-direction: column;
-      padding: 28px 14px 18px;
-    }
-
-    .phone-header {
-      color: var(--gold);
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      margin-bottom: 14px;
-      text-align: center;
-    }
-
-    .phone-match-card {
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      padding: 11px;
-      margin-bottom: 7px;
-      border: 1px solid rgba(184,155,106,0.12);
-      transition: background 0.3s;
-    }
-    .phone-match-card:hover { background: rgba(255,255,255,0.09); }
-
-    .phone-match-title {
-      color: #f7f4ef;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .phone-match-score {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-top: 7px;
+      justify-content: center;
     }
 
-    .phone-match-bar {
-      flex: 1;
-      height: 4px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      margin-right: 7px;
+    .feat-dashboard {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Stat chips row */
+    .feat-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .feat-stat {
+      background: var(--surface-2);
+      border: 1px solid var(--mist);
+      border-radius: 14px;
+      padding: 16px 14px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .feat-stat.fst-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1), border-color 0.3s, box-shadow 0.3s;
+    }
+    .feat-stat:hover {
+      border-color: rgba(184,155,106,0.4);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.07);
+    }
+    .feat-stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .feat-stat-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--warm-gray);
+      margin-top: 4px;
+    }
+
+    /* Property preview card */
+    .feat-prop-card {
+      background: var(--surface-2);
+      border: 1px solid var(--mist);
+      border-radius: 16px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    .feat-prop-card.fpc-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.55s 0.18s ease, transform 0.55s 0.18s cubic-bezier(0.16,1,0.3,1);
+    }
+    .feat-prop-img {
+      height: 130px;
+      background: linear-gradient(135deg, #2a2318 0%, #1a150e 60%, #0d0a06 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      position: relative;
       overflow: hidden;
     }
-
-    .phone-match-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, #b8965a, #e8c47a);
-      width: 0;
-      transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .feat-prop-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(184,155,106,0.15), transparent);
     }
-
-    .phone-match-pct {
+    .feat-prop-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--gold);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 20px;
+      z-index: 2;
+    }
+    .feat-prop-body {
+      padding: 14px 16px;
+    }
+    .feat-prop-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .feat-prop-meta {
+      font-size: 11px;
+      color: var(--warm-gray);
+      margin-bottom: 12px;
+    }
+    .feat-match-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feat-match-label {
       font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
       color: var(--gold);
       font-weight: 600;
+      white-space: nowrap;
+    }
+    .feat-match-track {
+      flex: 1;
+      height: 5px;
+      background: var(--mist);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .feat-match-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #b8965a, #e8c47a);
+      border-radius: 3px;
+      transition: width 1.2s 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .feat-match-pct {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    /* Activity row */
+    .feat-activity-row {
+      display: flex;
+      gap: 12px;
+    }
+    .feat-activity {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--mist);
+      border-radius: 14px;
+      padding: 14px;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .feat-activity.fa-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s 0.3s ease, transform 0.5s 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .feat-activity-icon {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .feat-activity-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .feat-activity-sub {
+      font-size: 10px;
+      color: var(--warm-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
 
     /* Feature cards right side */
@@ -1646,53 +1672,60 @@
     <div class="feat-orb feat-orb-3"></div>
 
     <div class="features-grid">
-      <!-- 3D Phone Visual -->
+      <!-- Clean Dashboard Visual -->
       <div class="features-visual" id="featVisual">
-        <div class="phone-glow-ring"></div>
-        <div class="phone-scene" id="phoneScene">
-          <div class="feature-phone" id="featurePhone">
-            <div class="phone-screen">
-              <div class="phone-header">✦ Your Matches Today</div>
-              <div class="phone-match-card">
-                <div class="phone-match-title">Gulshan 2 — 4BHK</div>
-                <div class="phone-match-score">
-                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="94" style="background:linear-gradient(90deg,#b8965a,#e8c47a)"></div></div>
-                  <div class="phone-match-pct">94%</div>
+        <div class="feat-dashboard">
+          <!-- Stat chips -->
+          <div class="feat-stat-row">
+            <div class="feat-stat" id="fst0">
+              <div class="feat-stat-value">4.8K+</div>
+              <div class="feat-stat-label">Listings</div>
+            </div>
+            <div class="feat-stat" id="fst1">
+              <div class="feat-stat-value">96%</div>
+              <div class="feat-stat-label">Match Rate</div>
+            </div>
+            <div class="feat-stat" id="fst2">
+              <div class="feat-stat-value">100%</div>
+              <div class="feat-stat-label">Verified</div>
+            </div>
+          </div>
+          <!-- Property preview card -->
+          <div class="feat-prop-card" id="featPropCard">
+            <div class="feat-prop-img">
+              🏢
+              <div class="feat-prop-badge">AI Pick</div>
+            </div>
+            <div class="feat-prop-body">
+              <div class="feat-prop-title">Gulshan 2 — 4BHK Apartment</div>
+              <div class="feat-prop-meta">Dhaka · BDT 95,000/mo · 1,850 sqft</div>
+              <div class="feat-match-row">
+                <div class="feat-match-label">AI Match</div>
+                <div class="feat-match-track">
+                  <div class="feat-match-fill" id="featMatchBar" data-w="94"></div>
                 </div>
-              </div>
-              <div class="phone-match-card">
-                <div class="phone-match-title">Dhanmondi — 3BHK</div>
-                <div class="phone-match-score">
-                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="88" style="background:linear-gradient(90deg,#6b8a6e,#8ab08e)"></div></div>
-                  <div class="phone-match-pct" style="color:#8ab08e">88%</div>
-                </div>
-              </div>
-              <div class="phone-match-card">
-                <div class="phone-match-title">Uttara — 2BHK</div>
-                <div class="phone-match-score">
-                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="82" style="background:linear-gradient(90deg,#9a7d5f,#c0a080)"></div></div>
-                  <div class="phone-match-pct" style="color:#c0a080">82%</div>
-                </div>
-              </div>
-              <div style="margin-top:12px;padding:11px;background:rgba(184,155,106,0.08);border-radius:8px;border:1px solid rgba(184,155,106,0.18)">
-                <div style="color:rgba(247,244,239,0.5);font-size:10px;margin-bottom:3px">Concierge Update</div>
-                <div style="color:#f7f4ef;font-size:11px">Site visit for Gulshan confirmed for tomorrow 11AM.</div>
+                <div class="feat-match-pct">94%</div>
               </div>
             </div>
           </div>
-        </div>
-        <!-- Floating mini-cards -->
-        <div class="phone-float-card card-ai">
-          <div class="float-card-label">AI Score</div>
-          <span class="float-card-icon">🧠</span><span style="color:#e8c47a;font-weight:600">96% Match</span>
-        </div>
-        <div class="phone-float-card card-match">
-          <div class="float-card-label">Verified</div>
-          <span class="float-card-icon">🛡️</span><span>Title Cleared</span>
-        </div>
-        <div class="phone-float-card card-verified">
-          <div class="float-card-label">Price Intel</div>
-          <span class="float-card-icon">📊</span><span style="color:#8ab08e">Fair Value ✓</span>
+          <!-- Activity row -->
+          <div class="feat-activity-row">
+            <div class="feat-activity" id="fa0">
+              <div class="feat-activity-icon">📅</div>
+              <div class="feat-activity-val">Tomorrow</div>
+              <div class="feat-activity-sub">Site Visit</div>
+            </div>
+            <div class="feat-activity" id="fa1">
+              <div class="feat-activity-icon">✅</div>
+              <div class="feat-activity-val">Title OK</div>
+              <div class="feat-activity-sub">Deed Verified</div>
+            </div>
+            <div class="feat-activity" id="fa2">
+              <div class="feat-activity-icon">🔒</div>
+              <div class="feat-activity-val">Escrow</div>
+              <div class="feat-activity-sub">Protected</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1735,39 +1768,87 @@
 
     <script>
     (function(){
-      // Staggered reveal for feature items
-      const items = document.querySelectorAll('.feature-item');
+      // ── Feature items: re-trigger every scroll ──────────────────
+      const items   = document.querySelectorAll('.feature-item');
+      const fiTimers = new Map();
+
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => {
-          if(e.isIntersecting){
-            const idx = parseInt(e.target.id.replace('fi',''));
-            setTimeout(()=>{ e.target.classList.add('fi-visible'); }, idx * 150);
-            // Animate phone bars on first trigger
-            if(idx === 0) {
-              document.querySelectorAll('.phone-match-fill').forEach(bar => {
-                bar.style.width = bar.dataset.w + '%';
-              });
-            }
-            io.unobserve(e.target);
+          const el  = e.target;
+          const idx = parseInt(el.id.replace('fi',''));
+          if (e.isIntersecting) {
+            const t = setTimeout(() => { el.classList.add('fi-visible'); }, idx * 150);
+            fiTimers.set(el, t);
+          } else {
+            clearTimeout(fiTimers.get(el));
+            fiTimers.delete(el);
+            el.style.transition = 'none';
+            el.classList.remove('fi-visible');
+            requestAnimationFrame(() => { el.style.transition = ''; });
           }
         });
       }, { threshold: 0.2 });
       items.forEach(it => io.observe(it));
 
-      // 3D tilt on mouse move
-      const visual = document.getElementById('featVisual');
-      const phone = document.getElementById('featurePhone');
-      if(visual && phone) {
-        visual.addEventListener('mousemove', e => {
-          const r = visual.getBoundingClientRect();
-          const x = (e.clientX - r.left) / r.width - 0.5;
-          const y = (e.clientY - r.top) / r.height - 0.5;
-          phone.style.transform = `translate(-50%, -50%) rotateY(${-12 + x * 18}deg) rotateX(${4 - y * 14}deg)`;
+      // ── Dashboard visual: re-trigger stat chips, prop card, activity ──
+      const fstEls  = document.querySelectorAll('.feat-stat');
+      const fpcEl   = document.getElementById('featPropCard');
+      const faEls   = document.querySelectorAll('.feat-activity');
+      const matchBar = document.getElementById('featMatchBar');
+      const fstTimers = new Map();
+      const faTimers  = new Map();
+
+      const resetEl = (el, cls) => {
+        el.style.transition = 'none';
+        el.classList.remove(cls);
+        requestAnimationFrame(() => { el.style.transition = ''; });
+      };
+
+      // Stat chips observer
+      const fstObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          const el = e.target;
+          const idx = parseInt(el.id.replace('fst',''));
+          if (e.isIntersecting) {
+            const t = setTimeout(() => { el.classList.add('fst-visible'); }, idx * 120);
+            fstTimers.set(el, t);
+          } else {
+            clearTimeout(fstTimers.get(el)); fstTimers.delete(el);
+            resetEl(el, 'fst-visible');
+          }
         });
-        visual.addEventListener('mouseleave', () => {
-          phone.style.transform = 'translate(-50%, -50%) rotateY(-12deg) rotateX(4deg)';
+      }, { threshold: 0.3 });
+      fstEls.forEach(el => fstObs.observe(el));
+
+      // Property card + match bar observer
+      const fpcObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            fpcEl.classList.add('fpc-visible');
+            if (matchBar) matchBar.style.width = matchBar.dataset.w + '%';
+          } else {
+            resetEl(fpcEl, 'fpc-visible');
+            if (matchBar) { matchBar.style.transition = 'none'; matchBar.style.width = '0'; requestAnimationFrame(() => { matchBar.style.transition = ''; }); }
+          }
         });
-      }
+      }, { threshold: 0.3 });
+      if (fpcEl) fpcObs.observe(fpcEl);
+
+      // Activity row observer
+      const faObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          const el = e.target;
+          const idx = parseInt(el.id.replace('fa',''));
+          if (e.isIntersecting) {
+            const t = setTimeout(() => { el.classList.add('fa-visible'); }, idx * 100);
+            faTimers.set(el, t);
+          } else {
+            clearTimeout(faTimers.get(el)); faTimers.delete(el);
+            resetEl(el, 'fa-visible');
+          }
+        });
+      }, { threshold: 0.3 });
+      faEls.forEach(el => faObs.observe(el));
     })();
     </script>
   </section>
@@ -1821,12 +1902,31 @@
     <script>
     (function(){
       const vCards = document.querySelectorAll('.v-card');
+      // Track pending timers so we can cancel them if user scrolls away quickly
+      const timers = new Map();
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((e) => {
-          if(e.isIntersecting){
-            const idx = Array.from(vCards).indexOf(e.target);
-            setTimeout(()=>{ e.target.classList.add('vc-visible'); }, idx * 120);
-            observer.unobserve(e.target);
+          const card = e.target;
+          const idx  = Array.from(vCards).indexOf(card);
+
+          if (e.isIntersecting) {
+            // Animate IN with stagger
+            const t = setTimeout(() => {
+              card.classList.add('vc-visible');
+            }, idx * 120);
+            timers.set(card, t);
+          } else {
+            // Cancel any pending timer and reset card to hidden state
+            clearTimeout(timers.get(card));
+            timers.delete(card);
+            // Temporarily suppress the CSS transition so the reset is instant
+            card.style.transition = 'none';
+            card.classList.remove('vc-visible');
+            // Re-enable transitions on next frame so the next entrance is smooth
+            requestAnimationFrame(() => {
+              card.style.transition = '';
+            });
           }
         });
       }, { threshold: 0.15 });
