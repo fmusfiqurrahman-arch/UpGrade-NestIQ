@@ -63,9 +63,9 @@
 #how { background:var(--ink); color:var(--ivory); padding:100px 60px; position:relative; overflow:hidden; }
 #how::before { content:''; position:absolute; top:-200px; right:-200px; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle,rgba(184,155,106,0.08) 0%,transparent 70%); }
 #how .section-h2 { color:var(--ivory); }
-.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:36px; margin-top:56px; }
-.step-card { position:relative; padding:32px 24px; border:1px solid rgba(184,155,106,0.2); border-radius:4px; transition:border-color 0.3s,transform 0.3s; }
-.step-card:hover { border-color:var(--gold); transform:translateY(-4px); }
+.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:36px; margin-top:56px; overflow:visible; }
+.step-card { position:relative; padding:32px 24px; border:1px solid rgba(184,155,106,0.2); border-radius:4px; transition:border-color 0.3s, box-shadow 0.3s, transform 0.75s cubic-bezier(0.22, 1.4, 0.36, 1), opacity 0.55s ease; will-change:transform; }
+.step-card:hover { border-color:var(--gold); }
 .step-num { font-family:'Cormorant Garamond',serif; font-size:56px; font-weight:300; color:var(--brand); opacity:0.8; line-height:1; margin-bottom:18px; }
 .step-icon { font-size:26px; margin-bottom:14px; }
 .step-title { font-size:15px; font-weight:500; color:var(--ivory); margin-bottom:8px; }
@@ -628,6 +628,84 @@ async function submitMatchForm(){
     if(typeof showNotif === 'function') showNotif('❌ Network error');
   }
 }
+</script>
+
+<script>
+// ── DECK-OF-CARDS ANIMATION FOR #HOW ──────────────────────────────
+(function() {
+  function init() {
+    var section = document.getElementById('how');
+    var grid = section && section.querySelector('.steps-grid');
+    var cards = grid ? Array.from(grid.querySelectorAll('.step-card')) : [];
+    if (cards.length < 2) return;
+
+    var dealt = false;
+    // Deck config: rotation and y-lift for each card (front to back)
+    var cfgs = [
+      { rot:  5.5, y: 14 },
+      { rot:  2.0, y:  8 },
+      { rot: -1.5, y:  4 },
+      { rot: -4.5, y:  0 }
+    ];
+
+    function stack() {
+      var gridRect = grid.getBoundingClientRect();
+      var cx = gridRect.width / 2;
+      cards.forEach(function(card, i) {
+        var r = card.getBoundingClientRect();
+        var cardCx = r.left - gridRect.left + r.width / 2;
+        var dx = cx - cardCx;
+        var cfg = cfgs[i] || cfgs[cfgs.length - 1];
+        card.style.transition = 'none';
+        card.style.transform = 'translateX(' + dx + 'px) translateY(-' + cfg.y + 'px) rotate(' + cfg.rot + 'deg)';
+        card.style.opacity = String(1 - i * 0.07);
+        card.style.zIndex = String(10 - i);
+        card.style.boxShadow = '0 ' + (10 + i*6) + 'px ' + (30 + i*10) + 'px rgba(0,0,0,0.5)';
+        card.classList.add('visible'); // prevent shared.js reveal from resetting
+      });
+    }
+
+    function deal() {
+      if (dealt) return;
+      dealt = true;
+      cards.forEach(function(card, i) {
+        setTimeout(function() {
+          card.style.transition = 'transform 0.75s cubic-bezier(0.22,1.4,0.36,1), opacity 0.55s ease, box-shadow 0.5s ease';
+          card.style.transform = '';
+          card.style.opacity = '1';
+          card.style.zIndex = '';
+          card.style.boxShadow = '';
+        }, i * 120);
+      });
+    }
+
+    // Only stack if section is below the fold
+    if (section.getBoundingClientRect().top > window.innerHeight * 0.6) {
+      stack();
+    } else {
+      dealt = true;
+    }
+
+    var io = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting && !dealt) {
+        setTimeout(deal, 150);
+        io.disconnect();
+      }
+    }, { threshold: 0.25 });
+    io.observe(section);
+
+    // Re-stack on resize if not yet dealt
+    window.addEventListener('resize', function() {
+      if (!dealt) { stack(); }
+    }, { passive: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 </body>
 </html>
