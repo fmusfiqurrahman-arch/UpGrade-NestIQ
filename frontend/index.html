@@ -563,10 +563,55 @@
       }
     }
 
-    /* ── FEATURES ── */
+    /* ── FEATURES 3D ── */
     #features {
       background: var(--surface);
-      padding: 100px 60px;
+      padding: 120px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated mesh gradient background */
+    #features::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 50%, rgba(184,155,106,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 30%, rgba(100,80,200,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 60% 80%, rgba(184,155,106,0.05) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* Floating orbs */
+    .feat-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(60px);
+      animation: orbFloat 8s ease-in-out infinite;
+    }
+    .feat-orb-1 {
+      width: 320px; height: 320px;
+      background: rgba(184,155,106,0.12);
+      top: -80px; left: -80px;
+      animation-delay: 0s;
+    }
+    .feat-orb-2 {
+      width: 200px; height: 200px;
+      background: rgba(120,90,220,0.1);
+      bottom: 60px; right: 100px;
+      animation-delay: -3s;
+    }
+    .feat-orb-3 {
+      width: 140px; height: 140px;
+      background: rgba(184,155,106,0.08);
+      top: 50%; left: 45%;
+      animation-delay: -5s;
+    }
+    @keyframes orbFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-30px) scale(1.08); }
     }
 
     .features-grid {
@@ -574,51 +619,134 @@
       grid-template-columns: 1fr 1fr;
       gap: 80px;
       align-items: center;
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
+    /* 3D phone scene */
     .features-visual {
       position: relative;
-      height: 480px;
+      height: 520px;
+      perspective: 1000px;
     }
 
+    .phone-scene {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+
+    /* Glow ring behind phone */
+    .phone-glow-ring {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,155,106,0.2) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: ringPulse 3s ease-in-out infinite;
+      filter: blur(20px);
+    }
+    @keyframes ringPulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; }
+      50% { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    }
+
+    /* Floating decorative cards around phone */
+    .phone-float-card {
+      position: absolute;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(184,155,106,0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #f0ece4;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: floatCard 4s ease-in-out infinite;
+    }
+    .phone-float-card.card-ai {
+      top: 12%;
+      right: 4%;
+      animation-delay: 0s;
+    }
+    .phone-float-card.card-match {
+      bottom: 22%;
+      left: 0%;
+      animation-delay: -1.5s;
+    }
+    .phone-float-card.card-verified {
+      top: 55%;
+      right: 2%;
+      animation-delay: -2.8s;
+    }
+    @keyframes floatCard {
+      0%,100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .float-card-icon { font-size: 14px; margin-right: 6px; }
+    .float-card-label { color: rgba(184,155,106,0.9); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
+
     .feature-phone {
-      width: 250px;
-      height: 420px;
-      background: var(--ink);
-      border-radius: 30px;
+      width: 230px;
+      height: 430px;
+      background: #0a0a12;
+      border-radius: 32px;
       position: absolute;
       left: 50%;
-      top: 60%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+      top: 50%;
+      transform: translate(-50%, -50%) rotateY(-12deg) rotateX(4deg);
+      box-shadow:
+        0 60px 120px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(184,155,106,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.05);
       overflow: hidden;
-      border: 7px solid #1a1a18;
+      transition: transform 0.3s ease;
+    }
+    .feature-phone::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 80px; height: 22px;
+      background: #0a0a12;
+      border-radius: 0 0 14px 14px;
+      z-index: 10;
     }
 
     .phone-screen {
       width: 100%;
       height: 100%;
-      background: linear-gradient(160deg, #1a2e1a 0%, #0f1f0f 100%);
+      background: linear-gradient(160deg, #0f1f12 0%, #080f08 100%);
       display: flex;
       flex-direction: column;
-      padding: 18px 14px;
+      padding: 28px 14px 18px;
     }
 
     .phone-header {
       color: var(--gold);
       font-size: 11px;
       letter-spacing: 0.1em;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       text-align: center;
     }
 
     .phone-match-card {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255,255,255,0.05);
       border-radius: 10px;
       padding: 11px;
       margin-bottom: 7px;
-      border: 1px solid rgba(184, 155, 106, 0.15);
+      border: 1px solid rgba(184,155,106,0.12);
+      transition: background 0.3s;
     }
+    .phone-match-card:hover { background: rgba(255,255,255,0.09); }
 
     .phone-match-title {
       color: #f7f4ef;
@@ -635,51 +763,104 @@
 
     .phone-match-bar {
       flex: 1;
-      height: 3px;
-      background: rgba(255, 255, 255, 0.1);
+      height: 4px;
+      background: rgba(255,255,255,0.08);
       border-radius: 2px;
       margin-right: 7px;
+      overflow: hidden;
     }
 
     .phone-match-fill {
       height: 100%;
       border-radius: 2px;
-      background: var(--gold);
+      background: linear-gradient(90deg, #b8965a, #e8c47a);
+      width: 0;
+      transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .phone-match-pct {
       font-size: 10px;
       color: var(--gold);
+      font-weight: 600;
     }
 
+    /* Feature cards right side */
     .features-list {
       display: flex;
       flex-direction: column;
-      gap: 32px;
+      gap: 20px;
+    }
+
+    .feat-heading {
+      margin-bottom: 16px;
+    }
+    .feat-heading .section-tag {
+      color: #b8965a;
+      margin-bottom: 10px;
+    }
+    .feat-heading .section-tag::after {
+      background: #b8965a;
+    }
+    .feat-heading h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(34px, 3.5vw, 54px);
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .feat-heading h2 em {
+      font-style: italic;
+      color: var(--gold);
     }
 
     .feature-item {
       display: flex;
       gap: 18px;
       align-items: flex-start;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--mist);
+      background: var(--surface-2);
+      backdrop-filter: blur(8px);
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+      cursor: default;
+      opacity: 0;
+      transform: translateX(40px);
+    }
+    .feature-item.fi-visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .feature-item:hover {
+      background: rgba(184,155,106,0.07);
+      border-color: rgba(184,155,106,0.3);
+      transform: translateX(6px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08), -3px 0 0 0 rgba(184,155,106,0.6);
+    }
+    .feature-item.fi-visible:hover {
+      transform: translateX(6px);
     }
 
     .feature-icon {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       flex-shrink: 0;
-      background: var(--ivory);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(184,155,106,0.15), rgba(184,155,106,0.05));
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      border: 1px solid var(--mist);
+      font-size: 22px;
+      border: 1px solid rgba(184,155,106,0.2);
+      box-shadow: 0 4px 16px rgba(184,155,106,0.1);
+      transition: transform 0.3s;
     }
+    .feature-item:hover .feature-icon { transform: scale(1.12) rotate(-4deg); }
 
     .feature-title {
       font-size: 15px;
       font-weight: 500;
+      color: var(--ink);
       margin-bottom: 5px;
     }
 
@@ -698,32 +879,74 @@
     .verify-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
-      margin-top: 44px;
+      gap: 24px;
+      margin-top: 56px;
+      perspective: 1000px;
     }
 
     .verify-card {
-      padding: 32px 26px;
+      padding: 40px 32px;
       background: var(--surface);
       border: 1px solid var(--mist);
-      border-radius: 4px;
-      transition: all 0.3s;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: box-shadow 0.4s ease, border-color 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+      opacity: 0;
+      transform: translateY(40px) rotateX(10deg);
+    }
+
+    .verify-card.vc-visible {
+      opacity: 1;
+      transform: translateY(0) rotateX(0);
+    }
+
+    .verify-card.tilting {
+      transition: box-shadow 0.4s ease, border-color 0.4s ease; /* Remove transform transition while moving */
     }
 
     .verify-card:hover {
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
-      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+      border-color: rgba(184, 155, 106, 0.4);
+      z-index: 2;
+    }
+
+    html.dark .verify-card:hover {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .verify-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at top right, rgba(184, 155, 106, 0.08) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .verify-card:hover::before {
+      opacity: 1;
     }
 
     .verify-icon {
-      font-size: 30px;
-      margin-bottom: 14px;
+      font-size: 34px;
+      margin-bottom: 18px;
+      display: inline-block;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .verify-card:hover .verify-icon {
+      transform: scale(1.2) rotate(6deg);
     }
 
     .verify-title {
       font-size: 16px;
       font-weight: 500;
       margin-bottom: 8px;
+      transition: color 0.3s;
     }
 
     .verify-desc {
@@ -735,27 +958,96 @@
     .verify-status {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 14px;
+      gap: 8px;
+      margin-top: 20px;
       font-size: 10px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--accent);
+      font-weight: 600;
     }
 
     .verify-dot {
-      width: 6px;
-      height: 6px;
+      position: relative;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--accent);
+    }
+    .verify-dot::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      opacity: 0;
+      animation: dotPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    @keyframes dotPulse {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
     }
 
     /* ── CONCIERGE & CTA ── */
     #concierge {
+      position: relative;
       background: var(--gold);
       color: var(--ivory);
       text-align: center;
-      padding: 100px 60px;
+      padding: 120px 60px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* Left + right fade vignette — golden center, fades to near-transparent edges */
+    #concierge::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          to right,
+          rgba(160, 128, 70, 0.92) 0%,
+          rgba(184, 155, 106, 0.4) 20%,
+          transparent 42%,
+          transparent 58%,
+          rgba(184, 155, 106, 0.4) 80%,
+          rgba(160, 128, 70, 0.92) 100%
+        );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Cursor spotlight layer */
+    #concierge-spotlight {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle 320px at var(--cx, 50%) var(--cy, 50%),
+        rgba(255, 240, 180, 0.25) 0%,
+        rgba(255, 220, 100, 0.10) 40%,
+        transparent 70%
+      );
+      pointer-events: none;
+      z-index: 2;
+      transition: background 0.05s linear;
+    }
+
+    /* Noise texture shimmer */
+    #concierge::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.18;
+    }
+
+    #concierge > * {
+      position: relative;
+      z-index: 4;
     }
 
     #concierge .section-tag {
@@ -830,25 +1122,60 @@
     /* ── TESTIMONIALS ── */
     #testimonials {
       background: var(--surface);
-      padding: 100px 60px;
+      padding: 100px 0;
+      overflow: hidden;
     }
 
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 26px;
-      margin-top: 44px;
+    #testimonials .reveal {
+      padding: 0 60px;
+    }
+
+    .testimonials-tunnel {
+      position: relative;
+      margin-top: 56px;
+      padding: 40px 0;
+      display: flex;
+      mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    }
+
+    .testimonials-track {
+      display: flex;
+      gap: 32px;
+      width: max-content;
+      animation: trainScroll 40s linear infinite;
+      padding-left: 32px;
+    }
+
+    .testimonials-track:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes trainScroll {
+      0% { transform: translateX(calc(-50% - 16px)); }
+      100% { transform: translateX(0); }
     }
 
     .testi-card {
-      padding: 32px;
+      width: 420px;
+      flex-shrink: 0;
+      padding: 40px 36px;
       border: 1px solid var(--mist);
-      border-radius: 4px;
-      transition: all 0.3s;
+      border-radius: 20px;
+      background: var(--surface-2);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    html.dark .testi-card {
+      background: rgba(255,255,255,0.02);
+      border-color: rgba(255,255,255,0.05);
     }
 
     .testi-card:hover {
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+      transform: translateY(-8px) scale(1.02);
+      border-color: var(--gold);
     }
 
     .testi-stars {
@@ -918,8 +1245,27 @@
     }
 
     html.dark .feature-icon {
-      background: var(--surface-2);
+      background: linear-gradient(135deg, rgba(184,155,106,0.15), rgba(184,155,106,0.05));
     }
+
+    /* Dark mode: phone float cards use dark glass */
+    html.dark .phone-float-card {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(184,155,106,0.2);
+    }
+    /* Light mode: phone float cards readable on light bg */
+    html:not(.dark) .phone-float-card {
+      background: rgba(255,255,255,0.75);
+      border-color: rgba(184,155,106,0.35);
+      color: #2a2520;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    html:not(.dark) .feature-item {
+      border-color: var(--mist);
+    }
+    html:not(.dark) .feat-orb-1 { background: rgba(184,155,106,0.07); }
+    html:not(.dark) .feat-orb-2 { background: rgba(120,90,220,0.05); }
+    html:not(.dark) .feat-orb-3 { background: rgba(184,155,106,0.05); }
 
     html.dark #verify {
       background: var(--bg);
@@ -931,10 +1277,6 @@
 
     html.dark #testimonials {
       background: var(--surface);
-    }
-
-    html.dark .testi-card {
-      border-color: var(--border);
     }
 
     html.dark .testi-quote {
@@ -1010,15 +1352,20 @@
       }
 
       .features-visual {
-        height: 300px;
+        height: 480px;
       }
 
       .verify-grid {
         grid-template-columns: 1fr 1fr;
       }
 
-      .testimonials-grid {
-        grid-template-columns: 1fr;
+      .testi-card {
+        width: 360px;
+        padding: 32px 28px;
+      }
+      .testimonials-tunnel {
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
       }
     }
 
@@ -1044,9 +1391,26 @@
       #how,
       #features,
       #verify,
-      #concierge,
-      #testimonials {
+      #concierge {
         padding: 70px 20px;
+      }
+
+      #testimonials {
+        padding: 70px 0;
+      }
+
+      #testimonials .reveal {
+        padding: 0 20px;
+      }
+
+      .testi-card {
+        width: 320px;
+        padding: 28px 24px;
+      }
+
+      .testimonials-tunnel {
+        mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
       }
 
       .hero-left {
@@ -1276,81 +1640,136 @@
   </div>
 
   <section id="features">
+    <!-- Floating orbs -->
+    <div class="feat-orb feat-orb-1"></div>
+    <div class="feat-orb feat-orb-2"></div>
+    <div class="feat-orb feat-orb-3"></div>
+
     <div class="features-grid">
-      <div class="features-visual reveal">
-        <div class="feature-phone">
-          <div class="phone-screen">
-            <div class="phone-header">✦ Your Matches Today</div>
-            <div class="phone-match-card">
-              <div class="phone-match-title">Gulshan 2 — 4BHK</div>
-              <div class="phone-match-score">
-                <div class="phone-match-bar">
-                  <div class="phone-match-fill" style="width:94%"></div>
+      <!-- 3D Phone Visual -->
+      <div class="features-visual" id="featVisual">
+        <div class="phone-glow-ring"></div>
+        <div class="phone-scene" id="phoneScene">
+          <div class="feature-phone" id="featurePhone">
+            <div class="phone-screen">
+              <div class="phone-header">✦ Your Matches Today</div>
+              <div class="phone-match-card">
+                <div class="phone-match-title">Gulshan 2 — 4BHK</div>
+                <div class="phone-match-score">
+                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="94" style="background:linear-gradient(90deg,#b8965a,#e8c47a)"></div></div>
+                  <div class="phone-match-pct">94%</div>
                 </div>
-                <div class="phone-match-pct">94%</div>
               </div>
-            </div>
-            <div class="phone-match-card">
-              <div class="phone-match-title">Dhanmondi — 3BHK</div>
-              <div class="phone-match-score">
-                <div class="phone-match-bar">
-                  <div class="phone-match-fill" style="width:88%;background:#6b8a6e"></div>
+              <div class="phone-match-card">
+                <div class="phone-match-title">Dhanmondi — 3BHK</div>
+                <div class="phone-match-score">
+                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="88" style="background:linear-gradient(90deg,#6b8a6e,#8ab08e)"></div></div>
+                  <div class="phone-match-pct" style="color:#8ab08e">88%</div>
                 </div>
-                <div class="phone-match-pct" style="color:#6b8a6e">88%</div>
               </div>
-            </div>
-            <div class="phone-match-card">
-              <div class="phone-match-title">Uttara — 2BHK</div>
-              <div class="phone-match-score">
-                <div class="phone-match-bar">
-                  <div class="phone-match-fill" style="width:82%;background:#9a7d5f"></div>
+              <div class="phone-match-card">
+                <div class="phone-match-title">Uttara — 2BHK</div>
+                <div class="phone-match-score">
+                  <div class="phone-match-bar"><div class="phone-match-fill" data-w="82" style="background:linear-gradient(90deg,#9a7d5f,#c0a080)"></div></div>
+                  <div class="phone-match-pct" style="color:#c0a080">82%</div>
                 </div>
-                <div class="phone-match-pct" style="color:#9a7d5f">82%</div>
               </div>
-            </div>
-            <div
-              style="margin-top:12px;padding:11px;background:rgba(184,155,106,0.1);border-radius:8px;border:1px solid rgba(184,155,106,0.2)">
-              <div style="color:rgba(247,244,239,0.6);font-size:10px;margin-bottom:3px">Concierge Update</div>
-              <div style="color:#f7f4ef;font-size:11px">Site visit for Gulshan confirmed for tomorrow 11AM.</div>
+              <div style="margin-top:12px;padding:11px;background:rgba(184,155,106,0.08);border-radius:8px;border:1px solid rgba(184,155,106,0.18)">
+                <div style="color:rgba(247,244,239,0.5);font-size:10px;margin-bottom:3px">Concierge Update</div>
+                <div style="color:#f7f4ef;font-size:11px">Site visit for Gulshan confirmed for tomorrow 11AM.</div>
+              </div>
             </div>
           </div>
         </div>
+        <!-- Floating mini-cards -->
+        <div class="phone-float-card card-ai">
+          <div class="float-card-label">AI Score</div>
+          <span class="float-card-icon">🧠</span><span style="color:#e8c47a;font-weight:600">96% Match</span>
+        </div>
+        <div class="phone-float-card card-match">
+          <div class="float-card-label">Verified</div>
+          <span class="float-card-icon">🛡️</span><span>Title Cleared</span>
+        </div>
+        <div class="phone-float-card card-verified">
+          <div class="float-card-label">Price Intel</div>
+          <span class="float-card-icon">📊</span><span style="color:#8ab08e">Fair Value ✓</span>
+        </div>
       </div>
-      <div class="features-list reveal">
-        <div class="section-tag">Smart Features</div>
-        <h2 class="section-h2" style="margin-bottom:36px">Built for the<br>Modern <em>Buyer</em></h2>
-        <div class="feature-item">
+
+      <!-- Features List -->
+      <div class="features-list">
+        <div class="feat-heading">
+          <div class="section-tag">Smart Features</div>
+          <h2>Built for the<br>Modern <em>Buyer</em></h2>
+        </div>
+        <div class="feature-item" id="fi0">
           <div class="feature-icon">🧠</div>
           <div>
             <div class="feature-title">Intelligent Matching</div>
-            <div class="feature-desc">AI learns your preferences and surfaces listings that fit your life — not just
-              your filters.</div>
+            <div class="feature-desc">AI learns your preferences and surfaces listings that fit your life — not just your filters.</div>
           </div>
         </div>
-        <div class="feature-item">
+        <div class="feature-item" id="fi1">
           <div class="feature-icon">📍</div>
           <div>
             <div class="feature-title">Neighborhood Insights</div>
             <div class="feature-desc">Commute times, schools, flood risk, and development plans — all in one view.</div>
           </div>
         </div>
-        <div class="feature-item">
+        <div class="feature-item" id="fi2">
           <div class="feature-icon">💬</div>
           <div>
             <div class="feature-title">Direct Owner Chat</div>
             <div class="feature-desc">Message verified owners and agents directly. No middlemen, no spam calls.</div>
           </div>
         </div>
-        <div class="feature-item">
+        <div class="feature-item" id="fi3">
           <div class="feature-icon">📊</div>
           <div>
             <div class="feature-title">Price Intelligence</div>
-            <div class="feature-desc">See if a listing is fairly priced against recent comparable transactions nearby.
-            </div>
+            <div class="feature-desc">See if a listing is fairly priced against recent comparable transactions nearby.</div>
           </div>
         </div>
       </div>
     </div>
+
+    <script>
+    (function(){
+      // Staggered reveal for feature items
+      const items = document.querySelectorAll('.feature-item');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if(e.isIntersecting){
+            const idx = parseInt(e.target.id.replace('fi',''));
+            setTimeout(()=>{ e.target.classList.add('fi-visible'); }, idx * 150);
+            // Animate phone bars on first trigger
+            if(idx === 0) {
+              document.querySelectorAll('.phone-match-fill').forEach(bar => {
+                bar.style.width = bar.dataset.w + '%';
+              });
+            }
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      items.forEach(it => io.observe(it));
+
+      // 3D tilt on mouse move
+      const visual = document.getElementById('featVisual');
+      const phone = document.getElementById('featurePhone');
+      if(visual && phone) {
+        visual.addEventListener('mousemove', e => {
+          const r = visual.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          phone.style.transform = `translate(-50%, -50%) rotateY(${-12 + x * 18}deg) rotateX(${4 - y * 14}deg)`;
+        });
+        visual.addEventListener('mouseleave', () => {
+          phone.style.transform = 'translate(-50%, -50%) rotateY(-12deg) rotateX(4deg)';
+        });
+      }
+    })();
+    </script>
   </section>
 
   <section id="verify">
@@ -1361,49 +1780,73 @@
         fake listings and fraudulent sellers with a rigorous 4-layer verification process.</p>
     </div>
     <div class="verify-grid">
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">📜</div>
         <div class="verify-title">Title & Deed Verification</div>
-        <div class="verify-desc">Legal team checks ownership history, encumbrances, mutation records, and tax
-          clearances.</div>
+        <div class="verify-desc">Legal team checks ownership history, encumbrances, mutation records, and tax clearances.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">👤</div>
         <div class="verify-title">Owner & Agent ID Check</div>
-        <div class="verify-desc">NID verification, license validation, and background screening for every seller and
-          agent.</div>
+        <div class="verify-desc">NID verification, license validation, and background screening for every seller and agent.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">📷</div>
         <div class="verify-title">Physical Site Inspection</div>
-        <div class="verify-desc">Inspectors visit properties to confirm photos match reality and structural condition is
-          sound.</div>
+        <div class="verify-desc">Inspectors visit properties to confirm photos match reality and structural condition is sound.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">🔒</div>
         <div class="verify-title">Escrow-Protected Payments</div>
-        <div class="verify-desc">All booking payments held in regulated escrow — released only when deal terms are met.
-        </div>
+        <div class="verify-desc">All booking payments held in regulated escrow — released only when deal terms are met.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">⚖️</div>
         <div class="verify-title">Legal Review Included</div>
-        <div class="verify-desc">Every deal includes legal review of the deed or lease agreement by a licensed attorney.
-        </div>
+        <div class="verify-desc">Every deal includes legal review of the deed or lease agreement by a licensed attorney.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
-      <div class="verify-card reveal">
+      <div class="verify-card v-card">
         <div class="verify-icon">🛡️</div>
         <div class="verify-title">NestIQ Buyer Protection</div>
-        <div class="verify-desc">If a verified listing doesn't match what was promised, we refund your token —
-          guaranteed.</div>
+        <div class="verify-desc">If a verified listing doesn't match what was promised, we refund your token — guaranteed.</div>
         <div class="verify-status"><span class="verify-dot"></span> Active Check</div>
       </div>
     </div>
+
+    <script>
+    (function(){
+      const vCards = document.querySelectorAll('.v-card');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if(e.isIntersecting){
+            const idx = Array.from(vCards).indexOf(e.target);
+            setTimeout(()=>{ e.target.classList.add('vc-visible'); }, idx * 120);
+            observer.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      vCards.forEach(card => {
+        observer.observe(card);
+        card.addEventListener('mousemove', (e) => {
+          card.classList.add('tilting');
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5;
+          const y = (e.clientY - r.top) / r.height - 0.5;
+          card.style.transform = `translateY(-8px) scale(1.02) rotateY(${x * 12}deg) rotateX(${-y * 12}deg)`;
+        });
+        card.addEventListener('mouseleave', () => {
+          card.classList.remove('tilting');
+          card.style.transform = '';
+        });
+      });
+    })();
+    </script>
   </section>
 
   <div style="text-align:center;padding:0 60px 80px;background:var(--ivory)">
@@ -1414,6 +1857,7 @@
   </div>
 
   <section id="concierge">
+    <div id="concierge-spotlight"></div>
     <div class="section-tag reveal" style="justify-content:center">For Owners & Landlords</div>
     <h2 class="section-h2 reveal">List Your <em>Property</em><br>With Us</h2>
     <p class="concierge-lead reveal">Reach thousands of verified buyers and renters. We handle the verification,
@@ -1425,6 +1869,21 @@
       <div class="concierge-feat">Zero Hassle Viewings</div>
     </div>
     <button class="btn-white reveal" onclick="window.location='list.html'">List Your Property</button>
+    <script>
+    (function(){
+      const sec = document.getElementById('concierge');
+      const spot = document.getElementById('concierge-spotlight');
+      sec.addEventListener('mousemove', (e) => {
+        const r = sec.getBoundingClientRect();
+        const px = ((e.clientX - r.left) / r.width * 100).toFixed(2);
+        const py = ((e.clientY - r.top)  / r.height * 100).toFixed(2);
+        spot.style.background = `radial-gradient(circle 320px at ${px}% ${py}%, rgba(255,240,180,0.28) 0%, rgba(255,220,100,0.12) 40%, transparent 70%)`;
+      });
+      sec.addEventListener('mouseleave', () => {
+        spot.style.background = `radial-gradient(circle 320px at 50% 50%, rgba(255,240,180,0.18) 0%, rgba(255,220,100,0.07) 40%, transparent 70%)`;
+      });
+    })();
+    </script>
   </section>
 
   <section id="testimonials">
@@ -1432,40 +1891,142 @@
       <div class="section-tag" style="justify-content:center">Stories</div>
       <h2 class="section-h2">What Our <em>Clients</em> Say</h2>
     </div>
-    <div class="testimonials-grid">
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"NestIQ found our dream apartment in two days. AI matched us perfectly and our
-          concierge handled everything. Zero stress."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">👩</div>
-          <div>
-            <div class="testi-name">Nadia Rahman</div>
-            <div class="testi-role">Bought in Gulshan — 2025</div>
+    <div class="testimonials-tunnel">
+      <div class="testimonials-track">
+        <!-- Set 1 -->
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"NestIQ found our dream apartment in two days. AI matched us perfectly and our concierge handled everything. Zero stress."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👩</div>
+            <div>
+              <div class="testi-name">Nadia Rahman</div>
+              <div class="testi-role">Bought in Gulshan — 2025</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"Listed my property and had a verified buyer within a week. The title check gave both
-          parties confidence to close fast."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">👨</div>
-          <div>
-            <div class="testi-name">Karim Hossain</div>
-            <div class="testi-role">Sold in Dhanmondi — 2024</div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Listed my property and had a verified buyer within a week. The title check gave both parties confidence to close fast."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨</div>
+            <div>
+              <div class="testi-name">Karim Hossain</div>
+              <div class="testi-role">Sold in Dhanmondi — 2024</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="testi-card reveal">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"Moving from abroad, I was nervous renting remotely. My NestIQ concierge virtually
-          toured three places and handled everything."</div>
-        <div class="testi-author">
-          <div class="testi-avatar">👨‍💼</div>
-          <div>
-            <div class="testi-name">Rafiq Chowdhury</div>
-            <div class="testi-role">Rented in Banani — 2025</div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Moving from abroad, I was nervous renting remotely. My NestIQ concierge virtually toured three places and handled everything."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨‍💼</div>
+            <div>
+              <div class="testi-name">Rafiq Chowdhury</div>
+              <div class="testi-role">Rented in Banani — 2025</div>
+            </div>
+          </div>
+        </div>
+        <!-- Set 2 -->
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"NestIQ found our dream apartment in two days. AI matched us perfectly and our concierge handled everything. Zero stress."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👩</div>
+            <div>
+              <div class="testi-name">Nadia Rahman</div>
+              <div class="testi-role">Bought in Gulshan — 2025</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Listed my property and had a verified buyer within a week. The title check gave both parties confidence to close fast."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨</div>
+            <div>
+              <div class="testi-name">Karim Hossain</div>
+              <div class="testi-role">Sold in Dhanmondi — 2024</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Moving from abroad, I was nervous renting remotely. My NestIQ concierge virtually toured three places and handled everything."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨‍💼</div>
+            <div>
+              <div class="testi-name">Rafiq Chowdhury</div>
+              <div class="testi-role">Rented in Banani — 2025</div>
+            </div>
+          </div>
+        </div>
+        <!-- Set 3 -->
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"NestIQ found our dream apartment in two days. AI matched us perfectly and our concierge handled everything. Zero stress."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👩</div>
+            <div>
+              <div class="testi-name">Nadia Rahman</div>
+              <div class="testi-role">Bought in Gulshan — 2025</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Listed my property and had a verified buyer within a week. The title check gave both parties confidence to close fast."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨</div>
+            <div>
+              <div class="testi-name">Karim Hossain</div>
+              <div class="testi-role">Sold in Dhanmondi — 2024</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Moving from abroad, I was nervous renting remotely. My NestIQ concierge virtually toured three places and handled everything."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨‍💼</div>
+            <div>
+              <div class="testi-name">Rafiq Chowdhury</div>
+              <div class="testi-role">Rented in Banani — 2025</div>
+            </div>
+          </div>
+        </div>
+        <!-- Set 4 -->
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"NestIQ found our dream apartment in two days. AI matched us perfectly and our concierge handled everything. Zero stress."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👩</div>
+            <div>
+              <div class="testi-name">Nadia Rahman</div>
+              <div class="testi-role">Bought in Gulshan — 2025</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Listed my property and had a verified buyer within a week. The title check gave both parties confidence to close fast."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨</div>
+            <div>
+              <div class="testi-name">Karim Hossain</div>
+              <div class="testi-role">Sold in Dhanmondi — 2024</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-quote">"Moving from abroad, I was nervous renting remotely. My NestIQ concierge virtually toured three places and handled everything."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">👨‍💼</div>
+            <div>
+              <div class="testi-name">Rafiq Chowdhury</div>
+              <div class="testi-role">Rented in Banani — 2025</div>
+            </div>
           </div>
         </div>
       </div>
