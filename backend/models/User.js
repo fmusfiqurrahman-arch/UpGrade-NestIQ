@@ -20,7 +20,15 @@ const userSchema = new mongoose.Schema({
   
   // Password Reset
   resetPasswordToken: { type: String },
-  resetPasswordExpires: { type: Date }
+  resetPasswordExpires: { type: Date },
+
+  // AI Matching Preferences
+  preferences: {
+    intent: { type: String, enum: ['rent', 'buy', 'any'], default: 'any' },
+    location: { type: String, default: '' },
+    bedrooms: { type: Number, default: 0 },
+    maxPrice: { type: Number, default: 0 }
+  }
 }, { timestamps: true });
 
 // ── LAZY MIGRATION: Auto-heal old accounts ──

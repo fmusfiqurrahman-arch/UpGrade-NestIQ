@@ -226,7 +226,8 @@ const getProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        profilePicUrl: user.profilePicUrl
+        profilePicUrl: user.profilePicUrl,
+        preferences: user.preferences
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -257,7 +258,8 @@ router.put('/profile', protect, [
         $set: {
           firstName: req.body.firstName,
           lastName: req.body.lastName,
-          phone: req.body.phone
+          phone: req.body.phone,
+          ...(req.body.preferences && { preferences: req.body.preferences })
         }
       },
       { new: true, runValidators: true }
@@ -272,6 +274,7 @@ router.put('/profile', protect, [
         phone: updatedUser.phone,
         role: updatedUser.role,
         profilePicUrl: updatedUser.profilePicUrl,
+        preferences: updatedUser.preferences,
         token: generateToken(updatedUser._id)
       });
     } else {

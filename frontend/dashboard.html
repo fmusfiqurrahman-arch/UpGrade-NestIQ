@@ -1210,6 +1210,33 @@
                 Changes</button>
             </div>
 
+            <div class="profile-section-card" style="margin-top: 20px;">
+              <div class="profile-section-title">My Home Preferences (AI Match)</div>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Tell us what you're looking for to get personalized AI matches.</p>
+              
+              <div class="form-field">
+                <label>Intent</label>
+                <select id="prefIntent" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Sans', sans-serif;">
+                  <option value="any">Any (Rent or Buy)</option>
+                  <option value="rent">For Rent</option>
+                  <option value="buy">For Sale</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Preferred Location</label>
+                <input type="text" id="prefLocation" placeholder="e.g. Gulshan, Banani" />
+              </div>
+              <div class="form-field">
+                <label>Minimum Bedrooms</label>
+                <input type="number" id="prefBeds" placeholder="e.g. 2" />
+              </div>
+              <div class="form-field">
+                <label>Maximum Budget</label>
+                <input type="number" id="prefMaxPrice" placeholder="e.g. 50000" />
+              </div>
+              <button class="btn-primary" style="width:100%;margin-top:4px;" onclick="saveProfile()">Save Preferences</button>
+            </div>
+
             <!-- Right: Trust & NID -->
             <div class="profile-section-card">
               <div class="profile-section-title">Trust & Verification</div>
@@ -1596,6 +1623,14 @@
           document.getElementById('profileImage').src = data.profilePicUrl;
           document.getElementById('sidebarAvatar').innerHTML = `<img src="${data.profilePicUrl}" alt="Avatar"/>`;
         }
+        
+        if (data.preferences) {
+          document.getElementById('prefIntent').value = data.preferences.intent || 'any';
+          document.getElementById('prefLocation').value = data.preferences.location || '';
+          document.getElementById('prefBeds').value = data.preferences.bedrooms || '';
+          document.getElementById('prefMaxPrice').value = data.preferences.maxPrice || '';
+        }
+        
         const box = document.getElementById('verifyBox');
         const dot = document.getElementById('verifyDot');
         const txt = document.getElementById('verifyText');
@@ -1617,7 +1652,13 @@
       const body = {
         firstName: document.getElementById('profFirst').value,
         lastName: document.getElementById('profLast').value,
-        phone: document.getElementById('profPhone').value
+        phone: document.getElementById('profPhone').value,
+        preferences: {
+          intent: document.getElementById('prefIntent').value,
+          location: document.getElementById('prefLocation').value,
+          bedrooms: parseInt(document.getElementById('prefBeds').value) || 0,
+          maxPrice: parseInt(document.getElementById('prefMaxPrice').value) || 0
+        }
       };
       try {
         const res = await fetch(window.API_BASE + '/auth/profile', {

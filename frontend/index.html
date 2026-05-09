@@ -483,11 +483,22 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 2. FETCH REAL DATA
   try {
+    let url = (window.API_BASE || '/api') + '/listings';
+    let options = {};
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : null;
+    
+    if (userObj && userObj.token) {
+      url = (window.API_BASE || '/api') + '/listings/matches';
+      options = { headers: { Authorization: `Bearer ${userObj.token}` } };
+    }
+    
     // FIX: Using relative path bypasses the CORS security crash!
-    const res = await fetch('/api/listings'); 
+    const res = await fetch(url, options); 
     
     if (res.ok) {
-      const dbListings = await res.json();
+      let dbListings = await res.json();
+      if(dbListings.listings) dbListings = dbListings.listings;
       if(typeof PROPERTIES !== 'undefined') {
         PROPERTIES.length = 0; // Wipe fake data
       
@@ -516,7 +527,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             intent: dbItem.propertyType,
             img: dbItem.image || (dbItem.images && dbItem.images.length > 0 ? dbItem.images[0] : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'),
             verified: true,
-            match: dbItem._id ? (String(dbItem._id).split('').reduce((a,b)=>a+b.charCodeAt(0),0)%15)+85 : Math.floor(Math.random() * 15) + 85,
+            match: dbItem.matchScore || (dbItem._id ? (String(dbItem._id).split('').reduce((a,b)=>a+b.charCodeAt(0),0)%15)+85 : Math.floor(Math.random() * 15) + 85),
             isNew: true,
             badge: dbItem.propertyType === 'rent' ? 'For Rent' : 'For Sale',
             badgeClass: dbItem.propertyType === 'rent' ? 'badge-rent' : 'badge-buy',

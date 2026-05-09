@@ -89,6 +89,69 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
+// 2.5 GET AI MATCHES
+router.get('/matches', protect, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id);
+    const prefs = user.preferences || {};
+    
+    const listings = await Listing.find().lean();
+    
+    const scoredListings = listings.map(p => {
+      let score = 50; // Base score
+      
+      // Intent Match
+      const pIntent = p.propertyType === 'sale' ? 'buy' : 'rent';
+      if (prefs.intent && prefs.intent !== 'any') {
+        if (pIntent === prefs.intent) score += 20;
+      } else {
+        score += 10;
+      }
+      
+      // Location Match
+      if (prefs.location && p.location) {
+        if (p.location.toLowerCase().includes(prefs.location.toLowerCase())) {
+          score += 15;
+        }
+      }
+      
+      // Budget Match
+      if (prefs.maxPrice && prefs.maxPrice > 0 && p.price) {
+        if (p.price <= prefs.maxPrice) {
+          score += 10;
+        } else if (p.price <= prefs.maxPrice * 1.2) {
+          score += 5;
+        }
+      }
+      
+      // Bedrooms Match
+      if (prefs.bedrooms && prefs.bedrooms > 0 && p.bedrooms) {
+        if (p.bedrooms >= prefs.bedrooms) {
+          score += 5;
+        }
+      }
+      
+      // Add deterministic jitter (0-4) based on ID for organic variation
+      let seed = 0;
+      const idStr = String(p._id);
+      for(let i=0; i<idStr.length; i++) seed += idStr.charCodeAt(i);
+      score += (seed % 5);
+      score = Math.min(score, 99);
+      
+      return { ...p, matchScore: score };
+    });
+    
+    // Sort by descending match score
+    scoredListings.sort((a, b) => b.matchScore - a.matchScore);
+    
+    // Return top matches
+    res.json(scoredListings.slice(0, 12));
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to generate matches' });
+  }
+});
+
 // 3. GET A SINGLE LISTING
 router.get('/:id', async (req, res) => {
   try {

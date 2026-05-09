@@ -384,6 +384,19 @@ function applyFiltersLocally() {
     return match;
   });
 
+  // Dynamic Match Score Calculation
+  filteredProperties.forEach(p => {
+    let score = 60;
+    if (intent && p.intent === intent) score += 15;
+    if (loc && (p.area.toLowerCase().includes(loc) || p.city.toLowerCase().includes(loc))) score += 15;
+    if (beds && p.beds >= parseInt(beds)) score += 10;
+    let seed = 0;
+    const idStr = String(p.id);
+    for(let i=0; i<idStr.length; i++) seed += idStr.charCodeAt(i);
+    score += (seed % 9);
+    p.match = Math.min(score, 99);
+  });
+
   // Sorting Engine
   if (sort === 'price-asc') filteredProperties.sort((a,b) => a.price - b.price);
   if (sort === 'price-desc') filteredProperties.sort((a,b) => b.price - a.price);
