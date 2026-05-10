@@ -12,6 +12,7 @@
 
 <style>
 /* PAGE HERO */
+body { position: relative; }
 .about-hero { 
   min-height:70vh; 
   background:var(--bg); 
@@ -46,6 +47,8 @@
 
 .about-tag { font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
 .about-tag::before { content:''; display:block; width:28px; height:1px; background:var(--gold); }
+/* Remove the trailing dash — the golden SVG line starts here instead */
+.about-tag::after  { display:none; }
 .about-hero h1 em { font-style:italic; color:var(--gold); }
 
 /* ANIMATED FLOATING COMPOSITION */
@@ -186,61 +189,51 @@ html.dark .office-card { background: var(--surface); }
 html.dark .value-card { background: var(--bg); }
 html.dark .mission-text p { color: var(--charcoal); }
 
-/* ── SCROLL PROGRESS TIMELINE LINE ── */
-#story-timeline {
-  position: fixed;
-  left: 28px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
+/* ── GOLDEN THREAD — luxury scroll line ── */
+#golden-thread-wrap {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
   pointer-events: none;
-  z-index: 9;
+  z-index: 3;
 }
-
-#story-timeline-track {
-  position: absolute;
-  top: 0;
-  left: 0;
+#golden-thread-svg {
+  display: block;
   width: 100%;
-  background: rgba(184, 155, 106, 0.12);
-  bottom: 0;
-  border-radius: 2px;
+  overflow: visible;
 }
 
-#story-timeline-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background: linear-gradient(to bottom, var(--gold), rgba(184,155,106,0.3));
-  border-radius: 2px;
-  transition: height 0.1s linear;
-  box-shadow: 0 0 8px rgba(184,155,106,0.5);
+/* The main line — thin, refined */
+#gt-path {
+  fill: none;
+  stroke: url(#gt-line-grad);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-#story-timeline-dot {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 12px rgba(184,155,106,0.8);
-  transition: top 0.1s linear, opacity 0.3s;
+/* Leading dot — the jewel */
+#gt-dot {
   opacity: 0;
+  transition: opacity 0.6s ease;
 }
+#gt-dot.on { opacity: 1; }
 
-/* Only show line when scrolling */
-#story-timeline.is-moving #story-timeline-fill,
-#story-timeline.is-moving #story-timeline-dot {
-  opacity: 1;
-}
-#story-timeline-fill {
+/* Trail glow behind the dot */
+#gt-trail {
+  fill: none;
+  stroke: url(#gt-trail-grad);
+  stroke-width: 6;
+  stroke-linecap: round;
   opacity: 0;
-  transition: height 0.1s linear, opacity 0.4s;
+  transition: opacity 0.4s ease;
 }
+#gt-trail.on { opacity: 1; }
+
+/* Remove the trailing dash on about-tag — thread starts there */
+.about-tag::after { display: none; }
+
+@media (max-width: 900px) { #golden-thread-wrap { display: none; } }
 
 /* Values section: cards start hidden, animate in directionally */
 .value-card {
@@ -274,7 +267,6 @@ html.dark .mission-text p { color: var(--charcoal); }
   .team-grid { grid-template-columns:1fr 1fr; }
   .values-grid { grid-template-columns:1fr; }
   .offices-grid { grid-template-columns:1fr; }
-  #story-timeline { left: 10px; }
 }
 @media(max-width:600px){
   .team-grid { grid-template-columns:1fr; }
@@ -287,12 +279,8 @@ html.dark .mission-text p { color: var(--charcoal); }
   <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
   <div class="nav-links">
     <a href="listings.html">Browse</a>
-    <a href="index.html#how">How It Works</a>
     <a href="about.html">About</a>
-    
-    <a href="index.html#testimonials" id="navGuestReviews">Reviews</a>
     <a href="list.html">List Property</a>
-    <a href="index.html#recently-viewed" id="navUserRecent" style="display:none;">Recently Viewed</a>
     
     <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
     
@@ -311,11 +299,71 @@ html.dark .mission-text p { color: var(--charcoal); }
   <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
 </nav>
 
-<!-- Scroll Timeline Line -->
-<div id="story-timeline" aria-hidden="true">
-  <div id="story-timeline-track"></div>
-  <div id="story-timeline-fill"></div>
-  <div id="story-timeline-dot"></div>
+<!-- Golden Thread — luxury scroll line -->
+<div id="golden-thread-wrap" aria-hidden="true">
+  <svg id="golden-thread-svg" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Line gradient: shifts from warm champagne to deep gold along its length -->
+      <linearGradient id="gt-line-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e8d5a3" stop-opacity="0.6"/>
+        <stop offset="30%"  stop-color="#c9aa7c" stop-opacity="0.9"/>
+        <stop offset="70%"  stop-color="#9a7e52" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0.7"/>
+      </linearGradient>
+
+      <!-- Trail glow behind the leading dot -->
+      <linearGradient id="gt-trail-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e8d5a3" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0.25"/>
+      </linearGradient>
+
+      <!-- Soft bloom filter for the dot -->
+      <filter id="gt-bloom" x="-200%" y="-200%" width="500%" height="500%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Subtle line glow -->
+      <filter id="gt-line-glow" x="-100%" y="-10%" width="300%" height="120%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- End fade mask -->
+      <linearGradient id="gt-fade-grad" x1="0" y1="0" x2="0" y2="1" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#c9aa7c" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <!-- Trail behind dot (short glowing segment) -->
+    <path id="gt-trail" class="" filter="url(#gt-line-glow)"/>
+
+    <!-- Main thread line -->
+    <path id="gt-path" filter="url(#gt-line-glow)"/>
+
+    <!-- Jewel dot at the tip -->
+    <g id="gt-dot" class="">
+      <!-- Outer soft halo -->
+      <circle id="gt-halo" r="10" fill="#c9aa7c" opacity="0.08" filter="url(#gt-bloom)"/>
+      <!-- Mid ring -->
+      <circle id="gt-ring" r="4" fill="none" stroke="#e8d5a3" stroke-width="0.8" opacity="0.6"/>
+      <!-- Core jewel -->
+      <circle id="gt-core" r="2.2" fill="#f0e6cc"/>
+    </g>
+
+    <!-- Golden bloom that stays at the end -->
+    <ellipse id="gt-end-bloom" rx="90" ry="28"
+      fill="url(#gt-fade-grad)" opacity="0"
+      filter="url(#gt-bloom)"/>
+  </svg>
 </div>
 
 <div class="about-hero">
@@ -520,55 +568,225 @@ function submitContact(){
   form.querySelectorAll('input, textarea').forEach(el => el.value = '');
 }
 
-// ═══════════════════════════════════════════════════════
-// SCROLL-DRIVEN GOLDEN TIMELINE LINE
-// ═══════════════════════════════════════════════════════
-(function(){
-  const timeline = document.getElementById('story-timeline');
-  const fill     = document.getElementById('story-timeline-fill');
-  const dot      = document.getElementById('story-timeline-dot');
-  if (!timeline || !fill || !dot) return;
+// ═══════════════════════════════════════════════════════════════
+// GOLDEN THREAD — luxury scroll-driven line for NestIQ about page
+// Design: thin champagne-gold thread with jewel dot tip,
+//         soft bloom at end, Catmull-Rom smooth curves,
+//         travels through page margins in an elegant S-path
+// ═══════════════════════════════════════════════════════════════
+(function () {
 
-  let scrollTimer = null;
-  let lastY = window.scrollY;
+  // Elements
+  const wrap     = document.getElementById('golden-thread-wrap');
+  const svg      = document.getElementById('golden-thread-svg');
+  const pathEl   = document.getElementById('gt-path');
+  const trailEl  = document.getElementById('gt-trail');
+  const dotG     = document.getElementById('gt-dot');
+  const haloEl   = document.getElementById('gt-halo');
+  const ringEl   = document.getElementById('gt-ring');
+  const coreEl   = document.getElementById('gt-core');
+  const bloomEl  = document.getElementById('gt-end-bloom');
+  const lineGrad = document.getElementById('gt-line-grad');
 
-  const heroEl   = document.querySelector('.about-tag');   // starts at "Our Story"
-  const footerEl = document.querySelector('footer');
+  if (!wrap || !svg || !pathEl) return;
 
-  function getStart() {
-    if (!heroEl) return 0;
-    const r = heroEl.getBoundingClientRect();
-    return window.scrollY + r.top;
+  let totalLen  = 0;
+  let endY      = 1;
+  let fadeStartY= 0;
+  let allPts    = [];
+
+  // Pulse animation on the dot — breathes like a heartbeat
+  let pulseDir = 1, pulseVal = 1;
+  function pulseTick() {
+    pulseVal += pulseDir * 0.018;
+    if (pulseVal > 1.45) pulseDir = -1;
+    if (pulseVal < 0.75) pulseDir =  1;
+    if (haloEl) haloEl.setAttribute('r', (10 * pulseVal).toFixed(2));
+    if (ringEl) ringEl.setAttribute('r', (4  * (0.85 + pulseVal * 0.15)).toFixed(2));
+    requestAnimationFrame(pulseTick);
   }
-  function getEnd() {
-    if (!footerEl) return document.body.scrollHeight;
-    const r = footerEl.getBoundingClientRect();
-    return window.scrollY + r.bottom;
+  pulseTick();
+
+  function f(n) { return (+n).toFixed(2); }
+
+  function getY(sel, frac) {
+    const el = document.querySelector(sel);
+    if (!el) return 0;
+    return el.offsetTop + el.offsetHeight * frac;
   }
 
-  function update() {
-    const scrollY = window.scrollY;
-    const start   = getStart();
-    const end     = getEnd();
-    const range   = Math.max(1, end - start);
-    const pct     = Math.min(100, Math.max(0, ((scrollY - start) / range) * 100));
+  function build() {
+    const W = window.innerWidth;
+    const H = document.documentElement.scrollHeight;
 
-    fill.style.height = pct + '%';
-    dot.style.top     = pct + '%';
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width',  W);
+    svg.setAttribute('height', H);
+    wrap.style.height = H + 'px';
 
-    // Show only while moving
-    const moving = scrollY !== lastY;
-    lastY = scrollY;
-    if (moving) {
-      timeline.classList.add('is-moving');
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => timeline.classList.remove('is-moving'), 800);
+    // Update gradient coordinates to span full page height
+    if (lineGrad) {
+      lineGrad.setAttribute('y2', H);
+    }
+
+    // ── START POINT ───────────────────────────────────
+    // Exactly at the right end of "OUR STORY" tag text
+    const tagEl = document.querySelector('.about-tag');
+    let sx = W * 0.24, sy = 220;
+    if (tagEl) {
+      sx = tagEl.offsetLeft + tagEl.offsetWidth + 8;
+      sy = tagEl.offsetTop  + tagEl.offsetHeight * 0.5;
+    }
+
+    // ── PATH DESIGN ───────────────────────────────────
+    // Philosophy: the thread behaves like a golden ribbon draped
+    // across the page — it hugs the right margin for long stretches,
+    // crosses the page in wide elegant arcs at section transitions,
+    // and occasionally dips toward center to add visual rhythm.
+    // It NEVER enters the text content columns.
+
+    allPts = [
+      // HERO: start at tag → gentle rightward arc → right margin
+      { x: sx,         y: sy },
+      { x: W * 0.62,   y: getY('.about-hero', 0.06) },  // arc right, staying above text
+      { x: W * 0.88,   y: getY('.about-hero', 0.28) },  // land softly on right margin
+      { x: W * 0.88,   y: getY('.about-hero', 0.78) },  // glide down right margin
+
+      // hero → mission transition: wide arc left
+      { x: W * 0.88,   y: getY('.mission',    0.04) },
+      { x: W * 0.70,   y: getY('.mission',    0.22) },  // arc inward — elegant dip
+      { x: W * 0.88,   y: getY('.mission',    0.48) },  // back to right margin
+      { x: W * 0.88,   y: getY('.mission',    0.72) },
+      // sweep left at mission bottom — like a ribbon reversing
+      { x: W * 0.50,   y: getY('.mission',    0.88) },
+      { x: W * 0.10,   y: getY('.mission',    0.97) },
+
+      // VALUES: enter left margin → sweeping arc across top → right margin → cross at card gap → exit left
+      { x: W * 0.10,   y: getY('.values',     0.05) },
+      { x: W * 0.50,   y: getY('.values',     0.09) },  // wide sweep right
+      { x: W * 0.88,   y: getY('.values',     0.18) },
+      { x: W * 0.88,   y: getY('.values',     0.44) },  // glide down
+      // elegant crossing through the gap between value card rows
+      { x: W * 0.50,   y: getY('.values',     0.52) },
+      { x: W * 0.10,   y: getY('.values',     0.60) },
+      { x: W * 0.10,   y: getY('.values',     0.94) },  // glide down left
+
+      // TEAM: left → wide arc right → glide down → wide arc left
+      { x: W * 0.10,   y: getY('.team',       0.05) },
+      { x: W * 0.50,   y: getY('.team',       0.14) },
+      { x: W * 0.88,   y: getY('.team',       0.26) },
+      { x: W * 0.88,   y: getY('.team',       0.62) },  // long right margin glide
+      { x: W * 0.50,   y: getY('.team',       0.84) },  // sweep back left
+      { x: W * 0.10,   y: getY('.team',       0.95) },
+
+      // DIFFERENT (dark): enter left → sweep right across heading → right → graceful cross left
+      { x: W * 0.10,   y: getY('.different',  0.04) },
+      { x: W * 0.50,   y: getY('.different',  0.11) },
+      { x: W * 0.88,   y: getY('.different',  0.20) },
+      { x: W * 0.88,   y: getY('.different',  0.46) },
+      { x: W * 0.50,   y: getY('.different',  0.55) },  // graceful cross
+      { x: W * 0.10,   y: getY('.different',  0.65) },
+      { x: W * 0.10,   y: getY('.different',  0.93) },
+
+      // CONTACT: enter left → arc to center (jewel visible) → cross right → glide down → end
+      { x: W * 0.10,   y: getY('#contact',    0.07) },
+      { x: W * 0.50,   y: getY('#contact',    0.26) },  // arc to center — dot beautifully visible
+      { x: W * 0.88,   y: getY('#contact',    0.48) },
+      { x: W * 0.88,   y: getY('#contact',    0.76) },
+      { x: W * 0.58,   y: getY('#contact',    0.95) },  // final resting point — golden bloom here
+    ];
+
+    // ── CATMULL-ROM → CUBIC BEZIER ────────────────────
+    // tension 0.38: ultra-smooth, no kinks anywhere
+    const T = 0.38;
+    let d = `M ${f(allPts[0].x)} ${f(allPts[0].y)}`;
+    for (let i = 1; i < allPts.length; i++) {
+      const p0 = allPts[Math.max(0, i - 2)];
+      const p1 = allPts[i - 1];
+      const p2 = allPts[i];
+      const p3 = allPts[Math.min(allPts.length - 1, i + 1)];
+      const cp1x = p1.x + (p2.x - p0.x) * T / 2;
+      const cp1y = p1.y + (p2.y - p0.y) * T / 2;
+      const cp2x = p2.x - (p3.x - p1.x) * T / 2;
+      const cp2y = p2.y - (p3.y - p1.y) * T / 2;
+      d += ` C ${f(cp1x)} ${f(cp1y)}, ${f(cp2x)} ${f(cp2y)}, ${f(p2.x)} ${f(p2.y)}`;
+    }
+    pathEl.setAttribute('d', d);
+    if (trailEl) trailEl.setAttribute('d', d);
+
+    totalLen = pathEl.getTotalLength();
+    pathEl.style.strokeDasharray  = totalLen;
+    pathEl.style.strokeDashoffset = totalLen;
+
+    // scroll range
+    const heroEl    = document.querySelector('.about-hero');
+    const contactEl = document.querySelector('#contact');
+    endY       = contactEl ? contactEl.offsetTop + contactEl.offsetHeight : H;
+    fadeStartY = endY - 180;
+
+    // Place end bloom
+    if (bloomEl) {
+      const ep = pathEl.getPointAtLength(totalLen);
+      bloomEl.setAttribute('cx', f(ep.x));
+      bloomEl.setAttribute('cy', f(ep.y));
+    }
+
+    updateScroll();
+  }
+
+  function updateScroll() {
+    if (!totalLen) return;
+
+    const heroEl = document.querySelector('.about-hero');
+    const startY = heroEl ? heroEl.offsetTop : 0;
+
+    // Progress: 0 at hero top, 1 at end of contact
+    const scrolled = window.scrollY + window.innerHeight * 0.52;
+    const prog = Math.min(1, Math.max(0, (scrolled - startY) / Math.max(1, endY - startY)));
+
+    // Draw the line up to prog
+    pathEl.style.strokeDashoffset = f(totalLen * (1 - prog));
+
+    // Trail: a short glowing segment just behind the dot tip
+    if (trailEl) {
+      const trailLen = Math.min(totalLen * prog, 80);
+      const drawnLen = totalLen * prog;
+      trailEl.style.strokeDasharray  = `${f(trailLen)} ${f(totalLen)}`;
+      trailEl.style.strokeDashoffset = f(-(drawnLen - trailLen));
+      trailEl.classList.toggle('on', prog > 0.01 && prog < 0.99);
+    }
+
+    // Jewel dot at exact tip position
+    const drawn = totalLen * prog;
+    if (drawn > 8 && drawn < totalLen - 8) {
+      const pt = pathEl.getPointAtLength(drawn);
+      [haloEl, ringEl, coreEl].forEach(el => {
+        if (el) { el.setAttribute('cx', f(pt.x)); el.setAttribute('cy', f(pt.y)); }
+      });
+      dotG.classList.add('on');
+    } else {
+      dotG.classList.remove('on');
+    }
+
+    // End: graceful fade + bloom appears
+    const currentBottom = window.scrollY + window.innerHeight;
+    if (currentBottom > fadeStartY) {
+      const fp = Math.min(1, (currentBottom - fadeStartY) / 180);
+      pathEl.style.opacity = f(1 - fp * 0.94);
+      if (bloomEl) bloomEl.setAttribute('opacity', f(fp * 0.85));
+    } else {
+      pathEl.style.opacity = '1';
+      if (bloomEl) bloomEl.setAttribute('opacity', '0');
     }
   }
 
-  window.addEventListener('scroll', update, { passive: true });
-  update();
-})();
+  let rt;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 80); });
+  window.addEventListener('scroll', updateScroll, { passive: true });
+  if (document.readyState === 'complete') build();
+  else window.addEventListener('load', build);
+
+}());
 
 // ═══════════════════════════════════════════════════════
 // VALUES CARDS — re-trigger on every scroll, left/center/right entrance

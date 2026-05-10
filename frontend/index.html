@@ -173,6 +173,23 @@
       font-weight: 300;
     }
 
+    /* ── HERO GALLERY ── */
+    #hero-gallery { position: absolute; inset: 0; overflow: hidden; }
+    .hero-gi {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+      opacity: 0;
+      transition: opacity 1.4s ease;
+    }
+    .hero-gi.hg-active {
+      opacity: 1;
+      animation: heroKenBurns 8s ease-in-out forwards;
+    }
+    @keyframes heroKenBurns {
+      0%   { transform: scale(1.0) translateX(0); }
+      100% { transform: scale(1.09) translateX(-1%); }
+    }
+
     .hero-overlay-card {
       position: absolute;
       bottom: 48px;
@@ -1474,12 +1491,8 @@
     <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
     <div class="nav-links">
       <a href="listings.html">Browse</a>
-      <a href="index.html#how">How It Works</a>
       <a href="about.html">About</a>
-
-      <a href="index.html#testimonials" id="navGuestReviews">Reviews</a>
       <a href="list.html">List Property</a>
-      <a href="index.html#recently-viewed" id="navUserRecent" style="display:none;">Recently Viewed</a>
 
       <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
 
@@ -1507,7 +1520,7 @@
         you don't have to stress.</p>
       <div class="hero-btns">
         <button class="btn-primary" onclick="handleStartMatching()">Start Matching</button>
-        <button class="btn-outline" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It
+        <button class="btn-outline" onclick="document.getElementById('how-wrapper').scrollIntoView({behavior:'smooth'})">How It
           Works</button>
       </div>
       <div class="hero-stats" id="heroStatsContainer">
@@ -1538,8 +1551,10 @@
       </script>
     </div>
     <div class="hero-right">
-      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
-        alt="Luxury home" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;" />
+      <div id="hero-gallery">
+        <img id="hero-gi-a" class="hero-gi hg-active" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Luxury home" />
+        <img id="hero-gi-b" class="hero-gi" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80" alt="Modern home" />
+      </div>
       <div class="hero-overlay-card">
         <div class="hero-overlay-tag">Featured Property</div>
         <div class="hero-overlay-price">৳ 1.8 Cr</div>
@@ -2197,6 +2212,37 @@
 
   <script src="data.js"></script>
   <script src="shared.js"></script>
+  <script>
+  // ── HERO IMAGE GALLERY — crossfade + Ken Burns ──
+  (function () {
+    const IMGS = [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=1200&q=80',
+    ];
+    let idx = 0;
+    const elA = document.getElementById('hero-gi-a');
+    const elB = document.getElementById('hero-gi-b');
+    if (!elA || !elB) return;
+    let active = elA, next = elB;
+
+    function swap() {
+      idx = (idx + 1) % IMGS.length;
+      const preIdx = (idx + 1) % IMGS.length;
+      next.src = IMGS[idx];
+      // restart Ken Burns on next before making it visible
+      next.classList.remove('hg-active');
+      void next.offsetWidth;
+      next.classList.add('hg-active');
+      active.classList.remove('hg-active');
+      // preload the one after
+      active.src = IMGS[preIdx];
+      [active, next] = [next, active];
+    }
+    setInterval(swap, 5000);
+  }());
+  </script>
   <script>
     // ── START MATCHING: smart routing ──
     function handleStartMatching() {
