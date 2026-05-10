@@ -32,10 +32,11 @@
 
 html.dark #search-section { background: var(--bg); border-bottom-color: var(--border); }
 html.dark #search-section .search-bar { background: var(--surface); border-color: var(--border); }
-html.dark .search-field { background: transparent; }
-html.dark .search-field select, html.dark .search-field input { color: var(--text); background: transparent; }
+html.dark .search-field { background: transparent; border-right-color: var(--border); }
+html.dark .search-field select { color: var(--text); background: var(--surface); color-scheme: dark; }
+html.dark .search-field input { color: var(--text); background: transparent; }
+html.dark .search-field input::placeholder { color: rgba(240,236,228,0.52); }
 html.dark .search-field label { color: var(--gold); }
-html.dark .search-field { border-right-color: var(--border); }
 
 @media(max-width:1100px){ .search-bar{grid-template-columns:1fr 1fr 1fr;} .search-btn{grid-column:span 3;margin:4px;} }
 @media(max-width:600px){ #search-section{padding:20px 16px;} .search-bar{grid-template-columns:1fr;} .search-field{border-right:none;border-bottom:1px solid var(--mist);} .search-btn{margin:4px;} }
@@ -92,7 +93,8 @@ html.dark .listings-wrapper { background: var(--bg); }
 html.dark .list-card { background: var(--surface); }
 html.dark .pagination { background: var(--bg); }
 html.dark .page-btn { background: var(--surface); color: var(--text); border-color: var(--border); }
-html.dark .page-btn.active { background: var(--ink); color: var(--ivory); }
+html.dark .page-btn.active { background: var(--gold); color: var(--ivory); border-color: var(--gold); }
+html.dark .search-btn:hover { background: var(--charcoal); }
 html.dark .page-hero h1 { color: #f7f4ef; }
 html.dark .view-btn.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
 

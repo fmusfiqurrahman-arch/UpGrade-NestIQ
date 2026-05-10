@@ -13,16 +13,25 @@
 <style>
 /* PAGE HERO */
 body { position: relative; }
-.about-hero { 
-  min-height:70vh; 
-  background:var(--bg); 
-  display:grid; 
-  grid-template-columns: 1.1fr 0.9fr; 
-  align-items:center; 
-  gap:40px; 
-  padding:140px 60px 80px; 
-  position:relative; 
-  overflow:hidden; 
+.about-hero {
+  min-height:70vh;
+  background:var(--bg);
+  display:grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items:center;
+  gap:40px;
+  padding:140px 60px 80px;
+  position:relative;
+  overflow:hidden;
+}
+/* Subtle ambient glow — same premium treatment as homepage hero */
+.about-hero::before {
+  content:'';
+  position:absolute;
+  top:-100px; left:-120px;
+  width:600px; height:600px;
+  background:radial-gradient(ellipse at top left, rgba(184,155,106,0.08) 0%, transparent 65%);
+  pointer-events:none;
 }
 
 .about-hero h1 { 
@@ -85,155 +94,209 @@ body { position: relative; }
 /* MISSION */
 .mission { padding:100px 60px; background:var(--ivory); }
 .mission-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
-.mission-numbers { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px; }
-.num-val { font-family:'Cormorant Garamond',serif; font-size:48px; font-weight:300; color:var(--ink); line-height:1; }
+.mission-numbers {
+  display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:40px;
+  border:1px solid var(--border); border-radius:4px; overflow:hidden;
+}
+.mission-num {
+  padding:24px 20px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  transition: background 0.3s;
+}
+.mission-num:nth-child(2n) { border-right:none; }
+.mission-num:nth-child(3), .mission-num:nth-child(4) { border-bottom:none; }
+.mission-num:hover { background: rgba(184,155,106,0.04); }
+.num-val { font-family:'Cormorant Garamond',serif; font-size:44px; font-weight:300; color:var(--text); line-height:1; }
 .num-val span { color:var(--gold); font-style:italic; }
-.num-label { font-size:12px; color:var(--warm-gray); letter-spacing:0.1em; margin-top:6px; }
-.mission-text p { font-size:16px; line-height:1.9; color:var(--charcoal); margin-bottom:20px; }
+.num-label { font-size:11px; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:6px; }
+.mission-text p { font-size:16px; line-height:1.9; color:var(--text-muted); margin-bottom:20px; }
 .mission-text p:last-child { margin:0; }
 
 /* VALUES */
 .values { background:var(--surface); padding:100px 60px; }
-.values-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:52px; }
-.value-card { 
-  padding:36px 28px; 
-  border:1px solid var(--mist); 
-  border-radius:8px; 
-  transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+.values-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:52px; }
+.value-card {
+  padding:36px 28px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  transition: background 0.45s ease, border-color 0.45s ease,
+              box-shadow 0.45s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1);
   background: var(--surface);
+  position:relative;
+  overflow:hidden;
 }
-.value-card:hover { 
-  box-shadow: 0 20px 40px rgba(184,155,106,0.12); 
-  border-color: var(--gold);
-  transform: translateY(-8px); 
+.value-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0;
+  height:2px; width:100%;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
 }
-.value-icon { font-size:32px; margin-bottom:16px; }
-.value-title { font-size:17px; font-weight:500; margin-bottom:10px; }
-.value-desc { font-size:14px; color:var(--warm-gray); line-height:1.7; }
+.value-card:hover::before { transform: scaleX(1); }
+.value-card:hover {
+  box-shadow: 0 16px 48px rgba(184,155,106,0.14);
+  border-color: rgba(184,155,106,0.35);
+  transform: translateY(-6px);
+  background: rgba(184,155,106,0.025);
+}
+.value-icon { font-size:30px; margin-bottom:20px; }
+.value-title { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:300; margin-bottom:10px; color:var(--text); }
+.value-desc { font-size:13px; color:var(--text-muted); line-height:1.75; }
 
 /* TEAM */
 .team { background:var(--ivory); padding:100px 60px; }
-.team-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:28px; margin-top:52px; }
-.team-card { text-align:center; }
+.team-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-top:52px; }
+.team-card {
+  text-align:center;
+  padding:32px 20px 24px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:var(--surface);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1);
+}
+.team-card:hover {
+  border-color: rgba(184,155,106,0.4);
+  box-shadow: 0 12px 36px rgba(184,155,106,0.1);
+  transform: translateY(-4px);
+}
 
-.team-avatar { 
-  width:96px; height:96px; border-radius:50%; 
-  background:var(--mist); display:flex; align-items:center; justify-content:center; 
-  font-size:40px; margin:0 auto 16px; 
-  border:3px solid var(--surface); 
-  box-shadow:0 8px 24px rgba(0,0,0,0.08); 
-  transition: transform 0.4s ease, border-color 0.4s ease;
+.team-avatar {
+  width:80px; height:80px; border-radius:50%;
+  background:var(--mist); display:flex; align-items:center; justify-content:center;
+  font-size:36px; margin:0 auto 16px;
+  border:2px solid var(--border);
+  transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .team-card:hover .team-avatar {
-  transform: scale(1.08) rotate(5deg);
+  transform: scale(1.06) rotate(4deg);
   border-color: var(--gold);
+  box-shadow: 0 0 0 4px rgba(184,155,106,0.12);
 }
 
-.team-name { font-size:16px; font-weight:500; margin-bottom:4px; }
-.team-role { font-size:12px; color:var(--warm-gray); letter-spacing:0.08em; }
-.team-socials { display:flex; justify-content:center; gap:10px; margin-top:12px; }
-.team-social { width:30px; height:30px; border-radius:50%; border:1px solid var(--mist); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--warm-gray); text-decoration:none; transition:all 0.2s; }
-.team-social:hover { border-color:var(--gold); color:var(--gold); }
+.team-name { font-family:'Cormorant Garamond',serif; font-size:17px; font-weight:300; margin-bottom:4px; color:var(--text); }
+.team-role { font-size:11px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; }
+.team-socials { display:flex; justify-content:center; gap:8px; margin-top:14px; }
+.team-social { width:28px; height:28px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--text-muted); text-decoration:none; transition:all 0.25s; }
+.team-social:hover { border-color:var(--gold); color:var(--gold); background:rgba(184,155,106,0.06); }
 
 /* HOW WE'RE DIFFERENT */
 .different { background:var(--ink); padding:100px 60px; color:#f0ece4; }
 .different .section-tag { color:var(--gold-light); }
 .different .section-tag::after { background:var(--gold-light); }
 .different .section-h2 { color:#f0ece4; }
-.diff-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:52px; }
-.diff-item { display:flex; gap:20px; padding:28px; border:1px solid rgba(184,155,106,0.15); border-radius:4px; transition:border-color 0.3s; }
-.diff-item:hover { border-color:var(--gold); }
-.diff-icon { font-size:28px; flex-shrink:0; }
-.diff-title { font-size:16px; font-weight:500; color:#f0ece4; margin-bottom:8px; }
-.diff-desc { font-size:13px; color:rgba(247,244,239,0.5); line-height:1.7; }
+.diff-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:52px; }
+.diff-item {
+  display:flex; gap:20px; padding:28px;
+  border:1px solid rgba(184,155,106,0.18);
+  border-radius:4px;
+  transition: border-color 0.4s ease, background 0.4s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1);
+}
+.diff-item:hover {
+  border-color: rgba(184,155,106,0.55);
+  background: rgba(184,155,106,0.05);
+  transform: translateY(-3px);
+}
+.diff-icon { font-size:26px; flex-shrink:0; margin-top:2px; }
+.diff-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:300; color:#f0ece4; margin-bottom:8px; line-height:1.2; }
+.diff-desc { font-size:13px; color:rgba(247,244,239,0.65); line-height:1.75; }
 
 /* CONTACT */
 #contact { background:var(--surface); padding:100px 60px; }
 .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
-.contact-info h3 { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; margin-bottom:16px; }
-.contact-info p { font-size:15px; color:var(--warm-gray); line-height:1.8; margin-bottom:32px; }
-.contact-details { display:flex; flex-direction:column; gap:16px; }
+.contact-info h3 { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:300; margin-bottom:16px; color:var(--text); }
+.contact-info p { font-size:15px; color:var(--text-muted); line-height:1.8; margin-bottom:32px; }
+.contact-details { display:flex; flex-direction:column; gap:14px; }
 .contact-detail { display:flex; align-items:flex-start; gap:14px; }
-.contact-detail-icon { width:40px; height:40px; background:var(--ivory); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; border:1px solid var(--mist); }
-.contact-detail-label { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
-.contact-detail-val { font-size:14px; color:var(--charcoal); }
-.contact-form-card { background:var(--ivory); border-radius:4px; padding:36px; border:1px solid var(--mist); }
-.contact-form-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; margin-bottom:24px; }
-.cf-row { margin-bottom:14px; }
-.cf-row label { display:block; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:5px; }
-.cf-row input, .cf-row select, .cf-row textarea { width:100%; padding:11px 14px; border:1px solid var(--border); border-radius:2px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); color:var(--text); outline:none; resize:none; transition:border-color 0.2s; }
-.cf-row input:focus, .cf-row select:focus, .cf-row textarea:focus { border-color:var(--gold); }
+.contact-detail-icon {
+  width:40px; height:40px;
+  background:rgba(184,155,106,0.08);
+  border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+  border:1px solid rgba(184,155,106,0.2);
+}
+.contact-detail-label { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); margin-bottom:3px; }
+.contact-detail-val { font-size:14px; color:var(--text); }
+.contact-form-card {
+  background:var(--bg);
+  border-radius:4px;
+  padding:40px;
+  border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(0,0,0,0.05);
+}
+.contact-form-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; margin-bottom:28px; color:var(--text); }
+.cf-row { margin-bottom:16px; }
+.cf-row label { display:block; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+.cf-row input, .cf-row select, .cf-row textarea { width:100%; padding:11px 14px; border:1px solid var(--border); border-radius:2px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); color:var(--text); outline:none; resize:none; transition:border-color 0.25s, box-shadow 0.25s; }
+.cf-row input:focus, .cf-row select:focus, .cf-row textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,155,106,0.08); }
 .cf-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .cf-submit { width:100%; background:var(--ink); color:var(--ivory); padding:14px; border:none; border-radius:2px; font-family:'DM Sans',sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background 0.3s; }
 .cf-submit:hover { background:var(--gold); }
 
 /* OFFICES */
 .offices { background:var(--ivory); padding:80px 60px; }
-.offices-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:40px; }
-.office-card { background:var(--surface); border:1px solid var(--mist); border-radius:4px; padding:28px; }
-.office-city { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:8px; }
-.office-addr { font-size:13px; color:var(--warm-gray); line-height:1.7; }
-.office-phone { font-size:13px; color:var(--gold); margin-top:12px; }
+.offices-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:40px; }
+.office-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:32px;
+  position:relative; overflow:hidden;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.office-card::before {
+  content:''; position:absolute; left:0; top:0;
+  width:2px; height:100%;
+  background:var(--gold);
+  transform:scaleY(0);
+  transform-origin:top;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.office-card:hover { border-color:rgba(184,155,106,0.35); box-shadow:0 8px 32px rgba(0,0,0,0.06); transform:translateY(-4px); }
+.office-card:hover::before { transform:scaleY(1); }
+.office-city { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:8px; color:var(--text); }
+.office-addr { font-size:13px; color:var(--text-muted); line-height:1.75; }
+.office-phone { font-size:13px; color:var(--gold); margin-top:14px; font-weight:500; }
 
-/* Dark mode overrides for about page */
+/* ── DARK MODE OVERRIDES ── */
 html.dark .about-hero { background: #0a0907; }
+
+/* Mission */
 html.dark .mission { background: var(--bg); }
+html.dark .mission-num { border-color: var(--border); }
+html.dark .mission-num:hover { background: rgba(184,155,106,0.06); }
+
+/* Values */
 html.dark .values { background: var(--surface); }
+html.dark .value-card { background: var(--surface-2); border-color: var(--border); }
+html.dark .value-card:hover { background: rgba(184,155,106,0.07); box-shadow: 0 16px 48px rgba(0,0,0,0.35); }
+
+/* Team */
 html.dark .team { background: var(--bg); }
+html.dark .team-card { background: var(--surface); border-color: var(--border); }
+html.dark .team-card:hover { box-shadow: 0 12px 36px rgba(0,0,0,0.35); }
+html.dark .team-avatar { background: var(--surface-2); border-color: var(--border); }
+
+/* Different */
 html.dark .different { background: #0a0907; }
+html.dark .diff-item:hover { background: rgba(184,155,106,0.07); }
+
+/* Contact */
 html.dark #contact { background: var(--surface); }
-html.dark .contact-form-card { background: var(--bg); }
+html.dark .contact-form-card { background: var(--surface-2); border-color: var(--border); box-shadow: none; }
+html.dark .cf-row input, html.dark .cf-row select, html.dark .cf-row textarea { background: var(--surface); border-color: var(--border); color-scheme: dark; }
+html.dark .cf-submit { background: var(--gold); color: var(--ivory); }
+html.dark .cf-submit:hover { background: var(--gold-light); }
+
+/* Offices */
 html.dark .offices { background: var(--bg); }
-html.dark .office-card { background: var(--surface); }
-html.dark .value-card { background: var(--bg); }
-html.dark .mission-text p { color: var(--charcoal); }
+html.dark .office-card { background: var(--surface); border-color: var(--border); }
+html.dark .office-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 
-/* ── GOLDEN THREAD — luxury scroll line ── */
-#golden-thread-wrap {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  pointer-events: none;
-  z-index: 3;
-}
-#golden-thread-svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-
-/* The main line — thin, refined */
-#gt-path {
-  fill: none;
-  stroke: url(#gt-line-grad);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Leading dot — the jewel */
-#gt-dot {
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-#gt-dot.on { opacity: 1; }
-
-/* Trail glow behind the dot */
-#gt-trail {
-  fill: none;
-  stroke: url(#gt-trail-grad);
-  stroke-width: 6;
-  stroke-linecap: round;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-#gt-trail.on { opacity: 1; }
-
-/* Remove the trailing dash on about-tag — thread starts there */
-.about-tag::after { display: none; }
-
-@media (max-width: 900px) { #golden-thread-wrap { display: none; } }
+/* Stat suffix — italic gold */
+.stat-suf { color: var(--gold); font-style: italic; }
 
 /* Values section: cards start hidden, animate in directionally */
 .value-card {
@@ -299,72 +362,6 @@ html.dark .mission-text p { color: var(--charcoal); }
   <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
 </nav>
 
-<!-- Golden Thread — luxury scroll line -->
-<div id="golden-thread-wrap" aria-hidden="true">
-  <svg id="golden-thread-svg" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <!-- Line gradient: shifts from warm champagne to deep gold along its length -->
-      <linearGradient id="gt-line-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="#e8d5a3" stop-opacity="0.6"/>
-        <stop offset="30%"  stop-color="#c9aa7c" stop-opacity="0.9"/>
-        <stop offset="70%"  stop-color="#9a7e52" stop-opacity="0.85"/>
-        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0.7"/>
-      </linearGradient>
-
-      <!-- Trail glow behind the leading dot -->
-      <linearGradient id="gt-trail-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="#e8d5a3" stop-opacity="0"/>
-        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0.25"/>
-      </linearGradient>
-
-      <!-- Soft bloom filter for the dot -->
-      <filter id="gt-bloom" x="-200%" y="-200%" width="500%" height="500%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-        <feMerge>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-
-      <!-- Subtle line glow -->
-      <filter id="gt-line-glow" x="-100%" y="-10%" width="300%" height="120%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
-        <feMerge>
-          <feMergeNode in="blur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-
-      <!-- End fade mask -->
-      <linearGradient id="gt-fade-grad" x1="0" y1="0" x2="0" y2="1" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stop-color="#c9aa7c" stop-opacity="0.35"/>
-        <stop offset="100%" stop-color="#c9aa7c" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-
-    <!-- Trail behind dot (short glowing segment) -->
-    <path id="gt-trail" class="" filter="url(#gt-line-glow)"/>
-
-    <!-- Main thread line -->
-    <path id="gt-path" filter="url(#gt-line-glow)"/>
-
-    <!-- Jewel dot at the tip -->
-    <g id="gt-dot" class="">
-      <!-- Outer soft halo -->
-      <circle id="gt-halo" r="10" fill="#c9aa7c" opacity="0.08" filter="url(#gt-bloom)"/>
-      <!-- Mid ring -->
-      <circle id="gt-ring" r="4" fill="none" stroke="#e8d5a3" stroke-width="0.8" opacity="0.6"/>
-      <!-- Core jewel -->
-      <circle id="gt-core" r="2.2" fill="#f0e6cc"/>
-    </g>
-
-    <!-- Golden bloom that stays at the end -->
-    <ellipse id="gt-end-bloom" rx="90" ry="28"
-      fill="url(#gt-fade-grad)" opacity="0"
-      filter="url(#gt-bloom)"/>
-  </svg>
-</div>
 
 <div class="about-hero">
   <div class="about-hero-left">
@@ -394,10 +391,10 @@ html.dark .mission-text p { color: var(--charcoal); }
       <div class="section-tag">Our Mission</div>
       <h2 class="section-h2">Making Every<br>Home Search <em>Safe</em></h2>
       <div class="mission-numbers">
-        <div class="mission-num reveal"><div class="num-val">14k<span>+</span></div><div class="num-label">Verified Listings</div></div>
-        <div class="mission-num reveal"><div class="num-val">96<span>%</span></div><div class="num-label">Match Accuracy</div></div>
-        <div class="mission-num reveal"><div class="num-val">3.2<span>k</span></div><div class="num-label">Happy Families</div></div>
-        <div class="mission-num reveal"><div class="num-val">0<span>%</span></div><div class="num-label">Fraud Cases</div></div>
+        <div class="mission-num"><div class="num-val"><span id="stat-listings">0</span><span class="stat-suf">+</span></div><div class="num-label">Verified Listings</div></div>
+        <div class="mission-num"><div class="num-val"><span id="stat-accuracy">96</span><span class="stat-suf">%</span></div><div class="num-label">Match Accuracy</div></div>
+        <div class="mission-num"><div class="num-val"><span id="stat-families">0</span><span class="stat-suf">+</span></div><div class="num-label">Happy Families</div></div>
+        <div class="mission-num"><div class="num-val"><span id="stat-fraud">0</span><span class="stat-suf">%</span></div><div class="num-label">Fraud Cases</div></div>
       </div>
     </div>
     <div class="mission-text reveal">
@@ -569,223 +566,44 @@ function submitContact(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// GOLDEN THREAD — luxury scroll-driven line for NestIQ about page
-// Design: thin champagne-gold thread with jewel dot tip,
-//         soft bloom at end, Catmull-Rom smooth curves,
-//         travels through page margins in an elegant S-path
+// MISSION STATS — animated counters synced to live listing data
 // ═══════════════════════════════════════════════════════════════
 (function () {
+  const elListings = document.getElementById('stat-listings');
+  const elFamilies = document.getElementById('stat-families');
+  let animated = false;
 
-  // Elements
-  const wrap     = document.getElementById('golden-thread-wrap');
-  const svg      = document.getElementById('golden-thread-svg');
-  const pathEl   = document.getElementById('gt-path');
-  const trailEl  = document.getElementById('gt-trail');
-  const dotG     = document.getElementById('gt-dot');
-  const haloEl   = document.getElementById('gt-halo');
-  const ringEl   = document.getElementById('gt-ring');
-  const coreEl   = document.getElementById('gt-core');
-  const bloomEl  = document.getElementById('gt-end-bloom');
-  const lineGrad = document.getElementById('gt-line-grad');
-
-  if (!wrap || !svg || !pathEl) return;
-
-  let totalLen  = 0;
-  let endY      = 1;
-  let fadeStartY= 0;
-  let allPts    = [];
-
-  // Pulse animation on the dot — breathes like a heartbeat
-  let pulseDir = 1, pulseVal = 1;
-  function pulseTick() {
-    pulseVal += pulseDir * 0.018;
-    if (pulseVal > 1.45) pulseDir = -1;
-    if (pulseVal < 0.75) pulseDir =  1;
-    if (haloEl) haloEl.setAttribute('r', (10 * pulseVal).toFixed(2));
-    if (ringEl) ringEl.setAttribute('r', (4  * (0.85 + pulseVal * 0.15)).toFixed(2));
-    requestAnimationFrame(pulseTick);
-  }
-  pulseTick();
-
-  function f(n) { return (+n).toFixed(2); }
-
-  function getY(sel, frac) {
-    const el = document.querySelector(sel);
-    if (!el) return 0;
-    return el.offsetTop + el.offsetHeight * frac;
+  function animateCount(el, target, duration) {
+    if (!el || target === 0) return;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      // Ease out cubic
+      const ease = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(ease * target);
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(tick);
   }
 
-  function build() {
-    const W = window.innerWidth;
-    const H = document.documentElement.scrollHeight;
-
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    svg.setAttribute('width',  W);
-    svg.setAttribute('height', H);
-    wrap.style.height = H + 'px';
-
-    // Update gradient coordinates to span full page height
-    if (lineGrad) {
-      lineGrad.setAttribute('y2', H);
-    }
-
-    // ── START POINT ───────────────────────────────────
-    // Exactly at the right end of "OUR STORY" tag text
-    const tagEl = document.querySelector('.about-tag');
-    let sx = W * 0.24, sy = 220;
-    if (tagEl) {
-      sx = tagEl.offsetLeft + tagEl.offsetWidth + 8;
-      sy = tagEl.offsetTop  + tagEl.offsetHeight * 0.5;
-    }
-
-    // ── PATH DESIGN ───────────────────────────────────
-    // Philosophy: the thread behaves like a golden ribbon draped
-    // across the page — it hugs the right margin for long stretches,
-    // crosses the page in wide elegant arcs at section transitions,
-    // and occasionally dips toward center to add visual rhythm.
-    // It NEVER enters the text content columns.
-
-    allPts = [
-      // HERO: start at tag → gentle rightward arc → right margin
-      { x: sx,         y: sy },
-      { x: W * 0.62,   y: getY('.about-hero', 0.06) },  // arc right, staying above text
-      { x: W * 0.88,   y: getY('.about-hero', 0.28) },  // land softly on right margin
-      { x: W * 0.88,   y: getY('.about-hero', 0.78) },  // glide down right margin
-
-      // hero → mission transition: wide arc left
-      { x: W * 0.88,   y: getY('.mission',    0.04) },
-      { x: W * 0.70,   y: getY('.mission',    0.22) },  // arc inward — elegant dip
-      { x: W * 0.88,   y: getY('.mission',    0.48) },  // back to right margin
-      { x: W * 0.88,   y: getY('.mission',    0.72) },
-      // sweep left at mission bottom — like a ribbon reversing
-      { x: W * 0.50,   y: getY('.mission',    0.88) },
-      { x: W * 0.10,   y: getY('.mission',    0.97) },
-
-      // VALUES: enter left margin → sweeping arc across top → right margin → cross at card gap → exit left
-      { x: W * 0.10,   y: getY('.values',     0.05) },
-      { x: W * 0.50,   y: getY('.values',     0.09) },  // wide sweep right
-      { x: W * 0.88,   y: getY('.values',     0.18) },
-      { x: W * 0.88,   y: getY('.values',     0.44) },  // glide down
-      // elegant crossing through the gap between value card rows
-      { x: W * 0.50,   y: getY('.values',     0.52) },
-      { x: W * 0.10,   y: getY('.values',     0.60) },
-      { x: W * 0.10,   y: getY('.values',     0.94) },  // glide down left
-
-      // TEAM: left → wide arc right → glide down → wide arc left
-      { x: W * 0.10,   y: getY('.team',       0.05) },
-      { x: W * 0.50,   y: getY('.team',       0.14) },
-      { x: W * 0.88,   y: getY('.team',       0.26) },
-      { x: W * 0.88,   y: getY('.team',       0.62) },  // long right margin glide
-      { x: W * 0.50,   y: getY('.team',       0.84) },  // sweep back left
-      { x: W * 0.10,   y: getY('.team',       0.95) },
-
-      // DIFFERENT (dark): enter left → sweep right across heading → right → graceful cross left
-      { x: W * 0.10,   y: getY('.different',  0.04) },
-      { x: W * 0.50,   y: getY('.different',  0.11) },
-      { x: W * 0.88,   y: getY('.different',  0.20) },
-      { x: W * 0.88,   y: getY('.different',  0.46) },
-      { x: W * 0.50,   y: getY('.different',  0.55) },  // graceful cross
-      { x: W * 0.10,   y: getY('.different',  0.65) },
-      { x: W * 0.10,   y: getY('.different',  0.93) },
-
-      // CONTACT: enter left → arc to center (jewel visible) → cross right → glide down → end
-      { x: W * 0.10,   y: getY('#contact',    0.07) },
-      { x: W * 0.50,   y: getY('#contact',    0.26) },  // arc to center — dot beautifully visible
-      { x: W * 0.88,   y: getY('#contact',    0.48) },
-      { x: W * 0.88,   y: getY('#contact',    0.76) },
-      { x: W * 0.58,   y: getY('#contact',    0.95) },  // final resting point — golden bloom here
-    ];
-
-    // ── CATMULL-ROM → CUBIC BEZIER ────────────────────
-    // tension 0.38: ultra-smooth, no kinks anywhere
-    const T = 0.38;
-    let d = `M ${f(allPts[0].x)} ${f(allPts[0].y)}`;
-    for (let i = 1; i < allPts.length; i++) {
-      const p0 = allPts[Math.max(0, i - 2)];
-      const p1 = allPts[i - 1];
-      const p2 = allPts[i];
-      const p3 = allPts[Math.min(allPts.length - 1, i + 1)];
-      const cp1x = p1.x + (p2.x - p0.x) * T / 2;
-      const cp1y = p1.y + (p2.y - p0.y) * T / 2;
-      const cp2x = p2.x - (p3.x - p1.x) * T / 2;
-      const cp2y = p2.y - (p3.y - p1.y) * T / 2;
-      d += ` C ${f(cp1x)} ${f(cp1y)}, ${f(cp2x)} ${f(cp2y)}, ${f(p2.x)} ${f(p2.y)}`;
-    }
-    pathEl.setAttribute('d', d);
-    if (trailEl) trailEl.setAttribute('d', d);
-
-    totalLen = pathEl.getTotalLength();
-    pathEl.style.strokeDasharray  = totalLen;
-    pathEl.style.strokeDashoffset = totalLen;
-
-    // scroll range
-    const heroEl    = document.querySelector('.about-hero');
-    const contactEl = document.querySelector('#contact');
-    endY       = contactEl ? contactEl.offsetTop + contactEl.offsetHeight : H;
-    fadeStartY = endY - 180;
-
-    // Place end bloom
-    if (bloomEl) {
-      const ep = pathEl.getPointAtLength(totalLen);
-      bloomEl.setAttribute('cx', f(ep.x));
-      bloomEl.setAttribute('cy', f(ep.y));
-    }
-
-    updateScroll();
+  async function runCounters() {
+    if (animated) return;
+    animated = true;
+    await window.NestApp.fetchData();
+    const total  = PROPERTIES.length;
+    const rented = PROPERTIES.filter(p => p.intent === 'rent').length;
+    animateCount(elListings, total,  1800);
+    animateCount(elFamilies, rented, 1800);
   }
 
-  function updateScroll() {
-    if (!totalLen) return;
-
-    const heroEl = document.querySelector('.about-hero');
-    const startY = heroEl ? heroEl.offsetTop : 0;
-
-    // Progress: 0 at hero top, 1 at end of contact
-    const scrolled = window.scrollY + window.innerHeight * 0.52;
-    const prog = Math.min(1, Math.max(0, (scrolled - startY) / Math.max(1, endY - startY)));
-
-    // Draw the line up to prog
-    pathEl.style.strokeDashoffset = f(totalLen * (1 - prog));
-
-    // Trail: a short glowing segment just behind the dot tip
-    if (trailEl) {
-      const trailLen = Math.min(totalLen * prog, 80);
-      const drawnLen = totalLen * prog;
-      trailEl.style.strokeDasharray  = `${f(trailLen)} ${f(totalLen)}`;
-      trailEl.style.strokeDashoffset = f(-(drawnLen - trailLen));
-      trailEl.classList.toggle('on', prog > 0.01 && prog < 0.99);
-    }
-
-    // Jewel dot at exact tip position
-    const drawn = totalLen * prog;
-    if (drawn > 8 && drawn < totalLen - 8) {
-      const pt = pathEl.getPointAtLength(drawn);
-      [haloEl, ringEl, coreEl].forEach(el => {
-        if (el) { el.setAttribute('cx', f(pt.x)); el.setAttribute('cy', f(pt.y)); }
-      });
-      dotG.classList.add('on');
-    } else {
-      dotG.classList.remove('on');
-    }
-
-    // End: graceful fade + bloom appears
-    const currentBottom = window.scrollY + window.innerHeight;
-    if (currentBottom > fadeStartY) {
-      const fp = Math.min(1, (currentBottom - fadeStartY) / 180);
-      pathEl.style.opacity = f(1 - fp * 0.94);
-      if (bloomEl) bloomEl.setAttribute('opacity', f(fp * 0.85));
-    } else {
-      pathEl.style.opacity = '1';
-      if (bloomEl) bloomEl.setAttribute('opacity', '0');
-    }
-  }
-
-  let rt;
-  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(build, 80); });
-  window.addEventListener('scroll', updateScroll, { passive: true });
-  if (document.readyState === 'complete') build();
-  else window.addEventListener('load', build);
-
+  // Trigger when the mission section scrolls into view
+  const missionEl = document.querySelector('.mission');
+  if (!missionEl) return;
+  const obs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) { runCounters(); obs.disconnect(); }
+  }, { threshold: 0.25 });
+  obs.observe(missionEl);
 }());
 
 // ═══════════════════════════════════════════════════════

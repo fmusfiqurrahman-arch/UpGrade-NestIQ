@@ -96,9 +96,12 @@ html.dark .type-btn.selected { border-color: var(--gold); background: rgba(184,1
 /* NAV BUTTONS */
 .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
 .btn-back { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 12px 24px; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-.btn-back:hover { border-color: var(--ink); color: var(--text); }
+.btn-back:hover { border-color: var(--border-strong); color: var(--text); }
 .btn-next { background: var(--ink); color: #f0ece4; padding: 12px 28px; border: none; border-radius: 2px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background 0.3s; }
 .btn-next:hover { background: var(--gold); }
+html.dark .btn-next { background: var(--gold); color: var(--ivory); }
+html.dark .btn-next:hover { background: var(--gold-light); }
+html.dark .btn-back:hover { border-color: var(--text-muted); color: var(--text); }
 
 /* SUCCESS */
 .success-screen { text-align: center; padding: 60px 0; }
