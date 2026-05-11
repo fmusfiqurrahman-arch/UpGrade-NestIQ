@@ -632,6 +632,7 @@ html.dark .left-stat-val {
 </div><!-- /auth-wrapper -->
 
 <div id="notif"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="data.js"></script>
 <script src="shared.js"></script>
 <script>
@@ -963,14 +964,62 @@ async function handleReset() {
   }
 }
 
-// ── SOCIAL LOGIN ──
+// ── GOOGLE OAUTH ──
+let _googleReady = false;
+
+async function initGoogleAuth() {
+  try {
+    const res = await fetch(window.API_BASE + '/auth/config');
+    const { googleClientId } = await res.json();
+    if (!googleClientId || googleClientId === 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID') return;
+    google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+      itp_support: true
+    });
+    _googleReady = true;
+  } catch (e) {
+    console.warn('Google auth config unavailable:', e);
+  }
+}
+
+async function handleGoogleCredential(response) {
+  showNotif('Signing in with Google…');
+  try {
+    const res = await fetch(window.API_BASE + '/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('user', JSON.stringify(data));
+      showNotif('✓ Signed in with Google! Redirecting…');
+      setTimeout(() => doRedirect(), 1200);
+    } else {
+      showNotif('❌ ' + (data.message || 'Google sign-in failed'));
+    }
+  } catch (e) {
+    showNotif('❌ Cannot connect to server.');
+  }
+}
+
 function socialLogin(provider) {
-  showNotif(`Connecting with ${provider}…`);
-  setTimeout(() => {
-    setUser({ firstName: provider + ' User', email: provider.toLowerCase() + '@social.com' });
-    showNotif(`✓ Signed in with ${provider}! Redirecting…`);
-    setTimeout(() => doRedirect(), 1200);
-  }, 1500);
+  if (provider === 'Google') {
+    if (!_googleReady) {
+      showNotif('⚠️ Google sign-in not set up yet. Add GOOGLE_CLIENT_ID to backend .env');
+      return;
+    }
+    google.accounts.id.prompt((n) => {
+      if (n.isNotDisplayed() || n.isSkippedMoment()) {
+        showNotif('⚠️ Google prompt was blocked. Try disabling popup blockers or use email login.');
+      }
+    });
+  } else {
+    showNotif(`${provider} sign-in coming soon`);
+  }
 }
 
 
@@ -994,8 +1043,10 @@ const redirectTo  = new URLSearchParams(location.search).get('redirect') || 'lis
 if(resetToken) switchPanel('reset');
 else if(urlTab === 'signup') switchTab('signup');
 
-// shared redirect helper used by all auth paths
 function doRedirect(){ window.location = redirectTo; }
+
+// Init Google auth after both this script and the GSI library have loaded
+window.addEventListener('load', initGoogleAuth);
 
 
 

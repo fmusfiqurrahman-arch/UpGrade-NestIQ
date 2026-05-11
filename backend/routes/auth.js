@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const https = require('https');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -283,6 +284,97 @@ router.put('/profile', protect, [
   } catch (error) {
     console.error("Backend update error:", error);
     res.status(500).json({ message: 'Server error: Could not update profile' });
+  }
+});
+
+// --------------------------------------------------------
+// ROUTE: CONFIG — serve public Google Client ID to frontend
+// --------------------------------------------------------
+router.get('/config', (req, res) => {
+  res.json({ googleClientId: process.env.GOOGLE_CLIENT_ID || '' });
+});
+
+// --------------------------------------------------------
+// HELPERS — verify Google ID token via tokeninfo endpoint
+// --------------------------------------------------------
+function verifyGoogleToken(credential) {
+  return new Promise((resolve) => {
+    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`;
+    https.get(url, (r) => {
+      let raw = '';
+      r.on('data', c => raw += c);
+      r.on('end', () => {
+        try {
+          const payload = JSON.parse(raw);
+          if (payload.error) return resolve(null);
+          const clientId = process.env.GOOGLE_CLIENT_ID;
+          // Skip aud check only when client ID not configured yet
+          if (clientId && clientId !== 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID' && payload.aud !== clientId) {
+            return resolve(null);
+          }
+          resolve(payload);
+        } catch { resolve(null); }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
+// --------------------------------------------------------
+// ROUTE: GOOGLE OAUTH — verify credential, find or create user
+// --------------------------------------------------------
+router.post('/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ message: 'Missing Google credential' });
+
+  const payload = await verifyGoogleToken(credential);
+  if (!payload) return res.status(401).json({ message: 'Invalid or expired Google token' });
+
+  const {
+    sub: googleId,
+    email,
+    given_name: firstName,
+    family_name: lastName,
+    picture: profilePicUrl
+  } = payload;
+
+  if (!email) return res.status(400).json({ message: 'Google account has no email' });
+
+  try {
+    // Find by googleId first, then fall back to email (links existing account)
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (!user) {
+      user = await User.create({
+        googleId,
+        firstName: firstName || 'Google',
+        lastName: lastName || 'User',
+        email,
+        phone: '',
+        profilePicUrl: profilePicUrl || '',
+        isVerified: true,
+        role: 'tenant'
+      });
+    } else {
+      // Link Google ID to an existing email-registered account
+      let changed = false;
+      if (!user.googleId) { user.googleId = googleId; changed = true; }
+      if (profilePicUrl && !user.profilePicUrl) { user.profilePicUrl = profilePicUrl; changed = true; }
+      if (changed) await user.save({ validateBeforeSave: false });
+    }
+
+    res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      profilePicUrl: user.profilePicUrl,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
