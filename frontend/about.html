@@ -548,21 +548,62 @@ setInterval(() => {
   setTimeout(() => { mainEl.src = mainImages[imgIndex]; subEl.src = subImages[imgIndex]; mainEl.style.opacity = 1; subEl.style.opacity = 1; }, 400);
 }, 4500);
 
-function submitContact(){
+async function submitContact() {
   const form = document.querySelector('.contact-form-card');
   if (!form) return;
-  const inputs = form.querySelectorAll('input, textarea');
-  if (typeof validateForm === 'function') {
-    const valid = validateForm([
-      { el: inputs[0], required: true,  type: 'text'  },
-      { el: inputs[1], required: false, type: 'text'  },
-      { el: inputs[2], required: true,  type: 'email' },
-      { el: inputs[3], required: true,  type: 'tel'   },
-    ]);
-    if (!valid) { if (typeof showNotif === 'function') showNotif('⚠️ Please fill in required fields correctly'); return; }
+
+  const inputs  = form.querySelectorAll('input, textarea');
+  const firstName = inputs[0]?.value.trim();
+  const lastName  = inputs[1]?.value.trim();
+  const email     = inputs[2]?.value.trim();
+  const phone     = inputs[3]?.value.trim();
+  const subject   = form.querySelector('select')?.value || '';
+  const message   = inputs[4]?.value.trim();
+
+  if (!firstName) { showNotif('⚠️ Please enter your first name'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showNotif('⚠️ Please enter a valid email address'); return; }
+  if (!phone || phone.length < 7) { showNotif('⚠️ Please enter a valid phone number'); return; }
+  if (!message) { showNotif('⚠️ Please write a message'); return; }
+
+  const btn = form.querySelector('.cf-submit');
+  const origText = btn.textContent;
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const userStr = localStorage.getItem('user');
+    const user  = userStr ? JSON.parse(userStr) : null;
+    const token = user ? user.token : null;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(window.API_BASE + '/inquiries', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        type:        'contact',
+        content:     message,
+        senderName:  `${firstName} ${lastName}`.trim(),
+        senderEmail: email,
+        senderPhone: phone,
+        subject:     subject
+      })
+    });
+
+    if (res.ok) {
+      showNotif('✓ Message sent! We\'ll respond within 2 hours.');
+      form.querySelectorAll('input, textarea').forEach(el => el.value = '');
+      if (form.querySelector('select')) form.querySelector('select').selectedIndex = 0;
+    } else {
+      const d = await res.json();
+      showNotif('❌ ' + (d.message || 'Could not send message. Try again.'));
+    }
+  } catch(e) {
+    showNotif('❌ Network error — check your connection');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
   }
-  if (typeof showNotif === 'function') showNotif('✓ Message received! We\'ll respond within 2 hours.');
-  form.querySelectorAll('input, textarea').forEach(el => el.value = '');
 }
 
 // ═══════════════════════════════════════════════════════════════

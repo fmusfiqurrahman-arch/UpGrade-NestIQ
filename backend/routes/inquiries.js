@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Inquiry = require('../models/Inquiry');
+const Listing = require('../models/Listing');
 const { protect } = require('../middleware/auth');
+const {
+  sendOwnerInquiryEmail,
+  sendEnquiryConfirmationEmail,
+  sendContactFormEmail,
+  sendContactFormConfirmationEmail
+} = require('../utils/email');
 
-// Optional protect middleware (doesn't throw error if no token, just sets req.user if present)
 const optionalProtect = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -26,22 +32,73 @@ const decodeOptionalToken = async (req, res, next) => {
 // --------------------------------------------------------
 router.post('/', decodeOptionalToken, async (req, res) => {
   try {
-    const { receiver, listing, type, content } = req.body;
-    
-    // If not logged in, only allow 'match' (or we can allow all as guest leads)
+    const { receiver, listing, type, content, senderName, senderEmail, senderPhone, subject } = req.body;
     const senderId = req.user ? req.user._id : null;
 
+    const resolvedSenderName  = senderName  || (req.user ? `${req.user.firstName} ${req.user.lastName}`.trim() : '');
+    const resolvedSenderEmail = senderEmail || (req.user ? req.user.email : '');
+    const resolvedSenderPhone = senderPhone || (req.user ? req.user.phone : '');
+
     const inquiry = await Inquiry.create({
-      sender: senderId,
-      receiver: receiver || null,
-      listing: listing || null,
+      sender:      senderId,
+      receiver:    receiver || null,
+      listing:     listing  || null,
       type,
-      content
+      content,
+      senderName:  resolvedSenderName,
+      senderEmail: resolvedSenderEmail,
+      senderPhone: resolvedSenderPhone,
+      subject:     subject  || ''
+    });
+
+    // ── Fire emails (non-blocking — don't let email failure kill the response) ──
+    setImmediate(async () => {
+      try {
+        if (type === 'contact') {
+          // About page contact form → email NestIQ admin
+          await sendContactFormEmail({
+            senderName:  resolvedSenderName,
+            senderEmail: resolvedSenderEmail,
+            senderPhone: resolvedSenderPhone,
+            subject,
+            message: content
+          });
+          await sendContactFormConfirmationEmail({
+            toEmail: resolvedSenderEmail,
+            toName:  resolvedSenderName
+          });
+
+        } else if ((type === 'message' || type === 'booking') && listing) {
+          // Listing enquiry → email the property owner
+          const listingDoc = await Listing.findById(listing).populate('owner', 'firstName lastName email');
+          if (listingDoc && listingDoc.owner && listingDoc.owner.email) {
+            const owner = listingDoc.owner;
+            await sendOwnerInquiryEmail({
+              ownerEmail:  owner.email,
+              ownerName:   `${owner.firstName} ${owner.lastName}`.trim(),
+              senderName:  resolvedSenderName,
+              senderPhone: resolvedSenderPhone,
+              senderEmail: resolvedSenderEmail,
+              listingTitle: listingDoc.title,
+              message:      content,
+              subject:      subject || (type === 'booking' ? 'Viewing Request' : 'Property Enquiry')
+            });
+            // Send confirmation to the person who enquired
+            await sendEnquiryConfirmationEmail({
+              toEmail:      resolvedSenderEmail,
+              toName:       resolvedSenderName,
+              listingTitle: listingDoc.title
+            });
+          }
+        }
+      } catch (emailErr) {
+        console.error('Email send error:', emailErr.message);
+      }
     });
 
     res.status(201).json(inquiry);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: error.message });
   }
 });
 

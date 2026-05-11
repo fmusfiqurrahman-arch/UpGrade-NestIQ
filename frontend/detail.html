@@ -452,6 +452,17 @@ function renderDetail(p){
   `;
   document.title = `${p.title} — NestIQ`;
   if(typeof bindCursorHover === 'function') bindCursorHover();
+
+  // Auto-fill contact form from logged-in user
+  try {
+    const u = JSON.parse(localStorage.getItem('user') || 'null');
+    if (u) {
+      const nameEl  = document.getElementById('contactName');
+      const phoneEl = document.getElementById('contactPhone');
+      if (nameEl  && !nameEl.value)  nameEl.value  = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+      if (phoneEl && !phoneEl.value) phoneEl.value = u.phone || '';
+    }
+  } catch(e) {}
 }
 
 function renderSimilar(p){
@@ -518,46 +529,59 @@ window.shareProperty = function(){
 };
 
 window.handleContact = async function(action) {
-  const name = document.getElementById('contactName')?.value.trim();
-  const phone = document.getElementById('contactPhone')?.value.trim();
-  let msg = document.getElementById('contactMsg')?.value.trim();
-  
+  const listingId = new URLSearchParams(window.location.search).get('id');
+  const userStr   = localStorage.getItem('user');
+  const user      = userStr ? JSON.parse(userStr) : null;
+  const token     = user ? user.token : null;
+  const headers   = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  let payload = { type: action, listing: listingId };
+
   if (action === 'booking') {
-     const modalInputs = document.getElementById('modal').querySelectorAll('input');
-     const bName = modalInputs[0].value;
-     const bPhone = modalInputs[1].value;
-     const bEmail = modalInputs[2].value;
-     const bDate = modalInputs[3].value;
-     if(!bName || !bPhone || !bDate) { showNotif('⚠️ Fill required fields'); return; }
-     msg = `Booking Request from ${bName} (${bPhone}, ${bEmail}) for ${bDate}`;
+    const mi = document.getElementById('modal').querySelectorAll('input');
+    const bName = mi[0]?.value.trim();
+    const bPhone = mi[1]?.value.trim();
+    const bEmail = mi[2]?.value.trim();
+    const bDate  = mi[3]?.value;
+    if (!bName || !bPhone || !bDate) { showNotif('⚠️ Fill all required fields'); return; }
+    payload.content     = `Booking request for ${bDate}`;
+    payload.senderName  = bName;
+    payload.senderPhone = bPhone;
+    payload.senderEmail = bEmail;
+    payload.subject     = 'Viewing Request';
   } else {
-     if(!name || !phone || !msg) { showNotif('⚠️ Fill all fields'); return; }
-     msg = `Message from ${name} (${phone}): ${msg}`;
+    const name  = document.getElementById('contactName')?.value.trim();
+    const phone = document.getElementById('contactPhone')?.value.trim();
+    const msg   = document.getElementById('contactMsg')?.value.trim();
+    if (!name || !phone || !msg) { showNotif('⚠️ Please fill in your name, phone and message'); return; }
+    payload.content     = msg;
+    payload.senderName  = name;
+    payload.senderPhone = phone;
+    payload.senderEmail = user ? user.email : '';
+    payload.subject     = 'Property Enquiry';
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const listingId = urlParams.get('id');
-
   try {
-    const userStr = localStorage.getItem('user');
-    const token = userStr ? JSON.parse(userStr).token : null;
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
     const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ type: action, listing: listingId, content: msg })
+      method: 'POST', headers,
+      body: JSON.stringify(payload)
     });
-    
-    if(res.ok) {
-        showNotif('✅ Request sent successfully!');
-        if(action === 'booking') closeModal();
+
+    if (res.ok) {
+      showNotif('✅ Message sent! The owner will contact you shortly.');
+      if (action === 'booking') {
+        closeModal();
+        document.getElementById('modal').querySelectorAll('input').forEach(i => i.value = '');
+      } else {
+        document.getElementById('contactMsg').value  = '';
+      }
     } else {
-        showNotif('❌ Failed to send');
+      const d = await res.json();
+      showNotif('❌ ' + (d.message || 'Failed to send message'));
     }
   } catch(e) {
-    showNotif('❌ Network error');
+    showNotif('❌ Network error — check your connection');
   }
 };
 
