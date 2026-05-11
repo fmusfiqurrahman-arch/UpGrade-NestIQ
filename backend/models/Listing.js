@@ -21,6 +21,7 @@ const listingSchema = new mongoose.Schema({
   image: { type: String }, // Main image for quick access
   images: [{ type: String }], // Array of file paths/URLs
   amenities: [{ type: String }], // Array of selected amenities
+  rules: [{ type: String }],    // Owner-defined rules & conditions
   
   owner: { 
     type: mongoose.Schema.Types.ObjectId, 

@@ -83,6 +83,34 @@ html.dark .type-btn.selected { border-color: var(--gold); background: rgba(184,1
 .photo-drop-sub { font-size: 12px; color: var(--text-muted); opacity: 0.6; margin-top: 6px; }
 .photo-preview { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* RULES */
+.rules-builder { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.rule-row { display: flex; align-items: center; gap: 8px; }
+.rule-row input {
+  flex: 1; padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: 2px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  background: var(--surface); color: var(--text); outline: none;
+  transition: border-color 0.2s;
+}
+.rule-row input:focus { border-color: var(--gold); }
+.rule-del {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: none; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text-muted); cursor: pointer; font-size: 14px;
+  transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.rule-del:hover { border-color: #c0392b; color: #c0392b; background: rgba(192,57,43,0.05); }
+.btn-add-rule {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border: 1px dashed var(--gold); border-radius: 2px;
+  background: none; color: var(--gold); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 12px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  transition: background 0.2s;
+}
+.btn-add-rule:hover { background: rgba(184,155,106,0.06); }
+
 /* AMENITY CHECKBOXES */
 .amenity-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
 .amenity-check { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 2px; cursor: pointer; transition: all 0.2s; font-size: 13px; color: var(--text); background: var(--surface); }
@@ -362,6 +390,12 @@ html.dark .btn-back:hover { border-color: var(--text-muted); color: var(--text);
       </select>
     </div>
 
+    <div class="lf-row">
+      <label>Rules & Conditions <span style="font-size:11px;font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0">(optional — tenants will see these)</span></label>
+      <div class="rules-builder" id="rulesBuilder"></div>
+      <button type="button" class="btn-add-rule" onclick="addRule()">+ Add Rule</button>
+    </div>
+
     <div class="form-nav">
       <button class="btn-back" onclick="goStep(2)">← Back</button>
       <button class="btn-next" onclick="goStep(4)">Next: Pricing & Contact →</button>
@@ -526,14 +560,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('propArea').value = data.area || '';
         document.getElementById('propCity').value = data.city || 'Dhaka';
 
-        // Load existing images into the array
+        // Load existing images
         if (data.images && data.images.length > 0) {
             uploadedImageUrls = data.images;
         } else if (data.image) {
             uploadedImageUrls = [data.image];
         }
-        
-        renderPhotos(); // Draw the photos with delete buttons!
+        renderPhotos();
+
+        // Load existing rules
+        if (data.rules && data.rules.length > 0) {
+            data.rules.forEach(r => addRule(r));
+        }
       }
     } catch (error) {
       console.error("Failed to fetch property for editing", error);
@@ -726,6 +764,27 @@ document.getElementById('imageUpload').addEventListener('change', async function
 });
 
 // -----------------------------------------------------------------
+// RULES BUILDER
+// -----------------------------------------------------------------
+function addRule(value) {
+  const builder = document.getElementById('rulesBuilder');
+  const row = document.createElement('div');
+  row.className = 'rule-row';
+  row.innerHTML = `
+    <input type="text" placeholder="e.g. No smoking inside the property" maxlength="120" value="${value ? value.replace(/"/g, '&quot;') : ''}"/>
+    <button type="button" class="rule-del" onclick="this.parentElement.remove()" title="Remove">✕</button>
+  `;
+  builder.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function getRules() {
+  return Array.from(document.querySelectorAll('#rulesBuilder .rule-row input'))
+    .map(i => i.value.trim())
+    .filter(v => v.length > 0);
+}
+
+// -----------------------------------------------------------------
 // 5. SUBMIT TO DATABASE (CREATE OR UPDATE)
 // -----------------------------------------------------------------
 async function submitListing(){
@@ -759,7 +818,8 @@ async function submitListing(){
     sqft: Number(document.getElementById('propSqft').value) || 0,
     image: uploadedImageUrls[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80',
     images: uploadedImageUrls,
-    amenities: selectedAmenities
+    amenities: selectedAmenities,
+    rules: getRules()
   };
 
   try {

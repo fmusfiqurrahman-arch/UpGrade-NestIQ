@@ -316,6 +316,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       img: dbItem.image || (dbItem.images && dbItem.images.length > 0 ? dbItem.images[0] : null),
       images: dbItem.images || [],
       amenities: dbItem.amenities || [],
+      rules: dbItem.rules || [],
       verified: true,
       isNew: true,
       match: 85,
@@ -418,10 +419,11 @@ function renderDetail(p){
           </div>
         </div>
 
+        ${(p.rules && p.rules.length > 0) || rules.length > 0 ? `
         <div class="detail-section">
           <div class="detail-section-title">Rules & Conditions</div>
-          <ul class="rules-list">${rules.map(r=>`<li>${r}</li>`).join('')}</ul>
-        </div>
+          <ul class="rules-list">${(p.rules && p.rules.length > 0 ? p.rules : rules).map(r=>`<li>${r}</li>`).join('')}</ul>
+        </div>` : ''}
 
         ${p.verified ? `<div class="verified-banner"><div class="verified-banner-icon">🛡️</div><div class="verified-banner-text"><strong>NestIQ Verified</strong> — Title cleared, owner ID confirmed, physical inspection passed.</div></div>` : ''}
       </div>
