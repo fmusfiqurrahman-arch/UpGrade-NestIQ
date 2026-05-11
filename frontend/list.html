@@ -462,7 +462,7 @@ html.dark .btn-back:hover { border-color: var(--text-muted); color: var(--text);
         <div class="success-step"><div class="success-step-num">4</div>Concierge manages all inquiries for you</div>
       </div>
       <button class="btn-primary" onclick="window.location='index.html'" style="margin-right:12px">Back to Home</button>
-      <button class="btn-outline" onclick="window.location='listings.html'" style="display:inline-block">Browse Listings</button>
+      <button class="btn-outline" id="viewListingBtn" onclick="window.location='listings.html'" style="display:inline-block">Browse Listings</button>
     </div>
   </div>
 
@@ -782,13 +782,21 @@ async function submitListing(){
       document.getElementById('panel-4').classList.remove('active');
       document.getElementById('panel-success').classList.add('active');
       document.getElementById('progressFill').style.width = '100%';
-      
+
       [1,2,3,4].forEach(i => {
         document.getElementById('sn-' + i)?.classList.remove('active');
         document.getElementById('sn-' + i)?.classList.add('done');
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
+      // Point the button to the actual listing that was just created/updated
+      const listingId = data._id || data.id || editingPropertyId;
+      const viewBtn = document.getElementById('viewListingBtn');
+      if (listingId && viewBtn) {
+        viewBtn.textContent = 'View My Listing';
+        viewBtn.onclick = () => window.location = `detail.html?id=${listingId}`;
+      }
+
       if(editingPropertyId) {
           document.querySelector('.success-title').textContent = "Listing Updated!";
           document.querySelector('.success-sub').textContent = "Your property changes have been saved successfully.";
