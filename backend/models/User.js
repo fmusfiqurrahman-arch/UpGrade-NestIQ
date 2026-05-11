@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: false, select: false },
 
   // Google OAuth
-  googleId: { type: String, sparse: true, unique: true },
+  googleId: { type: String, default: null },
 
   // Role & Permissions
   role: { type: String, enum: ['tenant', 'owner', 'admin'], default: 'tenant' },
@@ -34,6 +34,9 @@ const userSchema = new mongoose.Schema({
     maxPrice: { type: Number, default: 0 }
   }
 }, { timestamps: true });
+
+// Sparse unique index on googleId — allows many nulls, enforces uniqueness only when set
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
 // Auto-heal legacy accounts that may be missing name fields
 userSchema.pre('validate', function () {

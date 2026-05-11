@@ -313,7 +313,7 @@ function verifyGoogleToken(credential) {
             return resolve(null);
           }
           resolve(payload);
-        } catch { resolve(null); }
+        } catch(e) { resolve(null); }
       });
     }).on('error', () => resolve(null));
   });

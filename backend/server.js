@@ -30,7 +30,7 @@ app.use('/api/admin', require('./routes/admin'));
 // --------------------------------------------------------
 // ROUTE: UPLOAD MULTIPLE IMAGES (For Properties)
 // --------------------------------------------------------
-app.post('/api/upload', upload.array('images', 10), (req, res) => {
+app.post('/api/upload', upload.array('images', 15), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: 'No images uploaded' });
   }

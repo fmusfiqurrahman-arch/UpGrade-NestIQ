@@ -327,7 +327,7 @@ html.dark .btn-back:hover { border-color: var(--text-muted); color: var(--text);
       <div class="photo-drop" onclick="document.getElementById('imageUpload').click()">
         <div class="photo-drop-icon">📷</div>
         <div class="photo-drop-text">Click to upload photos</div>
-        <div class="photo-drop-sub">JPG, PNG up to 10MB each</div>
+        <div class="photo-drop-sub">JPG, PNG up to 10MB each · Max 5 at a time · Up to 15 total</div>
       </div>
       
       <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
@@ -656,19 +656,42 @@ window.removePhoto = function(index) {
   renderPhotos();
 };
 
+const MAX_PHOTOS     = 15;
+const MAX_PER_BATCH  = 5;
+
 document.getElementById('imageUpload').addEventListener('change', async function(e) {
-  const files = e.target.files; 
+  const files = e.target.files;
   if (!files || files.length === 0) return;
 
+  // Check total cap
+  const remaining = MAX_PHOTOS - uploadedImageUrls.length;
+  if (remaining <= 0) {
+    showNotif(`⚠️ Maximum ${MAX_PHOTOS} photos allowed. Remove some to add new ones.`);
+    this.value = '';
+    return;
+  }
+
+  // Check per-batch limit
+  if (files.length > MAX_PER_BATCH) {
+    showNotif(`⚠️ You can select up to ${MAX_PER_BATCH} photos at a time. Please select fewer and upload again.`);
+    this.value = '';
+    return;
+  }
+
+  if (files.length > remaining) {
+    showNotif(`⚠️ Only ${remaining} slot${remaining === 1 ? '' : 's'} left (max ${MAX_PHOTOS} total). First ${remaining} will be uploaded.`);
+  }
+
+  const toUpload = Array.from(files).slice(0, remaining);
   const savedUser = JSON.parse(localStorage.getItem('user'));
   const token = savedUser ? savedUser.token : null;
 
   const formData = new FormData();
-  for (let i = 0; i < files.length; i++) { formData.append('images', files[i]); }
+  toUpload.forEach(f => formData.append('images', f));
 
   try {
     const preview = document.getElementById('photoPreview');
-    preview.innerHTML = `<div style="font-size:12px; color:var(--gold);">Uploading ${files.length} photos...</div>`;
+    preview.innerHTML += `<div id="uploadingMsg" style="font-size:12px;color:var(--gold);padding:8px 0;">Uploading ${toUpload.length} photo${toUpload.length === 1 ? '' : 's'}…</div>`;
 
     const response = await fetch(window.API_BASE + '/upload', {
       method: 'POST',
@@ -679,19 +702,27 @@ document.getElementById('imageUpload').addEventListener('change', async function
     const data = await response.json();
 
     if (response.ok) {
-      // ADD new photos to the array without overwriting
       uploadedImageUrls = uploadedImageUrls.concat(data.imageUrls);
       renderPhotos();
-      showNotif(`✓ ${files.length} photos uploaded!`);
+      const total = uploadedImageUrls.length;
+      const left  = MAX_PHOTOS - total;
+      if (total >= MAX_PHOTOS) {
+        showNotif(`🚫 Limit reached — ${MAX_PHOTOS}/${MAX_PHOTOS} photos. Remove one to add more.`);
+      } else if (left <= 3) {
+        showNotif(`⚠️ Almost full — ${total}/${MAX_PHOTOS} photos. Only ${left} slot${left === 1 ? '' : 's'} left.`);
+      } else {
+        showNotif(`✓ ${toUpload.length} photo${toUpload.length === 1 ? '' : 's'} uploaded — ${total}/${MAX_PHOTOS} used.`);
+      }
     } else {
-      alert('Upload failed: ' + data.message);
+      showNotif('❌ Upload failed: ' + data.message);
       renderPhotos();
     }
   } catch (error) {
     console.error('Upload error:', error);
-    alert('Server connection failed.');
+    showNotif('❌ Server connection failed.');
     renderPhotos();
   }
+  this.value = ''; // Reset so same files can be re-selected if needed
 });
 
 // -----------------------------------------------------------------
