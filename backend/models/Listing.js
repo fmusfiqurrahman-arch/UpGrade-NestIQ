@@ -30,4 +30,9 @@ const listingSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+listingSchema.index({ city: 1, propertyType: 1 });
+listingSchema.index({ price: 1 });
+listingSchema.index({ owner: 1 });
+listingSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.models.Listing || mongoose.model('Listing', listingSchema);

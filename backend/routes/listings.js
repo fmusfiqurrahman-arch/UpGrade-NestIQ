@@ -220,7 +220,12 @@ router.post('/', protect, listingValidation, async (req, res) => {
 });
 
 // 5. UPDATE A LISTING (Includes Smart Janitor)
-router.put('/:id', protect, async (req, res) => {
+router.put('/:id', protect, listingValidation, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+  }
+
   try {
     let listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: 'Listing not found' });

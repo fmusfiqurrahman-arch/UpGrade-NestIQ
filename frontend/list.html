@@ -849,10 +849,11 @@ async function submitListing(){
   const newProperty = {
     title: document.getElementById('propTitle').value,
     description: document.getElementById('propDesc').value,
-    price: Number(document.getElementById('propPrice').value.replace(/,/g, '')), 
+    price: Number(document.getElementById('propPrice').value.replace(/,/g, '')),
+    priceUnit: document.getElementById('propUnit').value,
     area: document.getElementById('propArea').value,
     city: document.getElementById('propCity').value,
-    propertyType: dbPropertyType, 
+    propertyType: dbPropertyType,
     bedrooms: Number(document.getElementById('propBeds').value),
     bathrooms: Number(document.getElementById('propBaths').value),
     sqft: Number(document.getElementById('propSqft').value) || 0,
