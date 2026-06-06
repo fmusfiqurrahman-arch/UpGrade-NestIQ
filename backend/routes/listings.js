@@ -236,13 +236,15 @@ router.put('/:id', protect, async (req, res) => {
     if (req.body.images && Array.isArray(req.body.images)) {
       const newImages = req.body.images;
       const oldImages = listing.images || [];
-      // Find images that are in the old array but missing from the new array
-      const deletedImages = oldImages.filter(img => !newImages.includes(img));
-      
-      deletedImages.forEach(deleteImageFile);
+      oldImages.filter(img => !newImages.includes(img)).forEach(deleteImageFile);
     }
 
-    listing = await Listing.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Whitelist fields — never pass raw req.body (prevents owner hijack / field injection)
+    const allowed = {};
+    const fields = ['title','description','price','priceUnit','area','city','propertyType','bedrooms','bathrooms','sqft','image','images','amenities','rules'];
+    fields.forEach(f => { if (req.body[f] !== undefined) allowed[f] = req.body[f]; });
+
+    listing = await Listing.findByIdAndUpdate(req.params.id, allowed, { new: true });
     res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update property' });

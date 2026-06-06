@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const https = require('https');
+const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -163,6 +163,9 @@ router.post('/verify-otp', otpLimiter, [
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'An account with this email already exists.' });
 
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) return res.status(400).json({ message: 'An account with this phone number already exists.' });
+
     const user = await User.create({
       firstName,
       lastName,
@@ -195,7 +198,7 @@ router.post('/verify-otp', otpLimiter, [
     sendTokenResponse(user, res);
   } catch (error) {
     console.error('Verify OTP Error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Signup failed. Please try again.' });
   }
 });
 
@@ -391,25 +394,17 @@ router.get('/config', (req, res) => {
 });
 
 // ── HELPERS: Verify Google token ──────────────────────────────
-function verifyGoogleToken(credential) {
-  return new Promise((resolve) => {
-    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`;
-    https.get(url, (r) => {
-      let raw = '';
-      r.on('data', c => raw += c);
-      r.on('end', () => {
-        try {
-          const payload = JSON.parse(raw);
-          if (payload.error) return resolve(null);
-          const clientId = process.env.GOOGLE_CLIENT_ID;
-          if (clientId && clientId !== 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID' && payload.aud !== clientId) {
-            return resolve(null);
-          }
-          resolve(payload);
-        } catch(e) { resolve(null); }
-      });
-    }).on('error', () => resolve(null));
-  });
+async function verifyGoogleToken(credential) {
+  try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    return ticket.getPayload();
+  } catch (e) {
+    return null;
+  }
 }
 
 // ── ROUTE: GOOGLE OAUTH ────────────────────────────────────────

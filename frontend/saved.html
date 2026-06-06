@@ -104,8 +104,6 @@ async function renderSaved(){
   container.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-muted);">Loading saved listings…</div>';
 
   try {
-    const userStr = localStorage.getItem('user');
-    const token = userStr ? JSON.parse(userStr).token : null;
     const apiBase = window.API_BASE || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : '/api');
 
     // Fetch full listing objects from backend (httpOnly cookie handles auth)

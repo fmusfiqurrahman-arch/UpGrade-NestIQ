@@ -571,14 +571,11 @@ async function submitContact() {
   btn.disabled = true;
 
   try {
-    const userStr = localStorage.getItem('user');
-    const user  = userStr ? JSON.parse(userStr) : null;
-    const token = user ? user.token : null;
     const headers = { 'Content-Type': 'application/json' };
-    // Token now in httpOnly cookie — credentials:'include' handles auth
-  const res = await fetch(window.API_BASE + '/inquiries', {
+    const res = await fetch(window.API_BASE + '/inquiries', {
       method: 'POST',
       headers,
+      credentials: 'include',
       body: JSON.stringify({
         type:        'contact',
         content:     message,

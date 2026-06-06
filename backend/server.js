@@ -26,11 +26,16 @@ app.use(helmet({
         "'unsafe-inline'",           // Needed for inline scripts in HTML pages
         "https://accounts.google.com",
         "https://fonts.googleapis.com",
+        "https://unpkg.com",         // Leaflet map on listings page
       ],
+      // Helmet blocks onclick/onerror HTML attributes by default; allow them
+      // because the app uses onclick="goDetail(...)" throughout card components.
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",           // Needed for inline styles
         "https://fonts.googleapis.com",
+        "https://unpkg.com",         // Leaflet CSS on listings page
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
@@ -50,6 +55,8 @@ app.use(cookieParser());
 // ── CORS ─────────────────────────────────────────────────────
 // credentials: true is required so the browser sends cookies cross-origin
 const allowedOrigins = [
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
   'http://localhost:5500',
   'http://127.0.0.1:5500',
   'http://localhost:5501',

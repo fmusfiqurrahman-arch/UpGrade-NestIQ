@@ -1436,7 +1436,7 @@
   <script>
     // ── INIT ──────────────────────────────────────────────────
     const user = getUser();
-    if (!user || !user.token) { window.location.href = 'login_signup.html'; }
+    if (!user || !user._id) { window.location.href = 'login_signup.html'; }
 
     let _allUsers = [];
     let _allListings = [];
@@ -1664,6 +1664,7 @@
         const res = await fetch(window.API_BASE + '/auth/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(body)
         });
         if (res.ok) {

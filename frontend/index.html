@@ -1991,7 +1991,7 @@
     function handleStartMatching() {
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
-      if (user && user.token) {
+      if (user && user._id) {
         // Already logged in → go to personalized match listings
         window.location = 'listings.html?sort=match';
       } else {
@@ -2095,7 +2095,7 @@
         const userStr = localStorage.getItem('user');
         const userObj = userStr ? JSON.parse(userStr) : null;
 
-        if (userObj && userObj.token) {
+        if (userObj && userObj._id) {
           url = (window.API_BASE || '/api') + '/listings/matches';
           options = { credentials: 'include' };
         }

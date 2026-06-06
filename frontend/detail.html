@@ -532,9 +532,7 @@ window.handleContact = async function(action) {
   const listingId = new URLSearchParams(window.location.search).get('id');
   const userStr   = localStorage.getItem('user');
   const user      = userStr ? JSON.parse(userStr) : null;
-  const token     = user ? user.token : null;
   const headers   = { 'Content-Type': 'application/json' };
-  // Token now in httpOnly cookie — credentials:'include' handles auth
   let payload = { type: action, listing: listingId };
 
   if (action === 'booking') {
@@ -564,6 +562,7 @@ window.handleContact = async function(action) {
   try {
     const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
       method: 'POST', headers,
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
 

@@ -13,11 +13,13 @@ window.NestApp = {
       const response = await fetch(window.API_BASE + '/listings');
       if (!response.ok) throw new Error("Database fetch failed");
       
-      const dbData = await response.json();
-      
+      const raw = await response.json();
+      // Handle both response shapes: plain array (no ?page) or paginated object (with ?page)
+      const dbData = Array.isArray(raw) ? raw : (raw.listings || []);
+
       // Figure out the backend URL so images don't break
       const backendUrl = window.API_BASE ? window.API_BASE.replace('/api', '') : 'http://localhost:5000';
-      
+
       PROPERTIES = dbData.map(dbItem => {
         // Smart Image Fallback: Ensure relative uploads paths hit port 5000
         let rawImg = dbItem.image || (dbItem.images && dbItem.images.length > 0 ? dbItem.images[0] : null);
@@ -45,9 +47,9 @@ window.NestApp = {
           amenities: dbItem.amenities || [],
           verified: true,
           
-          featured: true, // 🚨 CRITICAL FIX: This forces the property to show up on the Home Page!
-          
-          match: Math.floor(Math.random() * 15) + 85, 
+          featured: true,
+
+          match: (() => { let s = 0; String(dbItem._id).split('').forEach(c => s += c.charCodeAt(0)); return 85 + (s % 15); })(),
           isNew: true,
           badge: dbItem.propertyType === 'rent' ? 'For Rent' : 'For Sale',
           badgeClass: dbItem.propertyType === 'rent' ? 'badge-rent' : 'badge-buy'

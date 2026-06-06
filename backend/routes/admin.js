@@ -4,6 +4,17 @@ const { protect, admin } = require('../middleware/auth');
 const Listing = require('../models/Listing');
 const User = require('../models/User');
 const Inquiry = require('../models/Inquiry');
+const fs = require('fs');
+const path = require('path');
+
+const deleteImageFile = (imageUrl) => {
+  if (!imageUrl || !imageUrl.includes('/uploads/')) return;
+  const filename = imageUrl.split('/uploads/')[1];
+  if (filename) {
+    const filepath = path.join(__dirname, '../uploads', filename);
+    fs.unlink(filepath, () => {});
+  }
+};
 
 // ──────────────────────────────────────────────
 // ALL ADMIN ROUTES REQUIRE: protect + admin
@@ -24,6 +35,7 @@ router.delete('/listings/:id', protect, admin, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    if (listing.images && listing.images.length > 0) listing.images.forEach(deleteImageFile);
     await listing.deleteOne();
     res.json({ message: 'Listing deleted by admin' });
   } catch (error) {

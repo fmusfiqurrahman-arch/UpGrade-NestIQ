@@ -284,7 +284,7 @@ async function fetchPaginatedListings(page) {
   
   const intent = document.getElementById('fIntent').value;
   const sort = document.getElementById('sortSel').value;
-  let url = `${(window.API_BASE || 'http://localhost:5000')}/listings?page=${page}&limit=${ITEMS_PER_PAGE}`;
+  let url = `${(window.API_BASE || 'http://localhost:5000/api')}/listings?page=${page}&limit=${ITEMS_PER_PAGE}`;
   if (intent) url += `&type=${intent === 'buy' ? 'sale' : intent}`;
   if (sort && sort !== 'match') url += `&sort=${sort}`;
 
@@ -303,13 +303,13 @@ async function fetchPaginatedListings(page) {
         price: p.price,
         priceFormatted: p.price.toLocaleString('en-IN'), 
         priceUnit: p.propertyType === 'rent' ? '/mo' : '',
-        area: p.location ? p.location.split(',')[0].trim() : '',
-        city: p.location && p.location.includes(',') ? p.location.split(',')[1].trim() : 'Bangladesh',
+        area: p.area || '',
+        city: p.city || 'Bangladesh',
         beds: p.bedrooms,
         baths: p.bathrooms,
         sqft: p.sqft,
         intent: p.propertyType === 'sale' ? 'buy' : 'rent',
-        img: p.image || (p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'),
+        img: (() => { const _bu = (window.API_BASE || 'http://localhost:5000/api').replace('/api',''); const _r = p.image || (p.images && p.images.length > 0 ? p.images[0] : null); return _r ? (_r.startsWith('http') ? _r : _bu + _r) : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80'; })(),
         verified: true,
         match: Math.floor(Math.random() * 15) + 85,
         isNew: true, 

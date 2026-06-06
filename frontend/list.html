@@ -721,9 +721,6 @@ document.getElementById('imageUpload').addEventListener('change', async function
   }
 
   const toUpload = Array.from(files).slice(0, remaining);
-  const savedUser = JSON.parse(localStorage.getItem('user'));
-  const token = savedUser ? savedUser.token : null;
-
   const formData = new FormData();
   toUpload.forEach(f => formData.append('images', f));
 
@@ -798,8 +795,7 @@ async function submitListing(){
   if(!ok) return;
 
   const savedUser = JSON.parse(localStorage.getItem('user'));
-  const token = savedUser ? savedUser.token : null;
-  if (!token) { alert("Please log in to submit a property."); return; }
+  if (!savedUser || !savedUser._id) { alert("Please log in to submit a property."); return; }
 
   const dbPropertyType = selectedIntent === 'sale' ? 'buy' : 'rent';
 
@@ -829,10 +825,8 @@ async function submitListing(){
     
     const response = await fetch(endpoint, {
       method: method,
-      headers: {
-        'Content-Type': 'application/json',
-        
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(newProperty)
     });
 

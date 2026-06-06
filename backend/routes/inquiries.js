@@ -10,18 +10,22 @@ const {
   sendContactFormConfirmationEmail
 } = require('../utils/email');
 
-const optionalProtect = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const decodeOptionalToken = async (req, res, next) => {
   let token;
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.cookies && req.cookies.nestiq_token) {
+    token = req.cookies.nestiq_token;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = optionalProtect.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-password');
     } catch (error) {
-      console.error(error);
+      // Invalid token — treat as guest, don't block the request
     }
   }
   next();

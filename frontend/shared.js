@@ -63,7 +63,7 @@ window.clearUser = NestState.clearUser;
 // ── THE AVATAR SYNC ENGINE ────────────────────────────────────
 function syncGlobalAvatar() {
   const user = window.getUser();
-  if (user && user.token) {
+  if (user && user._id) {
     const avatarEls = document.querySelectorAll('.nav-user-avatar');
     avatarEls.forEach(el => {
       if (user.profilePicUrl) {
@@ -351,9 +351,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-  ? 'http://localhost:5000/api' 
-  : '/api';
+// Use relative /api when already on port 5000 (avoids cross-origin entirely).
+// Use absolute http://localhost:5000/api only when on a different port (e.g. Live Server :5500).
+window.API_BASE = (window.location.port === '5000' || window.location.port === '')
+  ? '/api'
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 // ── CENTRALIZED API FETCH HELPER ──────────────────────────────
 // Always includes credentials (sends httpOnly cookie) so no page needs
