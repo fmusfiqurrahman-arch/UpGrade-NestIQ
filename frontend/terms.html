@@ -1,0 +1,194 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Terms of Service — NestIQ</title>
+  <meta name="description" content="NestIQ Terms of Service. Read our terms and conditions for using the NestIQ real estate platform."/>
+  <script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    .legal-hero {
+      background: var(--ink);
+      padding: 140px 60px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    html.dark .legal-hero { background: #0a0907; }
+    .legal-hero::before {
+      content: '';
+      position: absolute; top: -150px; right: -150px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,155,106,0.08) 0%, transparent 70%);
+    }
+    .legal-hero-tag {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .legal-hero-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--gold); }
+    .legal-hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 5vw, 64px); font-weight: 300;
+      color: #f0ece4; line-height: 1.1;
+    }
+    .legal-hero h1 em { font-style: italic; color: var(--gold); }
+    .legal-hero p { color: rgba(240,236,228,0.5); font-size: 14px; margin-top: 12px; }
+
+    .legal-body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 80px 60px;
+    }
+    .legal-body h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 300;
+      color: var(--text);
+      margin: 48px 0 16px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    .legal-body h2:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+    .legal-body p, .legal-body li {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.9; margin-bottom: 14px;
+    }
+    .legal-body ul { padding-left: 20px; }
+    .legal-body strong { color: var(--text); font-weight: 500; }
+    .legal-body a { color: var(--gold); }
+    .legal-body .last-updated {
+      display: inline-block;
+      background: rgba(184,155,106,0.1);
+      color: var(--gold);
+      border: 1px solid rgba(184,155,106,0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 768px) {
+      .legal-hero { padding: 120px 24px 50px; }
+      .legal-body { padding: 50px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
+  <div class="nav-links">
+    <a href="listings.html">Browse</a>
+    <a href="about.html">About</a>
+    <a href="list.html">List Property</a>
+    <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
+    <div class="nav-user nav-user-drop" id="navUser" style="display:none">
+      <div class="nav-user-avatar">👤</div>
+      <span class="nav-user-name"></span>
+      <div class="nav-user-menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="saved.html">Saved Listings</a>
+        <hr/>
+        <a href="#" onclick="clearUser();return false;">Sign Out</a>
+      </div>
+    </div>
+    <button class="nav-dark-toggle" onclick="toggleDark()" title="Toggle dark mode"><span class="dark-toggle-icon">🌙</span></button>
+  </div>
+  <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="legal-hero">
+  <div class="legal-hero-tag">Legal</div>
+  <h1>Terms of <em>Service</em></h1>
+  <p>Please read these terms carefully before using NestIQ.</p>
+</div>
+
+<div class="legal-body">
+  <div class="last-updated">Last Updated: June 2025</div>
+
+  <h2>1. Acceptance of Terms</h2>
+  <p>By accessing or using the NestIQ platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.</p>
+  <p>NestIQ Technologies Ltd. ("NestIQ", "we", "us") reserves the right to update these terms at any time. Continued use of the Service after changes constitutes acceptance of the revised terms.</p>
+
+  <h2>2. Eligibility</h2>
+  <p>You must be at least 18 years old to use NestIQ. By creating an account, you represent that:</p>
+  <ul>
+    <li>You are at least 18 years of age.</li>
+    <li>You have the legal capacity to enter into a binding agreement.</li>
+    <li>All information you provide is accurate and truthful.</li>
+  </ul>
+
+  <h2>3. User Accounts</h2>
+  <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately at <a href="mailto:support@nestiq.com">support@nestiq.com</a> of any unauthorized use of your account.</p>
+  <p>We offer three account roles: <strong>Tenant/Buyer</strong>, <strong>Owner/Agent</strong>, and <strong>Admin</strong>. Each role carries different permissions and responsibilities within the platform.</p>
+
+  <h2>4. Listing Policies</h2>
+  <p>Property owners and agents who post listings agree that:</p>
+  <ul>
+    <li>All listing information is accurate, truthful, and not misleading.</li>
+    <li>You have the legal right or authority to list the property.</li>
+    <li>Listings will not include discriminatory language or pricing.</li>
+    <li>Photos submitted are authentic and represent the actual property.</li>
+    <li>Contact information provided is valid and monitored.</li>
+  </ul>
+  <p>NestIQ reserves the right to remove any listing that violates these policies without notice.</p>
+
+  <h2>5. Prohibited Conduct</h2>
+  <p>You agree not to use the Service to:</p>
+  <ul>
+    <li>Post fraudulent, false, or misleading listings or information.</li>
+    <li>Harass, threaten, or abuse other users.</li>
+    <li>Attempt to gain unauthorized access to any part of the Service.</li>
+    <li>Use automated tools to scrape or collect data from the platform.</li>
+    <li>Violate any applicable local, national, or international law.</li>
+  </ul>
+
+  <h2>6. Verification System</h2>
+  <p>NestIQ offers a voluntary verification program where users can upload government-issued identification (NID, Passport). Verification is subject to admin review and does not constitute a guarantee of a user's identity or trustworthiness. NestIQ is not liable for losses arising from interactions with verified or unverified users.</p>
+
+  <h2>7. Intellectual Property</h2>
+  <p>All content on the NestIQ platform, including logos, design, text, and software, is owned by NestIQ Technologies Ltd. and protected by applicable copyright and trademark laws. You may not reproduce or distribute any content without prior written permission.</p>
+
+  <h2>8. Limitation of Liability</h2>
+  <p>NestIQ is a platform that connects property seekers with property owners. We do not own, manage, or control any listed properties. We are not a party to any transaction between users. To the maximum extent permitted by law, NestIQ shall not be liable for any indirect, incidental, or consequential damages arising from use of the Service.</p>
+
+  <h2>9. Termination</h2>
+  <p>We reserve the right to suspend or terminate your account at any time, with or without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties.</p>
+
+  <h2>10. Governing Law</h2>
+  <p>These Terms shall be governed by the laws of the People's Republic of Bangladesh. Any disputes shall be subject to the exclusive jurisdiction of the courts of Dhaka, Bangladesh.</p>
+
+  <h2>11. Contact</h2>
+  <p>For questions about these Terms, contact us at:<br>
+    <strong>Email:</strong> <a href="mailto:legal@nestiq.com">legal@nestiq.com</a><br>
+    <strong>Address:</strong> NestIQ Technologies Ltd., Dhaka, Bangladesh
+  </p>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f0ece4;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh.</p></div>
+    <div class="footer-col"><h4>Browse</h4><a href="listings.html">All Listings</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
+    <div class="footer-col"><h4>Account</h4><a href="dashboard.html">Dashboard</a><a href="saved.html">Saved</a><a href="login_signup.html">Sign In</a></div>
+    <div class="footer-col"><h4>Legal</h4><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a><a href="about.html">About Us</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
+</footer>
+
+<div id="notif"></div>
+<script src="shared.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    updateNavAuth();
+    _setActiveNavLink && _setActiveNavLink();
+  });
+</script>
+</body>
+</html>
+

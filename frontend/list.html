@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -733,7 +733,7 @@ document.getElementById('imageUpload').addEventListener('change', async function
 
     const response = await fetch(window.API_BASE + '/upload', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
+      credentials: 'include',
       body: formData
     });
 
@@ -831,7 +831,7 @@ async function submitListing(){
       method: method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        
       },
       body: JSON.stringify(newProperty)
     });
@@ -874,3 +874,4 @@ async function submitListing(){
 </script>
 </body>
 </html>
+

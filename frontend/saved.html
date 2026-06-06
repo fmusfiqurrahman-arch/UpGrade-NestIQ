@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -108,9 +108,9 @@ async function renderSaved(){
     const token = userStr ? JSON.parse(userStr).token : null;
     const apiBase = window.API_BASE || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : '/api');
 
-    // Fetch full listing objects from backend
+    // Fetch full listing objects from backend (httpOnly cookie handles auth)
     const res = await fetch(`${apiBase}/user/saved-listings`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      credentials: 'include',
     });
 
     if (!res.ok) throw new Error('API error');
@@ -180,14 +180,13 @@ async function renderSaved(){
 
 window.clearAll = function(){
   if(!confirm('Remove all saved listings?')) return;
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr).token : null;
   const apiBase = window.API_BASE || '/api';
   localStorage.setItem('nestiq_saved', '[]');
-  // Also clear on backend (fire-and-forget)
-  if (token) {
-    fetch(`${apiBase}/user/saved-listings`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(()=>{});
-  }
+  // FIX: Use credentials:'include' — httpOnly cookie handles auth
+  fetch(`${apiBase}/user/saved-listings`, {
+    method: 'DELETE',
+    credentials: 'include',
+  }).catch(()=>{});
   renderSaved();
   showNotif('Cleared all saved listings');
 };
@@ -202,3 +201,4 @@ window.toggleSave = function(e, btn, id){
 </script>
 </body>
 </html>
+

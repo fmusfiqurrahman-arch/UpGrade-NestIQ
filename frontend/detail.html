@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -534,8 +534,7 @@ window.handleContact = async function(action) {
   const user      = userStr ? JSON.parse(userStr) : null;
   const token     = user ? user.token : null;
   const headers   = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
+  // Token now in httpOnly cookie — credentials:'include' handles auth
   let payload = { type: action, listing: listingId };
 
   if (action === 'booking') {
@@ -682,3 +681,4 @@ document.getElementById('gallery-lb').addEventListener('click', function(e) {
 
 </body>
 </html>
+

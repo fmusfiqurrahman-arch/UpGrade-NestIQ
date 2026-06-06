@@ -1,9 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const Listing = require('../models/Listing'); 
+const { body, validationResult } = require('express-validator');
+const Listing = require('../models/Listing');
 const { protect, admin } = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
+
+// ── LISTING VALIDATION RULES ──────────────────────────────────
+const listingValidation = [
+  body('title').notEmpty().trim().escape().isLength({ max: 200 }),
+  body('description').notEmpty().trim().isLength({ max: 5000 }),
+  body('price').isNumeric().toFloat(),
+  body('area').notEmpty().trim().escape(),
+  body('city').notEmpty().trim().escape(),
+  body('propertyType').isIn(['rent', 'sale', 'buy']),
+  body('bedrooms').isInt({ min: 0 }).toInt(),
+  body('bathrooms').isInt({ min: 0 }).toInt(),
+  body('sqft').isInt({ min: 0 }).toInt(),
+];
 
 // ── THE SMART IMAGE JANITOR ──────────────────────────────────
 // This helper physically deletes image files from the server
@@ -174,10 +188,32 @@ router.get('/:id', async (req, res) => {
 });
 
 // 4. CREATE A LISTING
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, listingValidation, async (req, res) => {
+  // Reject if validation failed
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+  }
+
   try {
-    const listingData = req.body;
-    listingData.owner = req.user._id; 
+    // Only pick known fields — never pass raw req.body directly to the DB
+    const listingData = {
+      title: req.body.title,
+      description: req.body.description,
+      price: req.body.price,
+      priceUnit: req.body.priceUnit || 'total',
+      area: req.body.area,
+      city: req.body.city,
+      propertyType: req.body.propertyType,
+      bedrooms: req.body.bedrooms,
+      bathrooms: req.body.bathrooms,
+      sqft: req.body.sqft,
+      image: req.body.image || '',
+      images: Array.isArray(req.body.images) ? req.body.images : [],
+      amenities: Array.isArray(req.body.amenities) ? req.body.amenities : [],
+      rules: Array.isArray(req.body.rules) ? req.body.rules : [],
+      owner: req.user._id,
+    };
     const newListing = await Listing.create(listingData);
     res.status(201).json(newListing);
   } catch (error) {

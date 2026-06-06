@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy — NestIQ</title>
+  <meta name="description" content="NestIQ Privacy Policy. Learn how we collect, use, and protect your personal data."/>
+  <script>(function(){ if(localStorage.getItem('nestiq_dark')==='1') document.documentElement.classList.add('dark'); })();</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    .legal-hero {
+      background: var(--ink);
+      padding: 140px 60px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    html.dark .legal-hero { background: #0a0907; }
+    .legal-hero::before {
+      content: '';
+      position: absolute; top: -150px; right: -150px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,155,106,0.08) 0%, transparent 70%);
+    }
+    .legal-hero-tag {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .legal-hero-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--gold); }
+    .legal-hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 5vw, 64px); font-weight: 300;
+      color: #f0ece4; line-height: 1.1;
+    }
+    .legal-hero h1 em { font-style: italic; color: var(--gold); }
+    .legal-hero p { color: rgba(240,236,228,0.5); font-size: 14px; margin-top: 12px; }
+
+    .legal-body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 80px 60px;
+    }
+    .legal-body h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 300;
+      color: var(--text);
+      margin: 48px 0 16px;
+      padding-top: 48px;
+      border-top: 1px solid var(--border);
+    }
+    .legal-body h2:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+    .legal-body p, .legal-body li {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.9; margin-bottom: 14px;
+    }
+    .legal-body ul { padding-left: 20px; }
+    .legal-body strong { color: var(--text); font-weight: 500; }
+    .legal-body a { color: var(--gold); }
+    .legal-body .last-updated {
+      display: inline-block;
+      background: rgba(184,155,106,0.1);
+      color: var(--gold);
+      border: 1px solid rgba(184,155,106,0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 40px;
+    }
+    .data-table {
+      width: 100%; border-collapse: collapse; margin: 20px 0;
+    }
+    .data-table th {
+      text-align: left; padding: 12px 16px;
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-muted); background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 12px 16px; font-size: 13px;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    @media (max-width: 768px) {
+      .legal-hero { padding: 120px 24px 50px; }
+      .legal-body { padding: 50px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav id="navbar">
+  <a href="index.html" class="nav-logo">Nest<span>IQ</span></a>
+  <div class="nav-links">
+    <a href="listings.html">Browse</a>
+    <a href="about.html">About</a>
+    <a href="list.html">List Property</a>
+    <a href="login_signup.html" class="nav-cta" id="navCta">Get Started</a>
+    <div class="nav-user nav-user-drop" id="navUser" style="display:none">
+      <div class="nav-user-avatar">👤</div>
+      <span class="nav-user-name"></span>
+      <div class="nav-user-menu">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="saved.html">Saved Listings</a>
+        <hr/>
+        <a href="#" onclick="clearUser();return false;">Sign Out</a>
+      </div>
+    </div>
+    <button class="nav-dark-toggle" onclick="toggleDark()" title="Toggle dark mode"><span class="dark-toggle-icon">🌙</span></button>
+  </div>
+  <div class="nav-mobile-toggle" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="legal-hero">
+  <div class="legal-hero-tag">Legal</div>
+  <h1>Privacy <em>Policy</em></h1>
+  <p>How we collect, use, and protect your personal information.</p>
+</div>
+
+<div class="legal-body">
+  <div class="last-updated">Last Updated: June 2025</div>
+
+  <h2>1. Introduction</h2>
+  <p>NestIQ Technologies Ltd. ("NestIQ", "we", "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform.</p>
+  <p>By using NestIQ, you consent to the data practices described in this policy.</p>
+
+  <h2>2. Information We Collect</h2>
+  <table class="data-table">
+    <tr>
+      <th>Data Type</th>
+      <th>What We Collect</th>
+      <th>Why</th>
+    </tr>
+    <tr>
+      <td><strong>Account Data</strong></td>
+      <td>Name, email, phone number, password (hashed)</td>
+      <td>To create and manage your account</td>
+    </tr>
+    <tr>
+      <td><strong>Profile Data</strong></td>
+      <td>Profile photo, role (tenant/owner), preferences</td>
+      <td>To personalise your experience</td>
+    </tr>
+    <tr>
+      <td><strong>Verification Data</strong></td>
+      <td>National ID / Passport image (optional)</td>
+      <td>To verify your identity for trust</td>
+    </tr>
+    <tr>
+      <td><strong>Listing Data</strong></td>
+      <td>Property details, photos, location</td>
+      <td>To display your property to potential renters/buyers</td>
+    </tr>
+    <tr>
+      <td><strong>Usage Data</strong></td>
+      <td>Pages visited, properties saved, search queries</td>
+      <td>To improve the platform and AI matching</td>
+    </tr>
+    <tr>
+      <td><strong>Device Data</strong></td>
+      <td>Browser type, IP address, OS</td>
+      <td>For security and fraud prevention</td>
+    </tr>
+  </table>
+
+  <h2>3. How We Use Your Data</h2>
+  <ul>
+    <li>To provide, operate, and maintain our platform.</li>
+    <li>To personalise property recommendations using our AI matching engine.</li>
+    <li>To send transactional emails (OTP verification, password reset, booking confirmations).</li>
+    <li>To verify user identity and prevent fraud.</li>
+    <li>To comply with legal obligations.</li>
+    <li>To analyse usage patterns and improve our Service.</li>
+  </ul>
+  <p>We <strong>do not</strong> sell your personal data to third parties.</p>
+
+  <h2>4. Cookies & Local Storage</h2>
+  <p>NestIQ uses:</p>
+  <ul>
+    <li><strong>httpOnly Cookies</strong>: A secure, encrypted session token is stored in a browser cookie to keep you logged in. This cookie is not accessible by JavaScript (protecting against XSS attacks).</li>
+    <li><strong>localStorage</strong>: Non-sensitive user information (your name, role) and your saved listing IDs are stored locally for performance. No passwords or tokens are stored here.</li>
+    <li><strong>Theme preference</strong>: Dark/light mode setting stored locally.</li>
+  </ul>
+
+  <h2>5. Data Sharing</h2>
+  <p>We may share your data with:</p>
+  <ul>
+    <li><strong>Google</strong>: If you use Google Sign-In, your Google profile data is shared with us per Google's OAuth terms.</li>
+    <li><strong>MongoDB Atlas</strong>: Our database provider, hosted on secure cloud infrastructure.</li>
+    <li><strong>Legal authorities</strong>: If required by law, court order, or to protect the rights and safety of NestIQ and its users.</li>
+  </ul>
+
+  <h2>6. Data Retention</h2>
+  <p>We retain your account data for as long as your account is active. If you delete your account, we will delete your personal data within 30 days, except where retention is required by law.</p>
+  <p>Property listing photos that you delete are removed from our servers immediately by our automated cleanup system.</p>
+
+  <h2>7. Security</h2>
+  <p>We implement industry-standard security measures including:</p>
+  <ul>
+    <li>Passwords hashed using bcrypt (salt rounds: 10)</li>
+    <li>JWT authentication via httpOnly cookies (not localStorage)</li>
+    <li>Rate limiting on login and OTP endpoints</li>
+    <li>HTTP security headers via Helmet.js (CSP, X-Frame-Options, etc.)</li>
+    <li>HTTPS encryption in production</li>
+  </ul>
+  <p>However, no method of transmission over the Internet is 100% secure. We cannot guarantee absolute security.</p>
+
+  <h2>8. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li><strong>Access</strong>: Request a copy of the personal data we hold about you.</li>
+    <li><strong>Correct</strong>: Update inaccurate data via your account dashboard.</li>
+    <li><strong>Delete</strong>: Request deletion of your account and associated data.</li>
+    <li><strong>Withdraw consent</strong>: Opt out of non-essential data processing at any time.</li>
+  </ul>
+  <p>To exercise these rights, contact us at <a href="mailto:privacy@nestiq.com">privacy@nestiq.com</a>.</p>
+
+  <h2>9. Children's Privacy</h2>
+  <p>NestIQ is not intended for use by anyone under the age of 18. We do not knowingly collect personal information from minors. If we discover that a minor has provided us with personal data, we will delete it immediately.</p>
+
+  <h2>10. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or a notice on the platform. Your continued use of NestIQ after the changes take effect constitutes acceptance of the revised policy.</p>
+
+  <h2>11. Contact Us</h2>
+  <p>For privacy-related questions or requests:<br>
+    <strong>Email:</strong> <a href="mailto:privacy@nestiq.com">privacy@nestiq.com</a><br>
+    <strong>Address:</strong> NestIQ Technologies Ltd., Dhaka, Bangladesh
+  </p>
+</div>
+
+<footer>
+  <div class="footer-grid">
+    <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f0ece4;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh.</p></div>
+    <div class="footer-col"><h4>Browse</h4><a href="listings.html">All Listings</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
+    <div class="footer-col"><h4>Account</h4><a href="dashboard.html">Dashboard</a><a href="saved.html">Saved</a><a href="login_signup.html">Sign In</a></div>
+    <div class="footer-col"><h4>Legal</h4><a href="terms.html">Terms of Service</a><a href="privacy.html">Privacy Policy</a><a href="about.html">About Us</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2025 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
+</footer>
+
+<div id="notif"></div>
+<script src="shared.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    updateNavAuth();
+    _setActiveNavLink && _setActiveNavLink();
+  });
+</script>
+</body>
+</html>
+

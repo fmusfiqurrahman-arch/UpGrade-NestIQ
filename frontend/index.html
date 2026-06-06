@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -2097,7 +2097,7 @@
 
         if (userObj && userObj.token) {
           url = (window.API_BASE || '/api') + '/listings/matches';
-          options = { headers: { Authorization: `Bearer ${userObj.token}` } };
+          options = { credentials: 'include' };
         }
 
         // FIX: Using relative path bypasses the CORS security crash!
@@ -2188,9 +2188,8 @@
         const userStr = localStorage.getItem('user');
         const token = userStr ? JSON.parse(userStr).token : null;
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(window.API_BASE ? window.API_BASE + '/inquiries' : '/api/inquiries', {
+        // Token now in httpOnly cookie — credentials:'include' handles auth
+  const res = await fetch(window.API_BASE ? window.API_BASE + '/inquiries' : '/api/inquiries', {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -2298,3 +2297,4 @@
 </body>
 
 </html>
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -1518,7 +1518,7 @@
       if (isAdmin) {
         document.getElementById('welcomeSub').textContent = "Welcome back, Admin. Here's the platform at a glance.";
         try {
-          const res = await fetch(window.API_BASE + '/user/admin/stats', { headers: { Authorization: `Bearer ${user.token}` } });
+          const res = await fetch(window.API_BASE + '/user/admin/stats', { credentials: 'include' });
           const stats = res.ok ? await res.json() : { usersCount:0, verifiedUsers:0, totalListings:0, totalInquiries:0 };
           const pending = stats.usersCount - stats.verifiedUsers; // Approximation for pending
 
@@ -1549,8 +1549,8 @@
         document.getElementById('welcomeSub').textContent = 'Manage your properties and track tenant interest.';
         try {
           const [resProps, resInq] = await Promise.all([
-            fetch(window.API_BASE + '/listings/me', { headers: { Authorization: `Bearer ${user.token}` } }),
-            fetch(window.API_BASE + '/inquiries', { headers: { Authorization: `Bearer ${user.token}` } })
+            fetch(window.API_BASE + '/listings/me', { credentials: 'include' }),
+            fetch(window.API_BASE + '/inquiries', { credentials: 'include' })
           ]);
           const props = resProps.ok ? await resProps.json() : [];
           const inqs = resInq.ok ? await resInq.json() : [];
@@ -1574,8 +1574,8 @@
         document.getElementById('welcomeSub').textContent = 'Find your perfect home and track your search.';
         try {
           const [resSaved, resInq] = await Promise.all([
-            fetch(window.API_BASE + '/user/saved-listings', { headers: { Authorization: `Bearer ${user.token}` } }),
-            fetch(window.API_BASE + '/inquiries', { headers: { Authorization: `Bearer ${user.token}` } })
+            fetch(window.API_BASE + '/user/saved-listings', { credentials: 'include' }),
+            fetch(window.API_BASE + '/inquiries', { credentials: 'include' })
           ]);
           const savedProps = resSaved.ok ? await resSaved.json() : [];
           const inqs = resInq.ok ? await resInq.json() : [];
@@ -1610,7 +1610,7 @@
     // ── PROFILE ───────────────────────────────────────────────
     async function fetchProfile() {
       try {
-        const res = await fetch(window.API_BASE + '/auth/me', { headers: { Authorization: `Bearer ${user.token}` } });
+        const res = await fetch(window.API_BASE + '/auth/me', { credentials: 'include' });
         if (!res.ok) return;
         const data = await res.json();
         document.getElementById('profFirst').value = data.firstName || '';
@@ -1663,7 +1663,7 @@
       try {
         const res = await fetch(window.API_BASE + '/auth/profile', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
         if (res.ok) {
@@ -1685,7 +1685,7 @@
       const fd = new FormData(); fd.append('profilePic', file);
       try {
         const res = await fetch(window.API_BASE + '/user/profile-pic', {
-          method: 'POST', headers: { Authorization: `Bearer ${user.token}` }, body: fd
+          method: 'POST', credentials: 'include', body: fd
         });
         const d = await res.json();
         if (res.ok) {
@@ -1704,7 +1704,7 @@
       const fd = new FormData(); fd.append('nidDoc', file);
       try {
         const res = await fetch(window.API_BASE + '/user/nid-upload', {
-          method: 'POST', headers: { Authorization: `Bearer ${user.token}` }, body: fd
+          method: 'POST', credentials: 'include', body: fd
         });
         const d = await res.json();
         if (res.ok) { showNotif('✓ Document uploaded — awaiting admin review'); fetchProfile(); }
@@ -1719,7 +1719,7 @@
       
       try {
         const res = await fetch((window.API_BASE || '/api') + '/user/saved-listings', {
-          headers: { Authorization: `Bearer ${user.token}` }
+          credentials: 'include'
         });
         
         const props = res.ok ? await res.json() : [];
@@ -1753,7 +1753,7 @@
     async function fetchMyListings() {
       const grid = document.getElementById('myListingsGrid');
       try {
-        const res = await fetch(window.API_BASE + '/listings/me', { headers: { Authorization: `Bearer ${user.token}` } });
+        const res = await fetch(window.API_BASE + '/listings/me', { credentials: 'include' });
         const props = res.ok ? await res.json() : [];
         if (!props.length) {
           grid.innerHTML = `<div class="empty-dash" style="grid-column:1/-1;">
@@ -1792,7 +1792,7 @@
     async function deleteListing(id) {
       if (!confirm('Delete this listing and all its photos permanently?')) return;
       const res = await fetch(`${window.API_BASE}/listings/${id}`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${user.token}` }
+        method: 'DELETE', credentials: 'include'
       });
       if (res.ok) { showNotif('✓ Listing deleted'); fetchMyListings(); loadOverview(); }
       else showNotif('Failed to delete listing');
@@ -1804,7 +1804,7 @@
       try {
         const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: 'owner_request', content: `User ${user.firstName} ${user.lastName} (${user.email}) requested Owner account switch.` })
         });
         if(res.ok) {
@@ -1823,7 +1823,7 @@
     async function loadInquiries() {
       try {
         const res = await fetch((window.API_BASE || '/api') + '/inquiries', {
-          headers: { Authorization: `Bearer ${user.token}` }
+          credentials: 'include'
         });
         if (res.ok) {
           const inqs = await res.json();
@@ -1862,7 +1862,7 @@
     // ── ADMIN: USERS ──────────────────────────────────────────
     async function fetchAdminUsers() {
       try {
-        const res = await fetch(window.API_BASE + '/user/admin/users', { headers: { Authorization: `Bearer ${user.token}` } });
+        const res = await fetch(window.API_BASE + '/user/admin/users', { credentials: 'include' });
         _allUsers = res.ok ? await res.json() : [];
         renderUserTable(_allUsers);
       } catch (e) { document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;">Failed to load users.</td></tr>'; }
@@ -1912,7 +1912,7 @@
 
     async function toggleVerify(userId) {
       const res = await fetch(`${window.API_BASE}/user/admin/users/${userId}/verify`, {
-        method: 'PUT', headers: { Authorization: `Bearer ${user.token}` }
+        method: 'PUT', credentials: 'include'
       });
       if (res.ok) { showNotif('✓ Verification status updated'); fetchAdminUsers(); }
       else { const d = await res.json(); showNotif('Error: ' + d.message); }
@@ -1926,7 +1926,7 @@
       try {
         const res = await fetch(`${window.API_BASE}/user/admin/users/${userId}/role`, {
           method: 'PUT', 
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: newRole })
         });
         if (res.ok) {
@@ -1994,7 +1994,7 @@
     async function adminDeleteListing(id) {
       if (!confirm('Permanently delete this listing and all its photos?')) return;
       const res = await fetch(`${window.API_BASE}/listings/${id}`, {
-        method: 'DELETE', headers: { Authorization: `Bearer ${user.token}` }
+        method: 'DELETE', credentials: 'include'
       });
       if (res.ok) { showNotif('✓ Listing deleted'); fetchAdminListings(); loadOverview(); }
       else showNotif('Failed to delete listing');
@@ -2025,3 +2025,4 @@
 </body>
 
 </html>
+

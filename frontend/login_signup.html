@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -542,7 +542,7 @@ html.dark .left-stat-val {
 
         <div class="checkbox-row">
           <input type="checkbox" id="terms"/>
-          <label for="terms">I agree to NestIQ's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand my data is used to improve my property matches.</label>
+          <label for="terms">I agree to NestIQ's <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>. I understand my data is used to improve my property matches.</label>
         </div>
         <div class="form-error" id="termsErr" style="margin-top:-12px;margin-bottom:12px">Please accept the terms to continue.</div>
 
@@ -711,7 +711,7 @@ function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 function isPhone(v) { return /^[\d\s\-+]{7,}$/.test(v); }
 
 // ── LOGIN ──
-// ── REAL LOGIN (Talks to Backend) ──
+// ── LOGIN ──
 async function handleLogin() {
   clearErrs();
   const id = document.getElementById('loginId').value.trim();
@@ -725,24 +725,32 @@ async function handleLogin() {
   btn.textContent = 'Signing in…'; btn.classList.add('loading');
 
   try {
-    // 1. Send the email and password to our Express server
     const response = await fetch(window.API_BASE + '/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // FIX: Send/receive httpOnly cookie
       body: JSON.stringify({ email: id, password: pw })
     });
 
     const data = await response.json();
 
-    // 2. If the server says "OK" (passwords matched!)
     if (response.ok) {
-      // 1. Force the browser to safely save the user data AND the VIP token
-      localStorage.setItem('user', JSON.stringify(data));
+      // FIX: Store only user info (no token) — the token is in the httpOnly cookie
+      localStorage.setItem('user', JSON.stringify({
+        _id: data._id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        profilePicUrl: data.profilePicUrl,
+        isVerified: data.isVerified,
+      }));
       
-      // Sync saved listings
+      // Sync saved listings using cookie for auth
       try {
          const sRes = await fetch((window.API_BASE || '/api') + '/user/saved-listings', {
-           headers: { Authorization: `Bearer ${data.token}` }
+           credentials: 'include', // FIX: Use cookie instead of Bearer token
          });
          if(sRes.ok) {
            const savedData = await sRes.json();
@@ -753,13 +761,8 @@ async function handleLogin() {
 
       btn.textContent = 'Sign In →'; btn.classList.remove('loading');
       showNotif('✓ Signed in successfully! Redirecting…');
-      
-      // 2. Force the browser to go directly to the Dashboard page!
-      setTimeout(() => {
-        window.location.href = 'dashboard.html'; 
-      }, 1200);
+      setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
     } else {
-      // 3. If the server rejects it (wrong password, etc.)
       btn.textContent = 'Sign In →'; btn.classList.remove('loading');
       showNotif('❌ ' + data.message);
     }
@@ -835,7 +838,6 @@ async function handleOtp() {
   if(val.length < 6){ showNotif('Enter all 6 digits'); return; }
   showNotif('Creating Account…');
 
-  // Grab the data the user typed in the previous step
   const first = document.getElementById('signupFirst').value.trim();
   const last  = document.getElementById('signupLast').value.trim();
   const email = document.getElementById('signupEmail').value.trim();
@@ -843,10 +845,10 @@ async function handleOtp() {
   const pw    = document.getElementById('signupPw').value;
 
   try {
-    // 1. Send the new user data to our Express server
     const response = await fetch(window.API_BASE + '/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // FIX: Receive httpOnly cookie from server
       body: JSON.stringify({
         firstName: first,
         lastName: last,
@@ -861,19 +863,20 @@ async function handleOtp() {
 
     const data = await response.json();
 
-    // 2. If the server successfully created the user in MongoDB
     if (response.ok) {
+      // FIX: Store only user info — token lives in httpOnly cookie
       setUser({
         _id: data._id,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
+        phone: data.phone,
         role: data.role,
-        token: data.token
+        profilePicUrl: data.profilePicUrl,
+        isVerified: data.isVerified,
       });
       switchPanel('success');
     } else {
-      // 3. If the server says "User already exists", etc.
       let errStr = data.message || '';
       if (data.errors) errStr = data.errors.map(e => e.msg).join(', ');
       showNotif('❌ ' + errStr);
@@ -918,17 +921,14 @@ async function handleForgot() {
   if(!isEmail(email)) { showErr('forgotEmailErr'); return; }
   showNotif('Sending reset link…');
   try {
-    const res = await fetch(window.API_BASE + '/auth/forgot-password', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    // Backend always returns 200 (to prevent user enumeration)
+    await fetch(window.API_BASE + '/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    if (res.ok) {
-      showNotif('✓ Reset link sent! Check your inbox.');
-      setTimeout(() => switchPanel('login'), 2000);
-    } else {
-      const data = await res.json();
-      showNotif('❌ ' + (data.message || 'Error'));
-    }
+    showNotif('✓ If that email is registered, a reset link has been sent.');
+    setTimeout(() => switchPanel('login'), 3000);
   } catch (e) {
     showNotif('❌ Cannot connect to server');
   }
@@ -991,11 +991,22 @@ async function handleGoogleCredential(response) {
     const res = await fetch(window.API_BASE + '/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // FIX: Receive httpOnly cookie
       body: JSON.stringify({ credential: response.credential })
     });
     const data = await res.json();
     if (res.ok) {
-      localStorage.setItem('user', JSON.stringify(data));
+      // FIX: Store only user info — token lives in httpOnly cookie
+      localStorage.setItem('user', JSON.stringify({
+        _id: data._id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        profilePicUrl: data.profilePicUrl,
+        isVerified: data.isVerified,
+      }));
       showNotif('✓ Signed in with Google! Redirecting…');
       setTimeout(() => doRedirect(), 1200);
     } else {

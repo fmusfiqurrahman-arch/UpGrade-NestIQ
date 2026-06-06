@@ -8,14 +8,23 @@ const NestState = (function(){
   function setUser(u){ _w('user', u); syncGlobalAvatar(); } 
   
   function isLoggedIn() {
+    // FIX: Token now lives in httpOnly cookie — check for user info only
     const savedUser = JSON.parse(localStorage.getItem('user'));
-    return savedUser && savedUser.token ? true : false;
+    return savedUser && savedUser._id ? true : false;
   }
   
   function getUser() { return JSON.parse(localStorage.getItem('user')); }
   
-  function clearUser() {
+  async function clearUser() {
+    // FIX: Call backend logout to clear the httpOnly cookie
+    try {
+      await fetch((window.API_BASE || '/api') + '/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch(e) {}
     localStorage.removeItem('user');
+    localStorage.removeItem('nestiq_saved');
     window.location.href = 'index.html';
   }
 
@@ -196,23 +205,31 @@ window.toggleSave=async function(e,btn,id){
   if(!NestState.isLoggedIn()){ showLoginPrompt(); return; }
   id=String(id);
   const saved=NestState.isSaved(id);
-  const userStr = localStorage.getItem('user');
-  const token = userStr ? JSON.parse(userStr).token : null;
   
   if(saved){ 
     NestState.removeSaved(id); 
-    btn.textContent='♡'; btn.classList.remove('saved'); 
+    btn.textContent='\u2661'; btn.classList.remove('saved'); 
     showNotif('Removed from wishlist');
-    if(token) {
-      try { await fetch((window.API_BASE || '/api') + '/user/saved-listings/' + id, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }); } catch(err) {}
-    }
+    try {
+      // FIX: credentials:'include' sends the httpOnly cookie
+      await fetch((window.API_BASE || '/api') + '/user/saved-listings/' + id, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    } catch(err) {}
   } else { 
     NestState.addSaved(id); 
-    btn.textContent='♥'; btn.classList.add('saved'); 
-    showNotif('Saved to wishlist ♥'); 
-    if(token) {
-      try { await fetch((window.API_BASE || '/api') + '/user/saved-listings', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ listingId: id }) }); } catch(err) {}
-    }
+    btn.textContent='\u2665'; btn.classList.add('saved'); 
+    showNotif('Saved to wishlist \u2665'); 
+    try {
+      // FIX: credentials:'include' sends the httpOnly cookie
+      await fetch((window.API_BASE || '/api') + '/user/saved-listings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ listingId: id }),
+      });
+    } catch(err) {}
   }
   updateNavAuth();
 };
@@ -321,10 +338,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── GLOBAL NAV AVATAR SYNC ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const user = getUser();
-  if (user && user.token) {
+  if (user && user._id) { // FIX: Check _id, not token (token now in httpOnly cookie)
     const avatarEl = document.querySelector('.nav-user-avatar');
     if (avatarEl) {
-      // If the user has a picture, display it. Otherwise, show their first initial.
       if (user.profilePicUrl) {
         avatarEl.innerHTML = `<img src="${user.profilePicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
         avatarEl.style.background = 'transparent';
@@ -335,10 +351,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Add this at the very top of shared.js
 window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
   ? 'http://localhost:5000/api' 
-  : '/api'; // Use relative path in production
+  : '/api';
+
+// ── CENTRALIZED API FETCH HELPER ──────────────────────────────
+// Always includes credentials (sends httpOnly cookie) so no page needs
+// to manually manage tokens. Replaces all `Authorization: Bearer` patterns.
+window.apiFetch = async function(url, options = {}) {
+  const defaultOptions = {
+    credentials: 'include',   // Sends the httpOnly nestiq_token cookie automatically
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+  };
+  // Remove Content-Type for FormData (let browser set multipart boundary)
+  if (options.body instanceof FormData) {
+    delete defaultOptions.headers['Content-Type'];
+  }
+  const fullUrl = url.startsWith('http') ? url : (window.API_BASE + url);
+  return fetch(fullUrl, { ...defaultOptions, ...options, headers: { ...defaultOptions.headers, ...(options.headers || {}) } });
+};
 
 // ── COMPARE LOGIC ─────────────────────────────────────────────
 window.compareList = [];

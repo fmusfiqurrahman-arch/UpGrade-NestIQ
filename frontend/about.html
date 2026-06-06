@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -504,7 +504,7 @@ html.dark .office-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
     <div><a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.08em;color:#f7f4ef;text-decoration:none">Nest<span style="color:var(--gold);font-style:italic">IQ</span></a><p class="footer-desc">The smart way to buy, sell, and rent homes in Bangladesh. Powered by AI, backed by human expertise.</p></div>
     <div class="footer-col"><h4>Platform</h4><a href="listings.html">Browse All</a><a href="listings.html?type=rent">For Rent</a><a href="listings.html?type=buy">For Sale</a></div>
     <div class="footer-col"><h4>Services</h4><a href="#">Concierge</a><a href="#">Legal Review</a><a href="#">Escrow</a></div>
-    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="#contact">Contact</a><a href="#">Privacy Policy</a></div>
+    <div class="footer-col"><h4>Company</h4><a href="about.html">About Us</a><a href="#contact">Contact</a><a href="privacy.html">Privacy Policy</a></div>
   </div>
   <div class="footer-bottom"><span>© 2026 NestIQ Technologies Ltd.</span><div class="footer-social"><a href="#">𝕏</a><a href="#">in</a><a href="#">f</a></div></div>
 </footer>
@@ -575,9 +575,8 @@ async function submitContact() {
     const user  = userStr ? JSON.parse(userStr) : null;
     const token = user ? user.token : null;
     const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const res = await fetch(window.API_BASE + '/inquiries', {
+    // Token now in httpOnly cookie — credentials:'include' handles auth
+  const res = await fetch(window.API_BASE + '/inquiries', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -718,3 +717,4 @@ async function submitContact() {
 </script>
 </body>
 </html>
+

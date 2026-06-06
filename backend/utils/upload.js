@@ -1,31 +1,31 @@
 const multer = require('multer');
 const path = require('path');
 
-// 1. Tell Multer exactly where to save files and sanitize the name
+// Allowed MIME types — explicit whitelist (no wildcards)
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    // FIX: Absolute path guarantees files always go to backend/uploads
-    cb(null, path.join(__dirname, '../uploads')); 
+    cb(null, path.join(__dirname, '../uploads'));
   },
   filename(req, file, cb) {
-    // FIX: Removes spaces and special characters from the filename so URLs don't break!
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '-');
+    // Strip unsafe characters from filename
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '-').toLowerCase();
     cb(null, `${Date.now()}-${safeName}`);
-  }
+  },
 });
 
-// 2. Create the upload tool
 const upload = multer({
   storage,
-  limits: { fileSize: 10000000 }, // Max size: 10MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max (reduced from 10MB)
   fileFilter(req, file, cb) {
-    // Only accept image files
-    if (file.mimetype.startsWith('image/')) {
+    // FIX: Explicit whitelist of allowed MIME types — prevents .html/.js disguised as images
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Please upload an image file.'), false);
+      cb(new Error(`Invalid file type. Allowed: JPEG, PNG, WebP, GIF.`), false);
     }
-  }
+  },
 });
 
 module.exports = upload;
