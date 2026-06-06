@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { body, validationResult } = require('express-validator');
 const Inquiry = require('../models/Inquiry');
 const Listing = require('../models/Listing');
 const { protect } = require('../middleware/auth');
@@ -31,10 +32,24 @@ const decodeOptionalToken = async (req, res, next) => {
   next();
 };
 
+const inquiryValidation = [
+  body('type').isIn(['message', 'booking', 'contact']),
+  body('content').notEmpty().trim().isLength({ max: 2000 }),
+  body('senderName').optional({ checkFalsy: true }).trim().isLength({ max: 100 }),
+  body('senderEmail').optional({ checkFalsy: true }).trim().isEmail().normalizeEmail().isLength({ max: 254 }),
+  body('senderPhone').optional({ checkFalsy: true }).trim().isLength({ max: 20 }),
+  body('subject').optional({ checkFalsy: true }).trim().isLength({ max: 200 }),
+];
+
 // --------------------------------------------------------
 // CREATE INQUIRY (Open to guests for 'match', protected otherwise if needed)
 // --------------------------------------------------------
-router.post('/', decodeOptionalToken, async (req, res) => {
+router.post('/', decodeOptionalToken, inquiryValidation, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+  }
+
   try {
     const { receiver, listing, type, content, senderName, senderEmail, senderPhone, subject } = req.body;
     const senderId = req.user ? req.user._id : null;

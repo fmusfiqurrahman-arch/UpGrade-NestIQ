@@ -103,7 +103,7 @@ app.post('/api/upload', upload.array('images', 15), (req, res) => {
 // ── SERVE FRONTEND (Production Setup) ─────────────────────────
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-app.get(/(.*)/, (req, res) => {
+app.get(/^(?!\/api\/)(.*)/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 

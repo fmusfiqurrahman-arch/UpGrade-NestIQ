@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Listing = require('../models/Listing');
+const User = require('../models/User');
 const { protect, admin } = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
@@ -46,8 +47,6 @@ router.get('/stats', async (req, res) => {
     ]);
     const avgPrice = avgPriceResult.length > 0 ? Math.round(avgPriceResult[0].avgPrice) : 0;
     
-    // Hardcode user counts or fetch from User model if required. We'll fetch.
-    const User = require('../models/User');
     const usersCount = await User.countDocuments();
     const verifiedUsers = await User.countDocuments({ isVerified: true });
 
@@ -110,11 +109,10 @@ router.get('/me', protect, async (req, res) => {
 // 2.5 GET AI MATCHES
 router.get('/matches', protect, async (req, res) => {
   try {
-    const User = require('../models/User');
     const user = await User.findById(req.user._id);
     const prefs = user.preferences || {};
     
-    const listings = await Listing.find().lean();
+    const listings = await Listing.find().limit(500).lean();
     
     const scoredListings = listings.map(p => {
       let score = 50; // Base score
