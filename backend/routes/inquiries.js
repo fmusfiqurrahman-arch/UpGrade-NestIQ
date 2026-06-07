@@ -33,7 +33,7 @@ const decodeOptionalToken = async (req, res, next) => {
 };
 
 const inquiryValidation = [
-  body('type').isIn(['message', 'booking', 'contact']),
+  body('type').isIn(['message', 'booking', 'contact', 'owner_request', 'match']),
   body('content').notEmpty().trim().isLength({ max: 2000 }),
   body('senderName').optional({ checkFalsy: true }).trim().isLength({ max: 100 }),
   body('senderEmail').optional({ checkFalsy: true }).trim().isEmail().normalizeEmail().isLength({ max: 254 }),

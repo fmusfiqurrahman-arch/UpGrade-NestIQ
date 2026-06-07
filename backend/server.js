@@ -74,7 +74,8 @@ app.use(cors({
   credentials: true,               // Required for cookies to be sent cross-origin
 }));
 
-app.use(express.json()); 
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // MAKE UPLOADS FOLDER PUBLIC
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -87,7 +88,8 @@ app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/admin', require('./routes/admin'));
 
 // ── IMAGE UPLOAD ROUTE ────────────────────────────────────────
-app.post('/api/upload', upload.array('images', 15), (req, res) => {
+const { protect: protectUpload } = require('./middleware/auth');
+app.post('/api/upload', protectUpload, upload.array('images', 15), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: 'No images uploaded' });
   }

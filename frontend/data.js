@@ -45,12 +45,10 @@ window.NestApp = {
           img: finalImg,
           images: dbItem.images || [], 
           amenities: dbItem.amenities || [],
-          verified: true,
-          
-          featured: true,
-
-          match: (() => { let s = 0; String(dbItem._id).split('').forEach(c => s += c.charCodeAt(0)); return 85 + (s % 15); })(),
-          isNew: true,
+          verified: dbItem.verified === true,
+          featured: dbItem.featured === true,
+          match: dbItem.matchScore || null,
+          isNew: dbItem.isNew === true,
           badge: dbItem.propertyType === 'rent' ? 'For Rent' : 'For Sale',
           badgeClass: dbItem.propertyType === 'rent' ? 'badge-rent' : 'badge-buy'
         };

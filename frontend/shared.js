@@ -78,10 +78,7 @@ function syncGlobalAvatar() {
 
 window.addEventListener('load', syncGlobalAvatar);
 
-window.getUser=NestState.getUser; window.setUser=NestState.setUser; window.clearUser=NestState.clearUser;
-window.isLoggedIn=NestState.isLoggedIn; window.getSaved=NestState.getSaved; window.isSaved=NestState.isSaved;
-window.addSaved=NestState.addSaved; window.removeSaved=NestState.removeSaved;
-window.trackView=NestState.trackView; window.getRecentIds=NestState.getRecentIds;
+// (window assignments above at lines 58-61 are the canonical exports)
 
 // ── DARK MODE ─────────────────────────────────────────────────
 (function(){ if(NestState.isDark()) document.documentElement.classList.add('dark'); })();
@@ -162,8 +159,7 @@ window.showLoginPrompt=function(onDismiss){
   prompt.querySelector('.login-prompt-close').addEventListener('click',dismiss);
 };
 
-// ── CARD BUILDER (UPGRADED FOR MONGODB & FAKE DATA) ─────────────
-// ── CARD BUILDER (UPGRADED FOR MONGODB) ─────────────
+// ── CARD BUILDER ──────────────────────────────────────────────
 window.buildCard = function(p, featured=false) {
   const realId = p._id || p.id;
   const realTitle = p.title || 'Untitled Property';

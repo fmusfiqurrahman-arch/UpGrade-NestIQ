@@ -1930,7 +1930,8 @@
       }
       try {
         const res = await fetch(`${window.API_BASE}/user/admin/users/${userId}/role`, {
-          method: 'PUT', 
+          method: 'PUT',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: newRole })
         });

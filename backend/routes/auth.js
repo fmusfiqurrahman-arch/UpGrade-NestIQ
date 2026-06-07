@@ -132,7 +132,9 @@ router.post('/send-otp', otpLimiter, [
       `,
     });
 
-    console.log(`📱 OTP for ${identifier}: ${otpCode}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`📱 OTP for ${identifier}: ${otpCode}`);
+    }
     res.json({ message: 'OTP sent successfully.' });
   } catch (error) {
     console.error('Send OTP Error:', error);
@@ -285,7 +287,9 @@ router.post('/forgot-password', [
       `,
     });
 
-    console.log(`\n📧 Password reset link for ${user.email}:\n${resetUrl}\n`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n📧 Password reset link for ${user.email}:\n${resetUrl}\n`);
+    }
     res.json(genericResponse);
   } catch (error) {
     console.error('Forgot Password Error:', error);
