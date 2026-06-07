@@ -1215,3 +1215,8 @@
 2026-06-08 04:23:17: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 04:23:24: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 04:23:32: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 04:23:40: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 04:23:48: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 04:23:55: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 04:24:03: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 04:24:10: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }

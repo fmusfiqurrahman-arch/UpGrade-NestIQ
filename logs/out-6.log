@@ -1187,3 +1187,8 @@
 2026-06-08 04:23:19: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 04:23:27: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:23:35: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 04:23:43: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 04:23:50: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 04:23:57: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 04:24:04: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 04:24:12: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
