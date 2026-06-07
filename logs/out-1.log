@@ -1207,3 +1207,7 @@
 2026-06-08 04:22:47: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 2026-06-08 04:22:55: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 2026-06-08 04:23:03: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 04:23:09: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 04:23:17: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 04:23:24: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 04:23:33: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }

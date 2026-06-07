@@ -1227,3 +1227,7 @@
 2026-06-08 04:22:45: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:22:53: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 04:23:02: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 04:23:08: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 04:23:16: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 04:23:24: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 04:23:32: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]

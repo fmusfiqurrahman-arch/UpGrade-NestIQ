@@ -1207,3 +1207,8 @@
 2026-06-08 04:22:42: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 04:22:50: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:22:58: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 04:23:05: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 04:23:13: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 04:23:20: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 04:23:28: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 04:23:36: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }

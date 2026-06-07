@@ -1185,3 +1185,8 @@
 2026-06-08 04:22:43: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 04:22:50: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 04:22:59: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 04:23:07: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 04:23:15: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 04:23:22: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 04:23:29: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 04:23:37: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
