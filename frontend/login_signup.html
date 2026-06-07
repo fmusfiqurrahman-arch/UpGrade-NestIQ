@@ -139,7 +139,7 @@ body {
 .auth-tabs {
   display: flex; gap: 0;
   border: 1px solid var(--mist);
-  border-radius: 3px;
+  border-radius: 10px;
   overflow: hidden;
   margin-bottom: 36px;
 }
@@ -173,12 +173,12 @@ body {
 .social-btn {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 11px 16px;
-  border: 1px solid var(--mist); border-radius: 2px;
+  border: 1px solid var(--mist); border-radius: 8px;
   background: white; font-family: 'DM Sans', sans-serif;
   font-size: 13px; color: var(--charcoal);
-  cursor: pointer; transition: all 0.2s;
+  cursor: pointer; transition: all 0.25s;
 }
-.social-btn:hover { border-color: var(--gold); color: var(--gold); }
+.social-btn:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(184,155,106,0.12); }
 .social-icon { font-size: 16px; }
 
 /* DIVIDER */
@@ -200,14 +200,14 @@ body {
 }
 .form-row input, .form-row select {
   width: 100%; padding: 12px 14px;
-  border: 1px solid var(--mist); border-radius: 2px;
+  border: 1px solid var(--mist); border-radius: 8px;
   font-family: 'DM Sans', sans-serif; font-size: 14px;
   background: white; outline: none; color: var(--ink);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
 .form-row input:focus, .form-row select:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(184,155,106,0.08);
+  box-shadow: 0 0 0 3px rgba(184,155,106,0.12);
 }
 .form-row input.error { border-color: #c0392b; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -231,12 +231,12 @@ body {
 /* ROLE SELECTOR */
 .role-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .role-btn {
-  padding: 12px 10px; border: 1px solid var(--mist); border-radius: 2px;
+  padding: 12px 10px; border: 1px solid var(--mist); border-radius: 10px;
   background: white; cursor: pointer; text-align: center;
-  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  transition: all 0.25s; font-family: 'DM Sans', sans-serif;
 }
-.role-btn:hover { border-color: var(--gold); }
-.role-btn.selected { border-color: var(--ink); background: var(--ink); color: var(--ivory); }
+.role-btn:hover { border-color: var(--gold); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(184,155,106,0.1); }
+.role-btn.selected { border-color: var(--ink); background: var(--ink); color: var(--ivory); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
 .role-btn.selected .role-icon { filter: grayscale(1) brightness(5); }
 .role-icon { font-size: 20px; display: block; margin-bottom: 5px; }
 .role-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -264,13 +264,13 @@ body {
 .auth-submit {
   width: 100%; padding: 14px;
   background: var(--ink); color: var(--ivory);
-  border: none; border-radius: 2px;
+  border: none; border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
   font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
   cursor: pointer; transition: all 0.3s;
   position: relative; overflow: hidden;
 }
-.auth-submit:hover { background: var(--gold); }
+.auth-submit:hover { background: var(--gold); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 .auth-submit:active { transform: scale(0.98); }
 .auth-submit.loading { pointer-events: none; opacity: 0.7; }
 
@@ -281,12 +281,14 @@ body {
 /* TOAST */
 #notif {
   position: fixed; bottom: 28px; left: 50%;
-  transform: translateX(-50%) translateY(100px);
+  transform: translateX(-50%) translateY(80px);
   background: var(--ink); color: var(--ivory);
-  padding: 12px 24px; border-radius: 3px; font-size: 13px;
-  z-index: 3000; transition: transform 0.4s ease;
+  padding: 13px 24px; border-radius: 10px; font-size: 13px;
+  z-index: 3000; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
   white-space: nowrap; border-left: 3px solid var(--gold);
+  opacity: 0; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
+#notif.show { opacity: 1; }
 
 /* ERROR MESSAGE */
 .form-error { font-size: 11px; color: #c0392b; margin-top: 5px; display: none; }
@@ -306,12 +308,12 @@ body {
 .otp-boxes { display: flex; gap: 10px; justify-content: center; margin: 24px 0; }
 .otp-box {
   width: 52px; height: 58px;
-  border: 1px solid var(--mist); border-radius: 2px;
+  border: 1px solid var(--mist); border-radius: 10px;
   font-size: 22px; font-family: 'Cormorant Garamond', serif;
   text-align: center; outline: none; background: white;
-  transition: border-color 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s;
 }
-.otp-box:focus { border-color: var(--gold); }
+.otp-box:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,155,106,0.12); }
 .otp-resend { text-align: center; font-size: 12px; color: var(--warm-gray); margin-bottom: 20px; }
 .otp-resend a { color: var(--gold); text-decoration: none; cursor: pointer; }
 
@@ -345,6 +347,30 @@ html.dark .auth-submit { background: var(--gold); }
 html.dark .auth-submit:hover { background: #f0ece4; color: var(--bg); }
 html.dark .strength-meter { background: var(--border); }
 html.dark #notif { background: var(--surface); color: var(--ink); }
+
+/* ── LIGHT MODE RICHNESS ── */
+html:not(.dark) .auth-right {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(184,155,106,0.09) 0%, transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(74,103,65,0.05) 0%, transparent 40%),
+    radial-gradient(circle, rgba(184,155,106,0.04) 1px, transparent 1px),
+    linear-gradient(155deg, #ffffff 0%, #f7f4ef 100%);
+  background-size: 100% 100%, 100% 100%, 26px 26px, 100% 100%;
+}
+html:not(.dark) .auth-card {
+  background: rgba(255,255,255,0.8);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 8px 40px rgba(184,155,106,0.1), 0 0 0 1px rgba(184,155,106,0.1);
+}
+html:not(.dark) .auth-tabs {
+  border-color: rgba(184,155,106,0.2);
+}
+html:not(.dark) .social-btn {
+  background: rgba(255,255,255,0.9);
+}
 
 /* RESPONSIVE */
 @media (max-width: 900px) {

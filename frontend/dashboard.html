@@ -412,8 +412,8 @@
       font-size: 10px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      padding: 3px 9px;
-      border-radius: 2px;
+      padding: 4px 12px;
+      border-radius: 20px;
       color: #fff;
     }
 
@@ -449,17 +449,18 @@
 
     .btn-dash {
       padding: 8px 16px;
-      border-radius: 2px;
+      border-radius: 6px;
       font-family: 'DM Sans', sans-serif;
       font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       border: none;
-      transition: all 0.2s;
+      transition: all 0.25s;
       flex: 1;
       text-align: center;
     }
+    .btn-dash:hover { transform: translateY(-1px); }
 
     .btn-dash-primary {
       background: var(--btn-primary-bg);
@@ -503,7 +504,7 @@
     .profile-section-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 12px;
       padding: 32px;
     }
 
@@ -562,17 +563,18 @@
       width: 100%;
       padding: 11px 14px;
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
       background: var(--surface);
       color: var(--text);
-      transition: border-color 0.2s;
+      transition: border-color 0.25s, box-shadow 0.25s;
       outline: none;
     }
 
     .form-field input:focus {
       border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(184,155,106,0.1);
     }
 
     .form-field input[readonly] {
@@ -586,7 +588,7 @@
       align-items: center;
       gap: 12px;
       padding: 14px 16px;
-      border-radius: 4px;
+      border-radius: 10px;
       margin-bottom: 24px;
     }
 
@@ -626,7 +628,7 @@
 
     .nid-upload-zone {
       border: 1px dashed rgba(154, 126, 82, 0.4);
-      border-radius: 4px;
+      border-radius: 12px;
       padding: 28px 20px;
       text-align: center;
       background: rgba(154, 126, 82, 0.03);
@@ -661,7 +663,7 @@
     .admin-table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 12px;
       overflow: hidden;
     }
 
@@ -677,22 +679,24 @@
       flex: 1;
       padding: 9px 14px;
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       background: var(--surface-2);
       color: var(--text);
       outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
     }
 
     .admin-search-input:focus {
       border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(184,155,106,0.1);
     }
 
     .admin-filter-btn {
       padding: 9px 16px;
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       background: none;
       color: var(--text-muted);
       font-family: 'DM Sans', sans-serif;
@@ -1848,7 +1852,7 @@
                   <div class="activity-text" style="margin-top:6px;"><b>Property:</b> ${listingTitle} ${listingCity ? `(${listingCity})` : ''}</div>
                   <div class="activity-text" style="margin-top:2px;"><b>Contact:</b> ${personName} ${contactInfo ? `&mdash; ${contactInfo}` : ''} ${phoneInfo ? `&mdash; ${phoneInfo}` : ''}</div>
                   <div class="activity-text" style="margin-top:8px; font-style:italic; padding-left:12px; border-left:2px solid var(--brand); color:var(--text-muted);">"${i.content}"</div>
-                  <div class="activity-time" style="margin-top:10px;">Status: <span style="text-transform:uppercase;font-size:10px;padding:3px 8px;border-radius:2px;background:var(--surface-2);">${i.status}</span></div>
+                  <div class="activity-time" style="margin-top:10px;">Status: <span style="text-transform:uppercase;font-size:10px;padding:3px 8px;border-radius:20px;background:var(--surface-2);">${i.status}</span></div>
                 </div>
               </div>
             </div>
