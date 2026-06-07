@@ -4,17 +4,7 @@ const { protect, admin } = require('../middleware/auth');
 const Listing = require('../models/Listing');
 const User = require('../models/User');
 const Inquiry = require('../models/Inquiry');
-const fs = require('fs');
-const path = require('path');
-
-const deleteImageFile = (imageUrl) => {
-  if (!imageUrl || !imageUrl.includes('/uploads/')) return;
-  const filename = imageUrl.split('/uploads/')[1];
-  if (filename) {
-    const filepath = path.join(__dirname, '../uploads', filename);
-    fs.unlink(filepath, () => {});
-  }
-};
+const { deleteImageFile } = require('../utils/imageUtils');
 
 // ──────────────────────────────────────────────
 // ALL ADMIN ROUTES REQUIRE: protect + admin

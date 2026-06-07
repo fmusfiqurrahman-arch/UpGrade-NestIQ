@@ -60,6 +60,22 @@ window.isLoggedIn = NestState.isLoggedIn;
 window.getUser = NestState.getUser;
 window.clearUser = NestState.clearUser;
 
+// ── SESSION VERIFIER ──────────────────────────────────────────
+// Fetches the real user object from the server and overwrites localStorage.
+// Call this at the top of any page that makes role-based rendering decisions.
+// Returns the verified user, or null if not authenticated.
+window.verifySession = async function() {
+  try {
+    const res = await fetch((window.API_BASE || '/api') + '/auth/me', { credentials: 'include' });
+    if (!res.ok) { NestState._w('user', null); return null; }
+    const serverUser = await res.json();
+    NestState._w('user', serverUser); // Overwrite any client-side tampering
+    return serverUser;
+  } catch (_) {
+    return NestState.getUser(); // Network failure — fall back gracefully
+  }
+};
+
 // ── THE AVATAR SYNC ENGINE ────────────────────────────────────
 function syncGlobalAvatar() {
   const user = window.getUser();

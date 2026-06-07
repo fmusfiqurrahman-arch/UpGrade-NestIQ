@@ -4,7 +4,7 @@ const User = require('../models/User');
 const SavedListing = require('../models/SavedListing');
 const Activity = require('../models/Activity');
 const { protect, admin } = require('../middleware/auth');
-const upload = require('../utils/upload');
+const { upload, validateMagicBytes } = require('../utils/upload');
 const path = require('path');
 const fs = require('fs');
 
@@ -47,6 +47,11 @@ router.post('/profile-pic', protect, (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No image file received.' });
 
     try {
+      await validateMagicBytes(req.file.path);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    try {
       // 1. Find user to get the OLD picture for the Janitor
       const user = await User.findById(req.user._id);
       if (!user) return res.status(404).json({ message: 'User not found' });
@@ -80,6 +85,12 @@ router.post('/nid-upload', protect, (req, res) => {
   upload.single('nidDoc')(req, res, async (err) => {
     if (err) return res.status(400).json({ message: 'Upload rejected: ' + err.message });
     if (!req.file) return res.status(400).json({ message: 'No document uploaded' });
+
+    try {
+      await validateMagicBytes(req.file.path);
+    } catch (magicErr) {
+      return res.status(400).json({ message: magicErr.message });
+    }
 
     try {
       const user = await User.findById(req.user._id);

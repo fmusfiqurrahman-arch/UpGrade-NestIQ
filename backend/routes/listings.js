@@ -4,10 +4,10 @@ const { body, validationResult } = require('express-validator');
 const Listing = require('../models/Listing');
 const User = require('../models/User');
 const Activity = require('../models/Activity');
+const Notification = require('../models/Notification');
 const { protect, admin } = require('../middleware/auth');
 const { makeCache, bustListingsCache } = require('../middleware/cache');
-const fs = require('fs');
-const path = require('path');
+const { deleteImageFile } = require('../utils/imageUtils');
 
 // ── LISTING VALIDATION RULES ──────────────────────────────────
 const listingValidation = [
@@ -16,23 +16,11 @@ const listingValidation = [
   body('price').isNumeric().toFloat(),
   body('area').notEmpty().trim().escape(),
   body('city').notEmpty().trim().escape(),
-  body('propertyType').isIn(['rent', 'sale', 'buy']),
+  body('propertyType').isIn(['rent', 'sale', 'buy']).customSanitizer(v => v === 'buy' ? 'sale' : v),
   body('bedrooms').isInt({ min: 0 }).toInt(),
   body('bathrooms').isInt({ min: 0 }).toInt(),
   body('sqft').isInt({ min: 0 }).toInt(),
 ];
-
-// ── THE SMART IMAGE JANITOR ──────────────────────────────────
-const deleteImageFile = (imageUrl) => {
-  if (!imageUrl || !imageUrl.includes('/uploads/')) return;
-  const filename = imageUrl.split('/uploads/')[1];
-  if (filename) {
-    const filepath = path.join(__dirname, '../uploads', filename);
-    fs.unlink(filepath, (err) => {
-      if (err) console.error("Janitor Failed to delete:", filepath, err.message);
-    });
-  }
-};
 
 // 0. GET PLATFORM STATS — cached 60s
 router.get('/stats', makeCache(60), async (req, res) => {
@@ -98,46 +86,59 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
-// 2.5 GET AI MATCHES
-// Capped at 100 listings per request (was 500) — still accurate enough for scoring
+// 2.5 GET SMART RECOMMENDATIONS
+// Scoring is done entirely inside MongoDB using $addFields — no JS array sorting needed
 router.get('/matches', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('preferences').lean();
     const prefs = user.preferences || {};
 
-    const listings = await Listing.find({ status: 'approved' })
-      .select('_id title description price propertyType area city bedrooms bathrooms sqft image images amenities')
-      .limit(100)
-      .lean();
+    const intentFilter = (prefs.intent && prefs.intent !== 'any')
+      ? (prefs.intent === 'buy' ? 'sale' : prefs.intent)
+      : null;
 
-    const scoredListings = listings.map(p => {
-      let score = 50;
-      const pIntent = (p.propertyType === 'sale' || p.propertyType === 'buy') ? 'buy' : 'rent';
-      if (prefs.intent && prefs.intent !== 'any') {
-        if (pIntent === prefs.intent) score += 20;
-      } else {
-        score += 10;
-      }
-      if (prefs.location) {
-        const searchLoc = prefs.location.toLowerCase();
-        if ((p.area || '').toLowerCase().includes(searchLoc) || (p.city || '').toLowerCase().includes(searchLoc)) score += 15;
-      }
-      if (prefs.maxPrice && prefs.maxPrice > 0 && p.price) {
-        if (p.price <= prefs.maxPrice) score += 10;
-        else if (p.price <= prefs.maxPrice * 1.2) score += 5;
-      }
-      if (prefs.bedrooms && prefs.bedrooms > 0 && p.bedrooms >= prefs.bedrooms) score += 5;
-      let seed = 0;
-      const idStr = String(p._id);
-      for (let i = 0; i < idStr.length; i++) seed += idStr.charCodeAt(i);
-      score = Math.min(score + (seed % 5), 99);
-      return { ...p, matchScore: score };
-    });
+    const pipeline = [
+      { $match: { status: 'approved' } },
+      { $limit: 200 },
+      {
+        $addFields: {
+          matchScore: {
+            $let: {
+              vars: {
+                intentScore: intentFilter
+                  ? { $cond: [{ $eq: ['$propertyType', intentFilter] }, 20, 0] }
+                  : 10,
+                locationScore: prefs.location
+                  ? {
+                      $cond: [{
+                        $or: [
+                          { $regexMatch: { input: { $toLower: '$area' }, regex: prefs.location.toLowerCase() } },
+                          { $regexMatch: { input: { $toLower: '$city' }, regex: prefs.location.toLowerCase() } },
+                        ]
+                      }, 15, 0]
+                    }
+                  : 0,
+                budgetScore: (prefs.maxPrice && prefs.maxPrice > 0)
+                  ? { $cond: [{ $lte: ['$price', prefs.maxPrice] }, 10, { $cond: [{ $lte: ['$price', prefs.maxPrice * 1.2] }, 5, 0] }] }
+                  : 0,
+                bedroomScore: (prefs.bedrooms && prefs.bedrooms > 0)
+                  ? { $cond: [{ $gte: ['$bedrooms', prefs.bedrooms] }, 5, 0] }
+                  : 0,
+              },
+              in: { $min: [{ $add: [50, '$$intentScore', '$$locationScore', '$$budgetScore', '$$bedroomScore'] }, 99] }
+            }
+          }
+        }
+      },
+      { $sort: { matchScore: -1 } },
+      { $limit: 12 },
+      { $project: { title: 1, price: 1, priceUnit: 1, propertyType: 1, area: 1, city: 1, bedrooms: 1, bathrooms: 1, sqft: 1, image: 1, images: 1, amenities: 1, matchScore: 1 } },
+    ];
 
-    scoredListings.sort((a, b) => b.matchScore - a.matchScore);
-    res.json(scoredListings.slice(0, 12));
+    const results = await Listing.aggregate(pipeline);
+    res.json(results);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to generate matches' });
+    res.status(500).json({ message: 'Failed to generate recommendations' });
   }
 });
 
@@ -297,6 +298,12 @@ router.put('/:id/approve', protect, admin, async (req, res) => {
     );
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
     bustListingsCache();
+    setImmediate(() => Notification.create({
+      user: listing.owner,
+      type: 'listing_approved',
+      message: `Your listing "${listing.title}" has been approved and is now live.`,
+      meta: { listingId: listing._id }
+    }).catch(() => {}));
     res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -313,6 +320,12 @@ router.put('/:id/reject', protect, admin, async (req, res) => {
       { new: true }
     );
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    setImmediate(() => Notification.create({
+      user: listing.owner,
+      type: 'listing_rejected',
+      message: `Your listing "${listing.title}" was not approved${reason ? `: ${reason}` : '.'}`,
+      meta: { listingId: listing._id }
+    }).catch(() => {}));
     res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });

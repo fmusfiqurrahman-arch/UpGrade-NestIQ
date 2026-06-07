@@ -11,27 +11,8 @@ const {
   sendContactFormConfirmationEmail
 } = require('../utils/email');
 
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const Activity = require('../models/Activity');
-
-const decodeOptionalToken = async (req, res, next) => {
-  let token;
-  if (req.cookies && req.cookies.nestiq_token) {
-    token = req.cookies.nestiq_token;
-  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-    } catch (error) {
-      // Invalid token — treat as guest, don't block the request
-    }
-  }
-  next();
-};
+const { optionalAuth } = require('../middleware/auth');
 
 const inquiryValidation = [
   body('type').isIn(['message', 'booking', 'contact', 'owner_request', 'match']),
@@ -45,7 +26,7 @@ const inquiryValidation = [
 // --------------------------------------------------------
 // CREATE INQUIRY (Open to guests for 'match', protected otherwise if needed)
 // --------------------------------------------------------
-router.post('/', decodeOptionalToken, inquiryValidation, async (req, res) => {
+router.post('/', optionalAuth, inquiryValidation, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ message: 'Validation failed', errors: errors.array() });

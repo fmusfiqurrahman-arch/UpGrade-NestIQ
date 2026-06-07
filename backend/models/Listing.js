@@ -10,18 +10,21 @@ const listingSchema = new mongoose.Schema({
   area: { type: String, required: true },
   city: { type: String, required: true },
   
-  // NOTE: 'buy' and 'sale' are treated as the same intent. 'buy' is accepted from
-  // the frontend but normalized to 'sale' for consistency in the DB.
-  propertyType: { type: String, enum: ['rent', 'sale', 'buy'], required: true },
+  // 'buy' is normalized to 'sale' before saving — DB only ever contains 'rent' or 'sale'
+  propertyType: { type: String, enum: ['rent', 'sale'], required: true },
   bedrooms: { type: Number, required: true },
   bathrooms: { type: Number, required: true },
   sqft: { type: Number, required: true },
   
   // Smart Image Management
-  image: { type: String }, // Main image for quick access
-  images: [{ type: String }], // Array of file paths/URLs
-  amenities: [{ type: String }], // Array of selected amenities
-  rules: [{ type: String }],    // Owner-defined rules & conditions
+  image: { type: String },
+  images: [{ type: String }],
+  amenities: [{ type: String }],
+  rules: [{ type: String }],
+
+  // Geographic coordinates for map view
+  latitude: { type: Number, default: null },
+  longitude: { type: Number, default: null },
   
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -34,10 +37,11 @@ const listingSchema = new mongoose.Schema({
   rejectionReason: { type: String, default: '' },
 }, { timestamps: true });
 
-listingSchema.index({ city: 1, propertyType: 1 });
+// Compound index covers the most common public query: approved listings by type, sorted by date
+listingSchema.index({ status: 1, propertyType: 1, createdAt: -1 });
 listingSchema.index({ price: 1 });
 listingSchema.index({ owner: 1 });
-listingSchema.index({ createdAt: -1 });
-listingSchema.index({ status: 1 });
+// 2dsphere index for geo queries once coordinates are added
+listingSchema.index({ latitude: 1, longitude: 1 });
 
 module.exports = mongoose.models.Listing || mongoose.model('Listing', listingSchema);

@@ -279,7 +279,8 @@ router.post('/forgot-password', [
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = resetToken;
+    // Store only the hash — the raw token lives only in the email link
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save({ validateBeforeSave: false });
 
@@ -324,8 +325,10 @@ router.post('/reset-password', [
 
   try {
     const { token, password } = req.body;
+    // Hash the incoming token to compare against the stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const user = await User.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: hashedToken,
       resetPasswordExpires: { $gt: Date.now() },
     });
 

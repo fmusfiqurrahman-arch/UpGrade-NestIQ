@@ -51,4 +51,28 @@ const admin = (req, res, next) => {
   return res.status(403).json({ message: 'Access Denied: Admins only' });
 };
 
-module.exports = { protect, admin };
+// ── OPTIONAL AUTH MIDDLEWARE ──────────────────────────────────
+// Attaches req.user if a valid token is present, but never blocks the request.
+// Used on public routes that behave differently for logged-in users.
+const optionalAuth = async (req, res, next) => {
+  let token;
+  if (req.cookies && req.cookies.nestiq_token) {
+    token = req.cookies.nestiq_token;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const isRevoked = await BlacklistedToken.exists({ token });
+      if (!isRevoked) {
+        req.user = await User.findById(decoded.id).select('-password');
+      }
+    } catch (_) {
+      // Invalid/expired token — treat as guest
+    }
+  }
+  next();
+};
+
+module.exports = { protect, admin, optionalAuth };

@@ -1229,7 +1229,7 @@
             </div>
 
             <div class="profile-section-card" style="margin-top: 20px;">
-              <div class="profile-section-title">My Home Preferences (AI Match)</div>
+              <div class="profile-section-title">My Home Preferences (Smart Recommendations)</div>
               <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Tell us what you're looking for to get personalized AI matches.</p>
               
               <div class="form-field">
@@ -1485,15 +1485,22 @@
   <script src="shared.js"></script>
   <script>
     // ── INIT ──────────────────────────────────────────────────
-    const user = getUser();
-    if (!user || !user._id) { window.location.href = 'login_signup.html'; }
+    // Quick localStorage check — redirects guests before any render
+    if (!getUser() || !getUser()._id) { window.location.href = 'login_signup.html'; }
 
+    let user = getUser(); // Will be overwritten by verifySession below
     let _allUsers = [];
     let _allListings = [];
     let _userFilter = 'all';
     let _listingFilter = 'all';
 
     document.addEventListener('DOMContentLoaded', async () => {
+      // Verify role from server before rendering ANY role-based UI
+      // This prevents a user from spoofing admin access by editing localStorage
+      const verified = await verifySession();
+      if (!verified || !verified._id) { window.location.href = 'login_signup.html'; return; }
+      user = verified;
+
       updateNavAuth();
       initSidebar();
       fetchProfile();

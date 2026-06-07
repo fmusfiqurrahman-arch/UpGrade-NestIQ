@@ -7,7 +7,7 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
-const upload = require('./utils/upload');
+const { upload, validateMagicBytes } = require('./utils/upload');
 const path = require('path');
 const fs = require('fs');
 
@@ -36,7 +36,13 @@ app.use(helmet({
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],
-      connectSrc: ["'self'", "http://localhost:5000", "https://oauth2.googleapis.com"],
+      connectSrc: [
+        "'self'",
+        "https://oauth2.googleapis.com",
+        // Allow localhost only in development — never ships to prod
+        ...(process.env.NODE_ENV !== 'production' ? ["http://localhost:5000", "http://127.0.0.1:5000"] : []),
+        ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
+      ],
       frameSrc: ["https://accounts.google.com"],
     },
   },
@@ -107,12 +113,21 @@ app.use('/api/user', require('./routes/user'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/activity', require('./routes/activity'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/reviews', require('./routes/reviews'));
 
 // ── IMAGE UPLOAD ROUTE ────────────────────────────────────────
 const { protect: protectUpload } = require('./middleware/auth');
-app.post('/api/upload', protectUpload, upload.array('images', 15), (req, res) => {
+app.post('/api/upload', protectUpload, upload.array('images', 15), async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: 'No images uploaded' });
+  }
+  try {
+    // Magic-byte check: reject any file whose bytes don't match an image signature
+    await Promise.all(req.files.map(f => validateMagicBytes(f.path)));
+  } catch (err) {
+    // validateMagicBytes already deleted the bad file(s)
+    return res.status(400).json({ message: err.message });
   }
   const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
   res.status(201).json({ imageUrls, imageUrl: imageUrls[0] });
