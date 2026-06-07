@@ -13,6 +13,7 @@ const {
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
 
 const decodeOptionalToken = async (req, res, next) => {
   let token;
@@ -113,6 +114,37 @@ router.post('/', decodeOptionalToken, inquiryValidation, async (req, res) => {
       } catch (emailErr) {
         console.error('Email send error:', emailErr.message);
       }
+    });
+
+    // Log activity (non-blocking)
+    setImmediate(async () => {
+      try {
+        const listingDoc = listing ? await Listing.findById(listing).select('title owner').lean() : null;
+        const listingTitle = listingDoc ? listingDoc.title : null;
+
+        if (senderId) {
+          await Activity.create({
+            user: senderId,
+            type: 'inquiry_sent',
+            description: listingTitle
+              ? `You sent an inquiry for "${listingTitle}".`
+              : 'You sent a contact message.',
+            meta: { listingId: listing, listingTitle }
+          });
+        }
+
+        const ownerId = listingDoc ? listingDoc.owner : (receiver || null);
+        if (ownerId && String(ownerId) !== String(senderId)) {
+          await Activity.create({
+            user: ownerId,
+            type: 'inquiry_received',
+            description: listingTitle
+              ? `New inquiry received for "${listingTitle}" from ${resolvedSenderName || 'a visitor'}.`
+              : `New message from ${resolvedSenderName || 'a visitor'}.`,
+            meta: { listingId: listing, listingTitle, senderName: resolvedSenderName }
+          });
+        }
+      } catch (_) {}
     });
 
     res.status(201).json(inquiry);

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); 
+const User = require('../models/User');
 const SavedListing = require('../models/SavedListing');
-const { protect, admin } = require('../middleware/auth'); 
-const upload = require('../utils/upload'); 
+const Activity = require('../models/Activity');
+const { protect, admin } = require('../middleware/auth');
+const upload = require('../utils/upload');
 const path = require('path');
 const fs = require('fs');
 
@@ -97,6 +98,13 @@ router.post('/nid-upload', protect, (req, res) => {
         { new: true, runValidators: false }
       );
 
+      setImmediate(() => Activity.create({
+        user: req.user._id,
+        type: 'nid_uploaded',
+        description: 'You uploaded your NID/Passport for identity verification.',
+        meta: {}
+      }).catch(() => {}));
+
       res.json({ message: 'NID uploaded successfully. Awaiting Admin verification.', nidDocUrl: newNidUrl });
     } catch (error) {
       console.error(error);
@@ -167,7 +175,7 @@ router.get('/admin/stats', protect, admin, async (req, res) => {
     const [usersCount, verifiedUsers, totalListings, totalInquiries] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ isVerified: true }),
-      Listing.countDocuments(),
+      Listing.countDocuments({ status: 'approved' }),
       Inquiry.countDocuments()
     ]);
 
@@ -203,7 +211,19 @@ router.post('/saved-listings', protect, async (req, res) => {
     const exists = await SavedListing.findOne({ user: req.user._id, listing: listingId });
     if (exists) return res.json({ message: 'Already saved', saved: true });
 
-    await SavedListing.create({ user: req.user._id, listing: listingId });
+    const saved = await SavedListing.create({ user: req.user._id, listing: listingId });
+    setImmediate(async () => {
+      try {
+        const Listing = require('../models/Listing');
+        const l = await Listing.findById(listingId).select('title').lean();
+        await Activity.create({
+          user: req.user._id,
+          type: 'listing_saved',
+          description: `You saved "${l ? l.title : 'a property'}" to your wishlist.`,
+          meta: { listingId }
+        });
+      } catch (_) {}
+    });
     res.status(201).json({ message: 'Listing saved', saved: true });
   } catch (error) {
     console.error(error);
@@ -214,6 +234,18 @@ router.post('/saved-listings', protect, async (req, res) => {
 router.delete('/saved-listings/:id', protect, async (req, res) => {
   try {
     await SavedListing.findOneAndDelete({ user: req.user._id, listing: req.params.id });
+    setImmediate(async () => {
+      try {
+        const Listing = require('../models/Listing');
+        const l = await Listing.findById(req.params.id).select('title').lean();
+        await Activity.create({
+          user: req.user._id,
+          type: 'listing_unsaved',
+          description: `You removed "${l ? l.title : 'a property'}" from your wishlist.`,
+          meta: { listingId: req.params.id }
+        });
+      } catch (_) {}
+    });
     res.json({ message: 'Listing removed from saved', saved: false });
   } catch (error) {
     res.status(500).json({ message: 'Error removing saved listing' });

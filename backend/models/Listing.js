@@ -23,16 +23,21 @@ const listingSchema = new mongoose.Schema({
   amenities: [{ type: String }], // Array of selected amenities
   rules: [{ type: String }],    // Owner-defined rules & conditions
   
-  owner: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
-  }
+  },
+
+  // Moderation
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  rejectionReason: { type: String, default: '' },
 }, { timestamps: true });
 
 listingSchema.index({ city: 1, propertyType: 1 });
 listingSchema.index({ price: 1 });
 listingSchema.index({ owner: 1 });
 listingSchema.index({ createdAt: -1 });
+listingSchema.index({ status: 1 });
 
 module.exports = mongoose.models.Listing || mongoose.model('Listing', listingSchema);

@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Listing = require('../models/Listing');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
 const { protect, admin } = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
@@ -38,11 +39,13 @@ const deleteImageFile = (imageUrl) => {
 // 0. GET PLATFORM STATS
 router.get('/stats', async (req, res) => {
   try {
-    const totalListings = await Listing.countDocuments();
-    const forRent = await Listing.countDocuments({ propertyType: 'rent' });
-    const forSale = await Listing.countDocuments({ propertyType: 'sale' });
+    const approvedFilter = { status: 'approved' };
+    const totalListings = await Listing.countDocuments(approvedFilter);
+    const forRent = await Listing.countDocuments({ ...approvedFilter, propertyType: 'rent' });
+    const forSale = await Listing.countDocuments({ ...approvedFilter, propertyType: 'sale' });
     
     const avgPriceResult = await Listing.aggregate([
+      { $match: approvedFilter },
       { $group: { _id: null, avgPrice: { $avg: "$price" } } }
     ]);
     const avgPrice = avgPriceResult.length > 0 ? Math.round(avgPriceResult[0].avgPrice) : 0;
@@ -68,8 +71,9 @@ router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit) || 12;
-    
-    const filter = {};
+
+    // Only serve approved listings to the public
+    const filter = { status: 'approved' };
     if (req.query.type) filter.propertyType = req.query.type;
     
     let sortObj = { createdAt: -1 };
@@ -112,7 +116,7 @@ router.get('/matches', protect, async (req, res) => {
     const user = await User.findById(req.user._id);
     const prefs = user.preferences || {};
     
-    const listings = await Listing.find().limit(500).lean();
+    const listings = await Listing.find({ status: 'approved' }).limit(500).lean();
     
     const scoredListings = listings.map(p => {
       let score = 50; // Base score
@@ -171,15 +175,35 @@ router.get('/matches', protect, async (req, res) => {
   }
 });
 
-// 3. GET A SINGLE LISTING
+// 3. GET A SINGLE LISTING (only approved, unless the requester is the owner or admin)
 router.get('/:id', async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
-    if (listing) {
-      res.json(listing);
-    } else {
-      res.status(404).json({ message: 'Listing not found' });
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+
+    // Unapproved listings are only visible to their owner or admins
+    if (listing.status !== 'approved') {
+      // Decode token if present
+      let requesterId = null;
+      let requesterRole = null;
+      const token = (req.cookies && req.cookies.nestiq_token) ||
+        (req.headers.authorization && req.headers.authorization.startsWith('Bearer') ? req.headers.authorization.split(' ')[1] : null);
+      if (token) {
+        try {
+          const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+          requesterId = decoded.id;
+          const u = await require('../models/User').findById(decoded.id).select('role');
+          if (u) requesterRole = u.role;
+        } catch (_) {}
+      }
+      const isOwner = requesterId && listing.owner.toString() === String(requesterId);
+      const isAdmin = requesterRole === 'admin';
+      if (!isOwner && !isAdmin) {
+        return res.status(404).json({ message: 'Listing not found' });
+      }
     }
+
+    res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -213,6 +237,14 @@ router.post('/', protect, listingValidation, async (req, res) => {
       owner: req.user._id,
     };
     const newListing = await Listing.create(listingData);
+
+    setImmediate(() => Activity.create({
+      user: req.user._id,
+      type: 'listing_created',
+      description: `You submitted "${newListing.title}" for review.`,
+      meta: { listingId: newListing._id, listingTitle: newListing.title }
+    }).catch(() => {}));
+
     res.status(201).json(newListing);
   } catch (error) {
     res.status(400).json({ message: 'Failed to create listing: ' + error.message });
@@ -275,6 +307,61 @@ router.delete('/:id', protect, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error during deletion' });
+  }
+});
+
+// 7. ADMIN: GET ALL LISTINGS (includes pending/rejected)
+router.get('/admin/all', protect, admin, async (req, res) => {
+  try {
+    const listings = await Listing.find({})
+      .populate('owner', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// 8. ADMIN: GET PENDING LISTINGS
+router.get('/admin/pending', protect, admin, async (req, res) => {
+  try {
+    const listings = await Listing.find({ status: 'pending' })
+      .populate('owner', 'firstName lastName email')
+      .sort({ createdAt: -1 });
+    res.json(listings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// 8. ADMIN: APPROVE A LISTING
+router.put('/:id/approve', protect, admin, async (req, res) => {
+  try {
+    const listing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      { status: 'approved', rejectionReason: '' },
+      { new: true }
+    );
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    res.json(listing);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// 9. ADMIN: REJECT A LISTING
+router.put('/:id/reject', protect, admin, async (req, res) => {
+  try {
+    const reason = (req.body.reason || '').trim().slice(0, 500);
+    const listing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      { status: 'rejected', rejectionReason: reason },
+      { new: true }
+    );
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    res.json(listing);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
   }
 });
 

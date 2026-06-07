@@ -483,6 +483,17 @@
       color: #fff;
     }
 
+    .btn-dash-green {
+      background: none;
+      border: 1px solid #4a6741;
+      color: #4a6741;
+    }
+
+    .btn-dash-green:hover {
+      background: #4a6741;
+      color: #fff;
+    }
+
     .btn-dash-outline {
       background: none;
       border: 1px solid var(--border);
@@ -1134,6 +1145,9 @@
         <div class="sidebar-nav-item" data-panel="adminUsers" onclick="switchPanel('adminUsers',this)">
           <span class="nav-icon">◉</span> User Management
         </div>
+        <div class="sidebar-nav-item" data-panel="moderation" onclick="switchPanel('moderation',this)">
+          <span class="nav-icon">⚑</span> Moderation Queue
+        </div>
         <div class="sidebar-nav-item" data-panel="adminListings" onclick="switchPanel('adminListings',this)">
           <span class="nav-icon">⊟</span> All Listings
         </div>
@@ -1370,6 +1384,38 @@
       </div>
 
       <!-- ══════════════════════════════════════════════
+         PANEL: ADMIN — MODERATION QUEUE
+    ══════════════════════════════════════════════ -->
+      <div class="dash-panel" id="panel-moderation">
+        <div class="panel-header">
+          <div class="panel-header-tag">Administration</div>
+          <h1>Moderation <em>Queue</em></h1>
+          <p>Review and approve new property listings before they go live.</p>
+        </div>
+        <div class="panel-body">
+          <div class="admin-table-wrap">
+            <div style="overflow-x:auto;">
+              <table class="data-table" id="moderationTable">
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Owner</th>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>Submitted</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="moderationTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
          PANEL: ADMIN — ALL LISTINGS
     ══════════════════════════════════════════════ -->
       <div class="dash-panel" id="panel-adminListings">
@@ -1496,6 +1542,7 @@
       if (id === 'mylistings') fetchMyListings();
       if (id === 'adminUsers') fetchAdminUsers();
       if (id === 'adminListings' || id === 'adminStats') fetchAdminListings();
+      if (id === 'moderation') fetchModerationQueue();
       if (id === 'inquiries') loadInquiries();
     }
 
@@ -1522,26 +1569,33 @@
       if (isAdmin) {
         document.getElementById('welcomeSub').textContent = "Welcome back, Admin. Here's the platform at a glance.";
         try {
-          const res = await fetch(window.API_BASE + '/user/admin/stats', { credentials: 'include' });
-          const stats = res.ok ? await res.json() : { usersCount:0, verifiedUsers:0, totalListings:0, totalInquiries:0 };
-          const pending = stats.usersCount - stats.verifiedUsers; // Approximation for pending
+          const [resStats, resPending] = await Promise.all([
+            fetch(window.API_BASE + '/user/admin/stats', { credentials: 'include' }),
+            fetch(window.API_BASE + '/listings/admin/pending', { credentials: 'include' })
+          ]);
+          const stats = resStats.ok ? await resStats.json() : { usersCount:0, verifiedUsers:0, totalListings:0, totalInquiries:0 };
+          const pendingListings = resPending.ok ? await resPending.json() : [];
+          const pendingCount = pendingListings.length;
 
           statsHtml = `<div class="stats-row cols-4">
         <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value gold">${stats.usersCount}</div><div class="stat-sub">on the platform</div></div>
-        <div class="stat-card accent-green"><div class="stat-label">Active Listings</div><div class="stat-value green">${stats.totalListings}</div><div class="stat-sub">properties live</div></div>
-        <div class="stat-card"><div class="stat-label">Total Inquiries</div><div class="stat-value">${stats.totalInquiries}</div><div class="stat-sub">messages & requests</div></div>
+        <div class="stat-card accent-green"><div class="stat-label">Live Listings</div><div class="stat-value green">${stats.totalListings}</div><div class="stat-sub">approved & public</div></div>
+        <div class="stat-card ${pendingCount > 0 ? 'accent-muted' : ''}"><div class="stat-label">Pending Review</div><div class="stat-value" style="${pendingCount > 0 ? 'color:#c89600' : ''}">${pendingCount}</div><div class="stat-sub">listings awaiting approval</div></div>
         <div class="stat-card accent-muted"><div class="stat-label">Verified Users</div><div class="stat-value">${stats.verifiedUsers}</div><div class="stat-sub">trusted accounts</div></div>
       </div>`;
           actionsHtml = `<div class="section-heading"><span>Quick Admin Actions</span></div>
-        <div class="quick-actions" style="grid-template-columns:repeat(4,1fr)">
+        <div class="quick-actions" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
           <div class="quick-action" onclick="switchPanel('adminUsers',document.querySelector('[data-panel=adminUsers]'))">
-            <div class="qa-icon">◉</div><div class="qa-title">Review Verifications</div><div class="qa-sub">Manage users</div>
+            <div class="qa-icon">◉</div><div class="qa-title">User Management</div><div class="qa-sub">Verify accounts</div>
+          </div>
+          <div class="quick-action ${pendingCount > 0 ? 'accent-muted' : ''}" onclick="switchPanel('moderation',document.querySelector('[data-panel=moderation]'))">
+            <div class="qa-icon">⚑</div><div class="qa-title">Moderation Queue</div><div class="qa-sub">${pendingCount > 0 ? `${pendingCount} awaiting review` : 'All clear'}</div>
           </div>
           <div class="quick-action" onclick="switchPanel('adminListings',document.querySelector('[data-panel=adminListings]'))">
-            <div class="qa-icon">⊟</div><div class="qa-title">Manage Listings</div><div class="qa-sub">${stats.totalListings} properties</div>
+            <div class="qa-icon">⊟</div><div class="qa-title">All Listings</div><div class="qa-sub">${stats.totalListings} live</div>
           </div>
           <div class="quick-action" onclick="switchPanel('adminStats',document.querySelector('[data-panel=adminStats]'))">
-            <div class="qa-icon">◈</div><div class="qa-title">Platform Stats</div><div class="qa-sub">View full overview</div>
+            <div class="qa-icon">◈</div><div class="qa-title">Platform Stats</div><div class="qa-sub">Full overview</div>
           </div>
           <div class="quick-action" onclick="switchPanel('profile',document.querySelector('[data-panel=profile]'))">
             <div class="qa-icon">◎</div><div class="qa-title">Edit Profile</div><div class="qa-sub">Admin settings</div>
@@ -1601,14 +1655,48 @@
       }
 
       activityHtml = `<div class="section-heading" style="margin-top:8px;"><span>Recent Activity</span></div>
-    <div class="activity-feed">
-      <div class="activity-item"><div class="activity-dot"></div><div><div class="activity-text">You signed in to your NestIQ account.</div><div class="activity-time">Just now</div></div></div>
-      <div class="activity-item"><div class="activity-dot" style="background:var(--accent)"></div><div><div class="activity-text">Profile loaded from server.</div><div class="activity-time">Just now</div></div></div>
+    <div class="activity-feed" id="activityFeedList">
+      <div class="activity-item"><div class="activity-dot"></div><div><div class="activity-text" style="color:var(--text-muted)">Loading activity…</div></div></div>
     </div>`;
 
       document.getElementById('overviewStats').innerHTML = statsHtml;
       document.getElementById('overviewActions').innerHTML = actionsHtml;
       document.getElementById('overviewActivity').innerHTML = activityHtml;
+      loadActivityFeed();
+    }
+
+    // ── ACTIVITY FEED ─────────────────────────────────────────
+    async function loadActivityFeed() {
+      const el = document.getElementById('activityFeedList');
+      if (!el) return;
+      try {
+        const res = await fetch(window.API_BASE + '/activity', { credentials: 'include' });
+        const events = res.ok ? await res.json() : [];
+        if (!events.length) {
+          el.innerHTML = `<div class="activity-item"><div class="activity-dot"></div><div><div class="activity-text" style="color:var(--text-muted)">No activity yet. Start by browsing listings!</div></div></div>`;
+          return;
+        }
+        const dotColor = { listing_created: 'var(--brand)', listing_saved: '#c89600', listing_unsaved: 'var(--text-muted)', inquiry_sent: 'var(--accent)', inquiry_received: 'var(--brand)', nid_uploaded: '#4a6741' };
+        el.innerHTML = events.map(e => {
+          const color = dotColor[e.type] || 'var(--brand)';
+          const when = timeAgo(new Date(e.createdAt));
+          return `<div class="activity-item">
+            <div class="activity-dot" style="background:${color}"></div>
+            <div><div class="activity-text">${e.description}</div><div class="activity-time">${when}</div></div>
+          </div>`;
+        }).join('');
+      } catch (_) {
+        if (el) el.innerHTML = `<div class="activity-item"><div class="activity-dot"></div><div><div class="activity-text" style="color:var(--text-muted)">Could not load activity.</div></div></div>`;
+      }
+    }
+
+    function timeAgo(date) {
+      const s = Math.floor((Date.now() - date) / 1000);
+      if (s < 60) return 'Just now';
+      if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+      if (s < 86400) return `${Math.floor(s / 3600)} hr ago`;
+      if (s < 604800) return `${Math.floor(s / 86400)} day${Math.floor(s / 86400) > 1 ? 's' : ''} ago`;
+      return date.toLocaleDateString();
     }
 
     // ── PROFILE ───────────────────────────────────────────────
@@ -1783,6 +1871,11 @@
           <div class="my-prop-price">৳ ${price}</div>
           <div class="my-prop-title">${p.title}</div>
           <div class="my-prop-loc">📍 ${p.area}, ${p.city}</div>
+          <div style="margin-bottom:8px;">
+            ${p.status === 'pending' ? `<span class="pill" style="background:rgba(200,150,0,0.12);color:#c89600;font-size:11px;">⏳ Pending Review</span>` : ''}
+            ${p.status === 'rejected' ? `<span class="pill" style="background:rgba(180,60,60,0.12);color:#b43c3c;font-size:11px;">✕ Rejected${p.rejectionReason ? ': ' + p.rejectionReason : ''}</span>` : ''}
+            ${p.status === 'approved' ? `<span class="pill" style="background:rgba(74,103,65,0.12);color:#4a6741;font-size:11px;">✓ Live</span>` : ''}
+          </div>
           <div class="my-prop-actions">
             <button class="btn-dash btn-dash-primary" onclick="window.location.href='list.html?edit=${p._id}'">Edit</button>
             <button class="btn-dash btn-dash-outline" onclick="window.location.href='detail.html?id=${p._id}'">View</button>
@@ -1951,7 +2044,7 @@
     // ── ADMIN: LISTINGS ───────────────────────────────────────
     async function fetchAdminListings() {
       try {
-        const res = await fetch(window.API_BASE + '/listings');
+        const res = await fetch(window.API_BASE + '/listings/admin/all', { credentials: 'include' });
         _allListings = res.ok ? await res.json() : [];
         renderListingTable(_allListings);
         renderAdminStats(_allListings);
@@ -1967,13 +2060,19 @@
         let img = raw ? (raw.startsWith('http') ? raw : backendUrl + raw) : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=48&q=60';
         const price = Number(l.price || 0).toLocaleString('en-IN');
         const badgeClass = l.propertyType === 'rent' ? 'pill-owner' : 'pill-tenant';
+        const statusBadge = l.status === 'pending'
+          ? `<span class="pill" style="background:rgba(200,150,0,0.12);color:#c89600;margin-left:6px;font-size:10px;">Pending</span>`
+          : l.status === 'rejected'
+          ? `<span class="pill" style="background:rgba(180,60,60,0.12);color:#b43c3c;margin-left:6px;font-size:10px;">Rejected</span>`
+          : '';
         return `<tr>
-      <td><div style="display:flex;align-items:center;gap:12px;"><img src="${img}" class="listing-row-img" alt="${l.title}" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=48&q=60'"/><div><div style="font-weight:500;font-size:13px;">${l.title}</div><div style="font-size:11px;color:var(--text-muted);">${l.bedrooms} bed · ${l.bathrooms} bath · ${l.sqft} sqft</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:12px;"><img src="${img}" class="listing-row-img" alt="${l.title}" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=48&q=60'"/><div><div style="font-weight:500;font-size:13px;">${l.title}${statusBadge}</div><div style="font-size:11px;color:var(--text-muted);">${l.bedrooms} bed · ${l.bathrooms} bath · ${l.sqft} sqft</div></div></div></td>
       <td><span class="pill ${badgeClass}">${l.propertyType === 'rent' ? 'Rent' : 'Sale'}</span></td>
       <td style="font-family:'Cormorant Garamond',serif;font-size:16px;">৳ ${price}</td>
       <td style="font-size:12px;color:var(--text-muted);">${l.area}, ${l.city}</td>
-      <td style="display:flex;gap:8px;">
+      <td style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn-dash btn-dash-outline" onclick="window.location.href='detail.html?id=${l._id}'">View</button>
+        ${l.status !== 'approved' ? `<button class="btn-dash btn-dash-green" onclick="approveAdminListing('${l._id}')">Approve</button>` : ''}
         <button class="btn-dash btn-dash-danger" onclick="adminDeleteListing('${l._id}')">Delete</button>
       </td>
     </tr>`;
@@ -2004,6 +2103,61 @@
       });
       if (res.ok) { showNotif('✓ Listing deleted'); fetchAdminListings(); loadOverview(); }
       else showNotif('Failed to delete listing');
+    }
+
+    async function approveAdminListing(id) {
+      const res = await fetch(`${window.API_BASE}/listings/${id}/approve`, {
+        method: 'PUT', credentials: 'include'
+      });
+      if (res.ok) { showNotif('✓ Listing approved and now live'); fetchAdminListings(); fetchModerationQueue(); loadOverview(); }
+      else showNotif('Failed to approve listing');
+    }
+
+    async function rejectAdminListing(id) {
+      const reason = prompt('Rejection reason (optional):') || '';
+      const res = await fetch(`${window.API_BASE}/listings/${id}/reject`, {
+        method: 'PUT', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      if (res.ok) { showNotif('Listing rejected'); fetchModerationQueue(); }
+      else showNotif('Failed to reject listing');
+    }
+
+    async function fetchModerationQueue() {
+      const tbody = document.getElementById('moderationTableBody');
+      if (!tbody) return;
+      try {
+        const res = await fetch(window.API_BASE + '/listings/admin/pending', { credentials: 'include' });
+        const pending = res.ok ? await res.json() : [];
+        if (!pending.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">No listings awaiting review.</td></tr>';
+          return;
+        }
+        const backendUrl = window.API_BASE ? window.API_BASE.replace('/api', '') : 'http://localhost:5000';
+        tbody.innerHTML = pending.map(l => {
+          let raw = l.image || (l.images && l.images.length ? l.images[0] : null);
+          let img = raw ? (raw.startsWith('http') ? raw : backendUrl + raw) : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=48&q=60';
+          const price = Number(l.price || 0).toLocaleString('en-IN');
+          const ownerName = l.owner ? `${l.owner.firstName} ${l.owner.lastName}` : 'Unknown';
+          const ownerEmail = l.owner ? l.owner.email : '';
+          const submitted = new Date(l.createdAt).toLocaleDateString();
+          return `<tr>
+            <td><div style="display:flex;align-items:center;gap:12px;"><img src="${img}" class="listing-row-img" alt="${l.title}" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=48&q=60'"/><div><div style="font-weight:500;font-size:13px;">${l.title}</div><div style="font-size:11px;color:var(--text-muted);">${l.bedrooms} bed · ${l.sqft} sqft · ${l.area}, ${l.city}</div></div></div></td>
+            <td><div style="font-size:13px;">${ownerName}</div><div style="font-size:11px;color:var(--text-muted);">${ownerEmail}</div></td>
+            <td><span class="pill ${l.propertyType === 'rent' ? 'pill-owner' : 'pill-tenant'}">${l.propertyType === 'rent' ? 'Rent' : 'Sale'}</span></td>
+            <td style="font-family:'Cormorant Garamond',serif;font-size:16px;">৳ ${price}</td>
+            <td style="font-size:12px;color:var(--text-muted);">${submitted}</td>
+            <td style="display:flex;gap:8px;">
+              <button class="btn-dash btn-dash-outline" onclick="window.open('detail.html?id=${l._id}','_blank')">Preview</button>
+              <button class="btn-dash btn-dash-green" onclick="approveAdminListing('${l._id}')">Approve</button>
+              <button class="btn-dash btn-dash-danger" onclick="rejectAdminListing('${l._id}')">Reject</button>
+            </td>
+          </tr>`;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Failed to load moderation queue.</td></tr>';
+      }
     }
 
     function renderAdminStats(listings) {

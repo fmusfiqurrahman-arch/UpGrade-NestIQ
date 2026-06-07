@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const BlacklistedToken = require('../models/BlacklistedToken');
 
 // ── PROTECT MIDDLEWARE ────────────────────────────────────────
 // Reads JWT from:
@@ -23,6 +24,13 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Revocation check: reject tokens that have been explicitly logged out
+    const isRevoked = await BlacklistedToken.exists({ token });
+    if (isRevoked) {
+      return res.status(401).json({ message: 'Not authorized, token has been revoked' });
+    }
+
     // Attach user to request — exclude password field
     req.user = await User.findById(decoded.id).select('-password');
     if (!req.user) {

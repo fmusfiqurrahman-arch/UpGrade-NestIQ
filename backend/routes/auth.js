@@ -9,6 +9,7 @@ const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
 const Otp = require('../models/Otp');
+const BlacklistedToken = require('../models/BlacklistedToken');
 const { protect } = require('../middleware/auth');
 
 // ── COOKIE OPTIONS ────────────────────────────────────────────
@@ -232,13 +233,29 @@ router.post('/login', loginLimiter, [
 });
 
 // ── ROUTE: LOGOUT ──────────────────────────────────────────────
-// Clears the httpOnly cookie — the only way to properly log out
-router.post('/logout', (req, res) => {
+// Clears the httpOnly cookie and blacklists the token so it can't be reused
+router.post('/logout', async (req, res) => {
+  const token = req.cookies && req.cookies.nestiq_token;
+
+  if (token) {
+    try {
+      const decoded = require('jsonwebtoken').decode(token);
+      if (decoded && decoded.exp) {
+        await BlacklistedToken.create({
+          token,
+          expiresAt: new Date(decoded.exp * 1000),
+        });
+      }
+    } catch (_) {
+      // Malformed token — safe to ignore, just clear the cookie
+    }
+  }
+
   res.cookie('nestiq_token', '', {
     httpOnly: true,
     secure: process.env.COOKIE_SECURE === 'true',
     sameSite: process.env.COOKIE_SECURE === 'true' ? 'strict' : 'lax',
-    expires: new Date(0), // Expire immediately
+    expires: new Date(0),
     path: '/',
   });
   res.json({ message: 'Logged out successfully.' });

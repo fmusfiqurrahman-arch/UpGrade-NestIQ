@@ -86,6 +86,7 @@ app.use('/api/listings', require('./routes/listings'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/inquiries', require('./routes/inquiries'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/activity', require('./routes/activity'));
 
 // ── IMAGE UPLOAD ROUTE ────────────────────────────────────────
 const { protect: protectUpload } = require('./middleware/auth');
@@ -105,7 +106,7 @@ app.post('/api/upload', protectUpload, upload.array('images', 15), (req, res) =>
 // ── SERVE FRONTEND (Production Setup) ─────────────────────────
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-app.get(/^(?!\/api\/)(.*)/, (req, res) => {
+app.get(/^(?!\/api)(.*)/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
