@@ -5,6 +5,7 @@ const Listing = require('../models/Listing');
 const User = require('../models/User');
 const Activity = require('../models/Activity');
 const { protect, admin } = require('../middleware/auth');
+const { makeCache, bustListingsCache } = require('../middleware/cache');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,77 +23,64 @@ const listingValidation = [
 ];
 
 // ── THE SMART IMAGE JANITOR ──────────────────────────────────
-// This helper physically deletes image files from the server
 const deleteImageFile = (imageUrl) => {
   if (!imageUrl || !imageUrl.includes('/uploads/')) return;
-  
   const filename = imageUrl.split('/uploads/')[1];
   if (filename) {
     const filepath = path.join(__dirname, '../uploads', filename);
     fs.unlink(filepath, (err) => {
       if (err) console.error("Janitor Failed to delete:", filepath, err.message);
-      else console.log("Janitor successfully cleaned up:", filename);
     });
   }
 };
 
-// 0. GET PLATFORM STATS
-router.get('/stats', async (req, res) => {
+// 0. GET PLATFORM STATS — cached 60s
+router.get('/stats', makeCache(60), async (req, res) => {
   try {
     const approvedFilter = { status: 'approved' };
-    const totalListings = await Listing.countDocuments(approvedFilter);
-    const forRent = await Listing.countDocuments({ ...approvedFilter, propertyType: 'rent' });
-    const forSale = await Listing.countDocuments({ ...approvedFilter, propertyType: 'sale' });
-    
-    const avgPriceResult = await Listing.aggregate([
-      { $match: approvedFilter },
-      { $group: { _id: null, avgPrice: { $avg: "$price" } } }
+    const [totalListings, forRent, forSale, avgPriceResult, usersCount, verifiedUsers] = await Promise.all([
+      Listing.countDocuments(approvedFilter),
+      Listing.countDocuments({ ...approvedFilter, propertyType: 'rent' }),
+      Listing.countDocuments({ ...approvedFilter, propertyType: 'sale' }),
+      Listing.aggregate([{ $match: approvedFilter }, { $group: { _id: null, avgPrice: { $avg: '$price' } } }]),
+      User.countDocuments(),
+      User.countDocuments({ isVerified: true }),
     ]);
-    const avgPrice = avgPriceResult.length > 0 ? Math.round(avgPriceResult[0].avgPrice) : 0;
-    
-    const usersCount = await User.countDocuments();
-    const verifiedUsers = await User.countDocuments({ isVerified: true });
-
     res.json({
       totalListings,
       forRent,
       forSale,
-      avgPrice,
+      avgPrice: avgPriceResult.length > 0 ? Math.round(avgPriceResult[0].avgPrice) : 0,
       usersCount,
-      verifiedUsers
+      verifiedUsers,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error: Could not fetch stats' });
   }
 });
 
-// 1. GET ALL LISTINGS
-router.get('/', async (req, res) => {
+// 1. GET ALL LISTINGS — cached 30s
+router.get('/', makeCache(30), async (req, res) => {
   try {
     const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit) || 12;
+    const limit = Math.min(parseInt(req.query.limit) || 12, 50); // Cap at 50 per page
 
-    // Only serve approved listings to the public
     const filter = { status: 'approved' };
     if (req.query.type) filter.propertyType = req.query.type;
-    
+
     let sortObj = { createdAt: -1 };
     if (req.query.sort === 'price-asc') sortObj = { price: 1 };
     if (req.query.sort === 'price-desc') sortObj = { price: -1 };
-    
+
     if (page) {
       const skip = (page - 1) * limit;
-      const total = await Listing.countDocuments(filter);
-      const listings = await Listing.find(filter).sort(sortObj).skip(skip).limit(limit);
-      res.json({
-        listings,
-        page,
-        totalPages: Math.ceil(total / limit),
-        totalListings: total
-      });
+      const [total, listings] = await Promise.all([
+        Listing.countDocuments(filter),
+        Listing.find(filter).sort(sortObj).skip(skip).limit(limit).lean(),
+      ]);
+      res.json({ listings, page, totalPages: Math.ceil(total / limit), totalListings: total });
     } else {
-      // Backwards compatible logic
-      const listings = await Listing.find(filter).sort(sortObj);
+      const listings = await Listing.find(filter).sort(sortObj).lean();
       res.json(listings);
     }
   } catch (error) {
@@ -103,7 +91,7 @@ router.get('/', async (req, res) => {
 // 2. GET MY LISTINGS
 router.get('/me', protect, async (req, res) => {
   try {
-    const myProperties = await Listing.find({ owner: req.user._id });
+    const myProperties = await Listing.find({ owner: req.user._id }).lean();
     res.json(myProperties);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch your properties' });
@@ -111,94 +99,70 @@ router.get('/me', protect, async (req, res) => {
 });
 
 // 2.5 GET AI MATCHES
+// Capped at 100 listings per request (was 500) — still accurate enough for scoring
 router.get('/matches', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('preferences').lean();
     const prefs = user.preferences || {};
-    
-    const listings = await Listing.find({ status: 'approved' }).limit(500).lean();
-    
+
+    const listings = await Listing.find({ status: 'approved' })
+      .select('_id title description price propertyType area city bedrooms bathrooms sqft image images amenities')
+      .limit(100)
+      .lean();
+
     const scoredListings = listings.map(p => {
-      let score = 50; // Base score
-      
-      // Intent Match — 'sale' and 'buy' are the same intent
+      let score = 50;
       const pIntent = (p.propertyType === 'sale' || p.propertyType === 'buy') ? 'buy' : 'rent';
       if (prefs.intent && prefs.intent !== 'any') {
         if (pIntent === prefs.intent) score += 20;
       } else {
         score += 10;
       }
-      
-      // Location Match — check area AND city since there's no single 'location' field
       if (prefs.location) {
         const searchLoc = prefs.location.toLowerCase();
-        const propArea = (p.area || '').toLowerCase();
-        const propCity = (p.city || '').toLowerCase();
-        if (propArea.includes(searchLoc) || propCity.includes(searchLoc)) {
-          score += 15;
-        }
+        if ((p.area || '').toLowerCase().includes(searchLoc) || (p.city || '').toLowerCase().includes(searchLoc)) score += 15;
       }
-      
-      // Budget Match
       if (prefs.maxPrice && prefs.maxPrice > 0 && p.price) {
-        if (p.price <= prefs.maxPrice) {
-          score += 10;
-        } else if (p.price <= prefs.maxPrice * 1.2) {
-          score += 5;
-        }
+        if (p.price <= prefs.maxPrice) score += 10;
+        else if (p.price <= prefs.maxPrice * 1.2) score += 5;
       }
-      
-      // Bedrooms Match
-      if (prefs.bedrooms && prefs.bedrooms > 0 && p.bedrooms) {
-        if (p.bedrooms >= prefs.bedrooms) {
-          score += 5;
-        }
-      }
-      
-      // Add deterministic jitter (0-4) based on ID for organic variation
+      if (prefs.bedrooms && prefs.bedrooms > 0 && p.bedrooms >= prefs.bedrooms) score += 5;
       let seed = 0;
       const idStr = String(p._id);
-      for(let i=0; i<idStr.length; i++) seed += idStr.charCodeAt(i);
-      score += (seed % 5);
-      score = Math.min(score, 99);
-      
+      for (let i = 0; i < idStr.length; i++) seed += idStr.charCodeAt(i);
+      score = Math.min(score + (seed % 5), 99);
       return { ...p, matchScore: score };
     });
-    
-    // Sort by descending match score
+
     scoredListings.sort((a, b) => b.matchScore - a.matchScore);
-    
-    // Return top matches
     res.json(scoredListings.slice(0, 12));
   } catch (error) {
     res.status(500).json({ message: 'Failed to generate matches' });
   }
 });
 
-// 3. GET A SINGLE LISTING (only approved, unless the requester is the owner or admin)
-router.get('/:id', async (req, res) => {
+// 3. GET A SINGLE LISTING — cached 60s (public), no cache for private access
+router.get('/:id', makeCache(60), async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id).lean();
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
 
-    // Unapproved listings are only visible to their owner or admins
     if (listing.status !== 'approved') {
-      // Decode token if present
       let requesterId = null;
       let requesterRole = null;
       const token = (req.cookies && req.cookies.nestiq_token) ||
-        (req.headers.authorization && req.headers.authorization.startsWith('Bearer') ? req.headers.authorization.split(' ')[1] : null);
+        (req.headers.authorization && req.headers.authorization.startsWith('Bearer')
+          ? req.headers.authorization.split(' ')[1] : null);
       if (token) {
         try {
           const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
           requesterId = decoded.id;
-          const u = await require('../models/User').findById(decoded.id).select('role');
+          const u = await User.findById(decoded.id).select('role').lean();
           if (u) requesterRole = u.role;
         } catch (_) {}
       }
-      const isOwner = requesterId && listing.owner.toString() === String(requesterId);
-      const isAdmin = requesterRole === 'admin';
-      if (!isOwner && !isAdmin) {
+      const isOwner = requesterId && String(listing.owner) === String(requesterId);
+      if (!isOwner && requesterRole !== 'admin') {
         return res.status(404).json({ message: 'Listing not found' });
       }
     }
@@ -211,14 +175,10 @@ router.get('/:id', async (req, res) => {
 
 // 4. CREATE A LISTING
 router.post('/', protect, listingValidation, async (req, res) => {
-  // Reject if validation failed
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
 
   try {
-    // Only pick known fields — never pass raw req.body directly to the DB
     const listingData = {
       title: req.body.title,
       description: req.body.description,
@@ -237,6 +197,7 @@ router.post('/', protect, listingValidation, async (req, res) => {
       owner: req.user._id,
     };
     const newListing = await Listing.create(listingData);
+    bustListingsCache();
 
     setImmediate(() => Activity.create({
       user: req.user._id,
@@ -251,61 +212,51 @@ router.post('/', protect, listingValidation, async (req, res) => {
   }
 });
 
-// 5. UPDATE A LISTING (Includes Smart Janitor)
+// 5. UPDATE A LISTING
 router.put('/:id', protect, listingValidation, async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
 
   try {
     let listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
 
-    // Security Check: Must be the Owner OR an Admin
     if (listing.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access Denied: You cannot edit this property' });
     }
 
-    // Janitor: If the user updated the images array, delete the photos they removed
     if (req.body.images && Array.isArray(req.body.images)) {
-      const newImages = req.body.images;
       const oldImages = listing.images || [];
-      oldImages.filter(img => !newImages.includes(img)).forEach(deleteImageFile);
+      oldImages.filter(img => !req.body.images.includes(img)).forEach(deleteImageFile);
     }
 
-    // Whitelist fields — never pass raw req.body (prevents owner hijack / field injection)
     const allowed = {};
-    const fields = ['title','description','price','priceUnit','area','city','propertyType','bedrooms','bathrooms','sqft','image','images','amenities','rules'];
-    fields.forEach(f => { if (req.body[f] !== undefined) allowed[f] = req.body[f]; });
+    ['title','description','price','priceUnit','area','city','propertyType','bedrooms','bathrooms','sqft','image','images','amenities','rules']
+      .forEach(f => { if (req.body[f] !== undefined) allowed[f] = req.body[f]; });
 
     listing = await Listing.findByIdAndUpdate(req.params.id, allowed, { new: true });
+    bustListingsCache();
     res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Failed to update property' });
   }
 });
 
-// 6. DELETE A LISTING (The Ultimate Janitor)
+// 6. DELETE A LISTING
 router.delete('/:id', protect, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id);
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
 
-    // Security Check: Must be the Owner OR an Admin
     if (listing.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access Denied: You cannot delete this property' });
     }
 
-    // Janitor: Delete ALL photos associated with this listing from the server!
-    if (listing.images && listing.images.length > 0) {
-      listing.images.forEach(deleteImageFile);
-    }
-
+    if (listing.images && listing.images.length > 0) listing.images.forEach(deleteImageFile);
     await listing.deleteOne();
+    bustListingsCache();
     res.json({ message: 'Listing and all associated photos were successfully deleted' });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Server Error during deletion' });
   }
 });
@@ -315,7 +266,8 @@ router.get('/admin/all', protect, admin, async (req, res) => {
   try {
     const listings = await Listing.find({})
       .populate('owner', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(listings);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -327,14 +279,15 @@ router.get('/admin/pending', protect, admin, async (req, res) => {
   try {
     const listings = await Listing.find({ status: 'pending' })
       .populate('owner', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(listings);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
 });
 
-// 8. ADMIN: APPROVE A LISTING
+// 9. ADMIN: APPROVE A LISTING
 router.put('/:id/approve', protect, admin, async (req, res) => {
   try {
     const listing = await Listing.findByIdAndUpdate(
@@ -343,13 +296,14 @@ router.put('/:id/approve', protect, admin, async (req, res) => {
       { new: true }
     );
     if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    bustListingsCache();
     res.json(listing);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
 });
 
-// 9. ADMIN: REJECT A LISTING
+// 10. ADMIN: REJECT A LISTING
 router.put('/:id/reject', protect, admin, async (req, res) => {
   try {
     const reason = (req.body.reason || '').trim().slice(0, 500);
