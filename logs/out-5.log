@@ -620,3 +620,6 @@
 2026-06-08 03:13:55: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 03:14:01: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 2026-06-08 03:14:08: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:14:15: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:14:22: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:14:29: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]

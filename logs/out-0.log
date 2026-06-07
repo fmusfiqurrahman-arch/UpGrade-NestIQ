@@ -593,3 +593,7 @@
 2026-06-08 03:13:48: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
 2026-06-08 03:13:55: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 2026-06-08 03:14:02: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:14:09: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:14:16: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:14:23: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:14:30: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }

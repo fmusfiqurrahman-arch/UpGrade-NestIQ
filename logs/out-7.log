@@ -614,3 +614,7 @@
 2026-06-08 03:13:49: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 03:13:56: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 03:14:03: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:14:10: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:14:17: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:14:24: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:14:31: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
