@@ -610,3 +610,4 @@
 2026-06-08 03:14:21: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
 2026-06-08 03:14:27: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 2026-06-08 03:14:34: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:14:41: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }

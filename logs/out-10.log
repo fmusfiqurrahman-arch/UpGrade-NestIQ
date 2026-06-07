@@ -617,3 +617,4 @@
 2026-06-08 03:14:20: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 03:14:27: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 03:14:34: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:14:41: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]

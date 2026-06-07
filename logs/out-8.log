@@ -590,3 +590,4 @@
 2026-06-08 03:14:17: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 2026-06-08 03:14:24: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 2026-06-08 03:14:31: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:14:38: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }

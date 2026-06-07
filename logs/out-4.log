@@ -607,3 +607,4 @@
 2026-06-08 03:14:20: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 03:14:27: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 03:14:34: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:14:41: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }

@@ -610,3 +610,5 @@
 2026-06-08 03:14:16: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 03:14:23: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 03:14:30: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:14:37: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:14:44: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]

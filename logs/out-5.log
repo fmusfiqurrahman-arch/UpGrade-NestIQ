@@ -623,3 +623,5 @@
 2026-06-08 03:14:15: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 03:14:22: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 03:14:29: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:14:36: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:14:43: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
