@@ -578,3 +578,17 @@
 2026-06-08 03:09:42: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 03:09:48: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 03:09:54: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:10:01: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:10:13: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:10:19: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:10:29: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 03:10:38: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:10:45: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:10:52: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:10:57: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:11:04: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:11:11: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:17: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 03:11:24: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:11:31: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:39: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]

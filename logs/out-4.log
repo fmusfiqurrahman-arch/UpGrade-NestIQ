@@ -564,3 +564,19 @@
 2026-06-08 03:09:41: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
 2026-06-08 03:09:47: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 2026-06-08 03:09:53: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:10:00: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:10:10: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:10:17: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:10:24: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:10:29: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:10:36: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:10:43: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:10:49: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:10:54: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:11:01: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:11:08: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:11:15: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:11:21: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:11:29: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:37: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:44: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]

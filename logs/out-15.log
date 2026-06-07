@@ -571,3 +571,18 @@
 2026-06-08 03:09:42: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
 2026-06-08 03:09:48: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
 2026-06-08 03:09:55: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 03:10:01: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:10:14: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:10:19: ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-08 03:10:29: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:10:36: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 03:10:42: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:10:48: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-08 03:10:54: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:01: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+2026-06-08 03:11:07: ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-06-08 03:11:14: ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-06-08 03:11:20: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-08 03:11:29: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-08 03:11:36: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-08 03:11:44: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
