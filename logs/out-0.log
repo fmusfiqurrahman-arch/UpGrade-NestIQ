@@ -1382,3 +1382,10 @@
 2026-06-08 04:42:27: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 04:42:36: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:42:46: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+2026-06-12 02:34:41: ◇ injected env (7) from backend\.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-12 02:34:43: 🚀 NestIQ server running on port 5000
+2026-06-12 02:34:43: 🛡️  Helmet security headers: ON
+2026-06-12 02:34:43: ⚡ Gzip compression: ON
+2026-06-12 02:34:43: 🍪 Cookie parser: ON
+2026-06-12 02:34:43: 🔒 Rate limiting: ON (150 req/min general, 30/15min for writes)
+2026-06-12 02:34:45: ✅ MongoDB Connected: ac-xq7poi6-shard-00-01.jb1raqw.mongodb.net

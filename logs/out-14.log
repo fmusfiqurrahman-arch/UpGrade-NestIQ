@@ -1418,3 +1418,9 @@
 2026-06-08 04:42:27: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:42:36: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
 2026-06-08 04:42:46: ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-06-12 02:34:43: ◇ injected env (7) from backend\.env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-06-12 02:34:46: 🚀 NestIQ server running on port 5000
+2026-06-12 02:34:46: 🛡️  Helmet security headers: ON
+2026-06-12 02:34:46: ⚡ Gzip compression: ON
+2026-06-12 02:34:46: 🍪 Cookie parser: ON
+2026-06-12 02:34:46: 🔒 Rate limiting: ON (150 req/min general, 30/15min for writes)

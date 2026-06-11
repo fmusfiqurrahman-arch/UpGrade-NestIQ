@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -33,6 +33,7 @@ app.use(helmet({
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "https://unpkg.com",
+        "https://accounts.google.com",
       ],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "http:", "blob:"],

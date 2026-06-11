@@ -293,6 +293,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── SCROLL REVEAL ANIMATIONS (BULLETPROOF) ──────────
 window.addEventListener('DOMContentLoaded', () => {
   // Inject Compare Drawer HTML
+  if (location.pathname.includes('login_signup.html')) return;
   if(!document.getElementById('compareDrawer')){
     const drawerHtml = `
       <div id="compareDrawer">

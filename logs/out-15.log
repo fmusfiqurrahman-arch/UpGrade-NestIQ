@@ -1386,3 +1386,5 @@
 2026-06-08 04:42:44: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 2026-06-08 04:42:49: ◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
 2026-06-08 04:42:51: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-06-12 02:34:43: ◇ injected env (7) from backend\.env // tip: ⌘ suppress logs { quiet: true }
+2026-06-12 02:34:46: 🚀 NestIQ server running on port 5000

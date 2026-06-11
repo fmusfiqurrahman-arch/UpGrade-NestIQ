@@ -1416,3 +1416,9 @@
 2026-06-08 04:42:36: ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 2026-06-08 04:42:45: ◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 2026-06-08 04:42:53: ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-06-12 02:34:43: ◇ injected env (7) from backend\.env // tip: ⌘ override existing { override: true }
+2026-06-12 02:34:45: 🚀 NestIQ server running on port 5000
+2026-06-12 02:34:45: 🛡️  Helmet security headers: ON
+2026-06-12 02:34:45: ⚡ Gzip compression: ON
+2026-06-12 02:34:45: 🍪 Cookie parser: ON
+2026-06-12 02:34:45: 🔒 Rate limiting: ON (150 req/min general, 30/15min for writes)
