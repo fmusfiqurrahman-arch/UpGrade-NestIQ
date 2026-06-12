@@ -77,13 +77,13 @@ const sendEmail = async ({ to, subject, html }) => {
 // ── RATE LIMITERS ─────────────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 100,
   message: { message: 'Too many login attempts. Please try again after 15 minutes.' },
 });
 
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 100,
   message: { message: 'Too many OTP requests. Please try again later.' },
 });
 

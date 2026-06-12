@@ -667,10 +667,15 @@ html.dark .left-stat-val {
 // ── TOAST ──
 function showNotif(msg) {
   const n = document.getElementById('notif');
+  if (!n) return;
   n.textContent = msg;
+  n.classList.add('show');
   n.style.transform = 'translateX(-50%) translateY(0)';
   clearTimeout(n._t);
-  n._t = setTimeout(() => n.style.transform = 'translateX(-50%) translateY(100px)', 3500);
+  n._t = setTimeout(() => {
+    n.classList.remove('show');
+    n.style.transform = 'translateX(-50%) translateY(100px)';
+  }, 3500);
 }
 
 // ── TAB SWITCHER ──
